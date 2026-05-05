@@ -1,24 +1,10 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  projectId: "gen-lang-client-0416312455",
-  appId: "1:702005695603:web:e1f151e1196c3fdba8c606",
-  apiKey: "AIzaSyCWv7U_z8RWYB1pG5oveK9lP1bKCcmu4Ks",
-  authDomain: "gen-lang-client-0416312455.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-6d408628-d32c-4de8-8b94-e0d99094b94f",
-  storageBucket: "gen-lang-client-0416312455.firebasestorage.app",
-  messagingSenderId: "702005695603",
-  measurementId: ""
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// App ke baaki hisso ke liye Auth aur Database export kar rahe hain
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export default app;
+{
+  "projectId": "gen-lang-client-0416312455",
+  "appId": "1:702005695603:web:e1f151e1196c3fdba8c606",
+  "apiKey": "AIzaSyCWv7U_z8RWYB1pG5oveK9lP1bKCcmu4Ks",
+  "authDomain": "gen-lang-client-0416312455.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-6d408628-d32c-4de8-8b94-e0d99094b94f",
+  "storageBucket": "gen-lang-client-0416312455.firebasestorage.app",
+  "messagingSenderId": "702005695603",
+  "measurementId": ""
+}
