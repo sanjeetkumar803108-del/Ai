@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Hind", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #008069;
+  --color-brand-dark: #005c4b;
+  --color-chat-bg: #e5ddd5;
+  --color-user-bubble: #dcf8c6;
+  --color-user-border: #c7e9b0;
+}
+
+:root {
+  --pb-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --pt-safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe-area-bottom {
+  padding-bottom: var(--pb-safe-area-bottom);
+}
+
+.pt-safe-area-top {
+  padding-top: var(--pt-safe-area-top);
+}
+
+body {
+  background-color: #f3f4f6;
+  overscroll-behavior-y: contain;
+}
+
+/* WhatsApp-like scrollbar hide for chat */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chat-pattern {
+  background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+  background-color: rgba(229, 221, 213, 0.4);
+}
+
+/* Typography polish */
+.prose {
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+.prose strong {
+  color: inherit;
+  font-weight: 700;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
