@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+    
+    function isValidUser(data) {
+      return data.keys().hasAll(['preferredLanguage']) &&
+             data.preferredLanguage is string &&
+             data.preferredLanguage in ['hi', 'en', 'hinglish'] &&
+             (data.get('name', '') is string) &&
+             (data.get('state', '') is string) &&
+             (data.get('isPremium', false) is bool) &&
+             (data.get('uid', request.auth.uid) == request.auth.uid);
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['schemeName', 'status', 'applicationId', 'updatedAt']) &&
+             data.schemeName is string && data.schemeName.size() < 200 &&
+             data.applicationId is string && data.applicationId.size() < 100 &&
+             data.status in ['Submitted', 'Under Review', 'Approved', 'Rejected'] &&
+             data.updatedAt is int;
+    }
+
+    // --- Collections ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        // Prevent users from escalating their own premium status
+        (incoming().isPremium == existing().get('isPremium', false) || 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'state', 'preferredLanguage']))
+      );
+      
+      match /conversations/{convId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && 
+                              incoming().userId == userId &&
+                              incoming().title is string &&
+                              incoming().updatedAt is int;
+        allow delete: if isOwner(userId);
+
+        match /messages/{msgId} {
+          allow list, get: if isOwner(userId);
+          allow create: if isOwner(userId) && 
+                        incoming().role in ['user', 'assistant'] &&
+                        incoming().content is string &&
+                        incoming().content.size() < 10000;
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      match /applications/{appId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidApplication(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

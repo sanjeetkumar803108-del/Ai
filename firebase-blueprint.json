@@ -14,6 +14,18 @@
       },
       "required": ["uid", "preferredLanguage"]
     },
+    "Conversation": {
+      "title": "Chat Conversation",
+      "description": "A conversation session containing multiple messages",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["userId", "title", "lastMessage", "updatedAt"]
+    },
     "ChatMessage": {
       "title": "Chat Message",
       "description": "A single message in a chat session",
@@ -25,6 +37,19 @@
         "timestamp": { "type": "integer" }
       },
       "required": ["userId", "role", "content", "timestamp"]
+    },
+    "Application": {
+      "title": "Scheme Application",
+      "description": "Details of a user's government scheme application",
+      "type": "object",
+      "properties": {
+        "schemeName": { "type": "string" },
+        "applicationId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Submitted", "Under Review", "Approved", "Rejected"] },
+        "updatedAt": { "type": "integer" },
+        "notes": { "type": "string" }
+      },
+      "required": ["schemeName", "applicationId", "status", "updatedAt"]
     }
   },
   "firestore": {
@@ -32,9 +57,17 @@
       "schema": "User",
       "description": "User profile data"
     },
-    "/users/{userId}/chats/{chatId}": {
+    "/users/{userId}/conversations/{convId}": {
+      "schema": "Conversation",
+      "description": "Metadata for a chat conversation"
+    },
+    "/users/{userId}/conversations/{convId}/messages/{msgId}": {
       "schema": "ChatMessage",
-      "description": "Individual chat messages for history"
+      "description": "Individual messages within a conversation"
+    },
+    "/users/{userId}/applications/{appId}": {
+      "schema": "Application",
+      "description": "List of government scheme applications tracked by the user"
     }
   }
 }

@@ -3,6 +3,7 @@ import { Scheme } from './types';
 export const SCHEMES: Scheme[] = [
   {
     id: 'pm-kisan',
+    mitraId: 'MITRA-STATIC-PMKISAN-001',
     name: 'PM Kisan Samman Nidhi',
     hindiName: 'PM किसान सम्मान निधि',
     description: 'Income support of ₹6,000 per year in three equal installments to all landholding farmer families.',
@@ -11,10 +12,13 @@ export const SCHEMES: Scheme[] = [
     benefits: ['₹2,000 every 4 months', 'Direct Benefit Transfer (DBT)'],
     documents: ['Aadhar Card', 'Land Records', 'Bank Account Details'],
     category: 'Agriculture',
-    officialUrl: 'https://pmkisan.gov.in/'
+    officialUrl: 'https://pmkisan.gov.in/',
+    image: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
   },
   {
     id: 'ayushman-bharat',
+    mitraId: 'MITRA-STATIC-PMJAY-002',
     name: 'Ayushman Bharat (PM-JAY)',
     hindiName: 'आयुष्मान भारत (PM-JAY)',
     description: 'Health cover of ₹5 lakh per family per year for secondary and tertiary care hospitalization.',
@@ -23,10 +27,13 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Cashless treatment', 'Covers pre and post hospitalization'],
     documents: ['Aadhar Card', 'Ration Card', 'PM Letter (if available)'],
     category: 'Health',
-    officialUrl: 'https://pmjay.gov.in/'
+    officialUrl: 'https://pmjay.gov.in/',
+    image: 'https://images.unsplash.com/photo-1576091160550-217359f42f8c?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
   },
   {
     id: 'ration-card',
+    mitraId: 'MITRA-STATIC-NFSA-003',
     name: 'Ration Card (NFSA)',
     hindiName: 'राशन कार्ड (राष्ट्रीय खाद्य सुरक्षा अधिनियम)',
     description: 'Subsidized food grains through the Public Distribution System (PDS).',
@@ -35,9 +42,12 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Rice, Wheat at low costs', 'Identity proof for other schemes'],
     documents: ['Aadhar Card', 'Address Proof', 'Income Certificate'],
     category: 'Social',
+    image: 'https://images.unsplash.com/photo-1594818378821-081162ba8299?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
   },
   {
     id: 'kanya-sumangala',
+    mitraId: 'MITRA-STATIC-KANYA-004',
     name: 'Mukhya Mantri Kanya Sumangala Yojana',
     hindiName: 'मुख्यमंत्री कन्या सुमंगला योजना',
     description: 'Financial assistance to girl children in Uttar Pradesh for education and health.',
@@ -46,10 +56,13 @@ export const SCHEMES: Scheme[] = [
     benefits: ['₹15,000 in total installments', 'Educational support'],
     documents: ['Aadhar Card', 'Birth Certificate', 'Income Certificate'],
     category: 'Social',
-    state: 'Uttar Pradesh'
+    state: 'Uttar Pradesh',
+    image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
   },
   {
     id: 'bihar-student-credit-card',
+    mitraId: 'MITRA-STATIC-BIHAR-005',
     name: 'Bihar Student Credit Card Scheme',
     hindiName: 'बिहार स्टूडेंट क्रेडिट कार्ड योजना',
     description: 'Education loan of up to ₹4 lakh for students of Bihar for higher education.',
@@ -58,7 +71,65 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Low interest loan', 'Covers tuition and living expenses'],
     documents: ['Aadhar Card', 'Marksheets', 'Valid ID'],
     category: 'Education',
-    state: 'Bihar'
+    state: 'Bihar',
+    image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'sukanya-samriddhi',
+    mitraId: 'MITRA-STATIC-SUKANYA-006',
+    name: 'Sukanya Samriddhi Yojana',
+    hindiName: 'सुकन्या समृद्धि योजना',
+    description: 'A small deposit scheme for the girl child to meet her education and marriage expenses.',
+    hindiDescription: 'बालिका की शिक्षा और विवाह के खर्चों को पूरा करने के लिए एक छोटी बचत योजना।',
+    eligibility: ['Parents of girl child below 10 years', 'Indian citizen'],
+    benefits: ['High interest rate', 'Tax benefits under 80C'],
+    documents: ['Birth Certificate', 'Identity Proof', 'Address Proof'],
+    category: 'Finance',
+    image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'pm-surya-ghar',
+    mitraId: 'MITRA-STATIC-SURYA-007',
+    name: 'PM Surya Ghar: Muft Bijli Yojana',
+    hindiName: 'पीएम-सूर्य घर: मुफ्त बिजली योजना',
+    description: 'Free electricity scheme for households by installing rooftop solar panels.',
+    hindiDescription: 'छत पर सौर पैनल लगाकर घरों के लिए मुफ्त बिजली योजना।',
+    eligibility: ['Owns a house', 'Indian citizen'],
+    benefits: ['Up to 300 units free electricity', 'Subsidy on solar panels'],
+    documents: ['Electricity Bill', 'Property Documents', 'Aadhar Card'],
+    category: 'Finance',
+    image: 'https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'ujjwala-yojana',
+    mitraId: 'MITRA-STATIC-UJJWALA-008',
+    name: 'PM Ujjwala Yojana',
+    hindiName: 'पीएम उज्ज्वला योजना',
+    description: 'Free LPG connections to women from below poverty line (BPL) households.',
+    hindiDescription: 'गरीबी रेखा से नीचे (BPL) परिवारों की महिलाओं को मुफ्त LPG कनेक्शन।',
+    eligibility: ['Woman above 18 years', 'BPL family', 'No existing LPG connection'],
+    benefits: ['Free LPG connection', 'Cash assistance for stove and first refill'],
+    documents: ['Aadhar Card', 'BPL Certificate', 'Bank Passbook'],
+    category: 'Social',
+    image: 'https://images.unsplash.com/photo-1559027615-cd9d7a9bbc53?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'pm-svanidhi',
+    mitraId: 'MITRA-STATIC-SVANIDHI-009',
+    name: 'PM SVANidhi',
+    hindiName: 'पीएम स्वनिधि',
+    description: 'Micro-credit facility for street vendors to restart their livelihoods.',
+    hindiDescription: 'रेहड़ी-पटरी वालों को अपनी आजीविका फिर से शुरू करने के लिए सूक्ष्म ऋण सुविधा।',
+    eligibility: ['Street vendors', 'Urban or semi-urban areas'],
+    benefits: ['Collateral-free loan up to ₹50,000', 'Interest subsidy'],
+    documents: ['Vending Certificate', 'Aadhar Card', 'Bank Passbook'],
+    category: 'Finance',
+    image: 'https://images.unsplash.com/photo-1532622724791-782f06bfe861?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
   }
 ];
 
