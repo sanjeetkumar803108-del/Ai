@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PhoneOff, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { PhoneOff, Mic, MicOff, Volume2, VolumeX, MonitorDown, MonitorUp, StopCircle } from 'lucide-react';
 import { ai } from '../services/geminiService';
 import { Modality } from '@google/genai';
 
@@ -13,11 +13,16 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [volume, setVolume] = useState(0);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
   const sessionRef = useRef<any>(null);
   const audioWorkletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const captureIntervalRef = useRef<number | null>(null);
   
   // Audio Queue for playback
   const nextStartTimeRef = useRef<number>(0);
@@ -65,7 +70,7 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } },
           },
-          systemInstruction: "You are 'Form Mitra AI', a helpful assistant for Indian citizens. Speak in Hinglish. You are in a live voice call. Be concise and friendly.",
+          systemInstruction: "You are 'Form Mitra AI', a helpful assistant for Indian citizens. Speak in Hinglish. You are in a live voice call. When the user shares their screen, you will receive images of it. Use this visual context to help them fill forms, explain fields, or point out errors. Be concise and friendly.",
         },
       });
 
@@ -108,14 +113,100 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
         // Send to Gemini
         const base64Data = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
         sessionPromise.then(session => {
-          session.sendRealtimeInput({
-            audio: { data: base64Data, mimeType: 'audio/pcm;rate=16000' }
-          });
+          if (session) {
+            session.sendRealtimeInput({
+              audio: {
+                data: base64Data,
+                mimeType: 'audio/pcm;rate=16000'
+              }
+            });
+          }
         });
       };
     } catch (err) {
       console.error("Mic access denied:", err);
     }
+  };
+
+  const toggleScreenShare = async () => {
+    if (isScreenSharing) {
+      stopScreenShare();
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      alert("Screen sharing is not supported in this browser or environment. Make sure you are using HTTPS and the browser allows screen capture.");
+      return;
+    }
+
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: "always" } as any,
+        audio: false
+      });
+      
+      screenStreamRef.current = screenStream;
+      setIsScreenSharing(true);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = screenStream;
+        videoRef.current.play();
+      }
+
+      // Handle stream end (user clicks "Stop sharing" in browser)
+      screenStream.getTracks()[0].onended = () => {
+        stopScreenShare();
+      };
+
+      // Start frame capture loop
+      startFrameCapture();
+    } catch (err) {
+      console.error("Screen share failed:", err);
+      setIsScreenSharing(false);
+    }
+  };
+
+  const startFrameCapture = () => {
+    const captureFrame = () => {
+      if (!isScreenSharing || !canvasRef.current || !videoRef.current || !sessionRef.current) return;
+
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Set dimensions
+      canvas.width = 640; // Lower res for better performance
+      canvas.height = (video.videoHeight / video.videoWidth) * 640;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const base64Frame = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+
+      sessionRef.current.sendRealtimeInput({
+        image: {
+          data: base64Frame,
+          mimeType: 'image/jpeg'
+        }
+      });
+    };
+
+    // Capture every 2 seconds
+    captureIntervalRef.current = window.setInterval(captureFrame, 2000);
+  };
+
+  const stopScreenShare = () => {
+    if (captureIntervalRef.current) {
+      clearInterval(captureIntervalRef.current);
+      captureIntervalRef.current = null;
+    }
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop());
+      screenStreamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScreenSharing(false);
   };
 
   const playPCM = (base64Data: string) => {
@@ -151,6 +242,15 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+    }
+
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop());
+      screenStreamRef.current = null;
+    }
+
+    if (captureIntervalRef.current) {
+      clearInterval(captureIntervalRef.current);
     }
     
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
@@ -221,28 +321,38 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
         </div>
       </div>
 
-      <div className="flex gap-6 items-center">
+      <div className="flex gap-4 items-center">
         <button 
           onClick={() => setIsMuted(!isMuted)}
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
         >
-          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+          {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+        </button>
+
+        <button 
+          onClick={toggleScreenShare}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-blue-500 text-white animate-pulse' : 'bg-white/10 text-white hover:bg-white/20'}`}
+        >
+          {isScreenSharing ? <StopCircle className="w-5 h-5" /> : <MonitorUp className="w-5 h-5" />}
         </button>
 
         <button 
           onClick={onClose}
-          className="w-20 h-20 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 transition-all active:scale-95"
+          className="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:bg-red-700 transition-all active:scale-95"
         >
-          <PhoneOff className="w-8 h-8" />
+          <PhoneOff className="w-7 h-7" />
         </button>
 
         <button 
           onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${!isSpeakerOn ? 'bg-yellow-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${!isSpeakerOn ? 'bg-yellow-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
         >
-          {isSpeakerOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+          {isSpeakerOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </button>
       </div>
+
+      <video ref={videoRef} className="hidden" muted playsInline />
+      <canvas ref={canvasRef} className="hidden" />
 
       <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest mb-4">
         Hinglish AI Voice Assistant

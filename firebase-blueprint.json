@@ -6,10 +6,15 @@
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
+        "email": { "type": "string" },
         "name": { "type": "string" },
         "state": { "type": "string" },
+        "class": { "type": "string" },
+        "stream": { "type": "string", "enum": ["PCB", "PCM", "Commerce", "Arts", "Others"] },
         "preferredLanguage": { "type": "string", "enum": ["hi", "en", "hinglish"] },
         "isPremium": { "type": "boolean" },
+        "streak": { "type": "integer" },
+        "lastLogin": { "type": "integer" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "preferredLanguage"]
@@ -50,6 +55,20 @@
         "notes": { "type": "string" }
       },
       "required": ["schemeName", "applicationId", "status", "updatedAt"]
+    },
+    "Feedback": {
+      "title": "User Feedback",
+      "description": "Feedback submitted by users",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "type": { "type": "string", "enum": ["issue", "suggestion", "general"] },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "resolved"] },
+        "timestamp": { "type": "integer" }
+      },
+      "required": ["userId", "type", "content", "timestamp"]
     }
   },
   "firestore": {
@@ -68,6 +87,10 @@
     "/users/{userId}/applications/{appId}": {
       "schema": "Application",
       "description": "List of government scheme applications tracked by the user"
+    },
+    "/feedbacks/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "Feedback from all users"
     }
   }
 }

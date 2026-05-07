@@ -6,7 +6,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { cn } from '../lib/utils';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { LogIn, UserPlus, Globe } from 'lucide-react';
 
 export const AuthScreen = () => {

@@ -37,9 +37,41 @@ export type Scheme = {
 export type UserProfile = {
   name?: string;
   state?: string;
+  class?: string;
+  stream?: 'PCB' | 'PCM' | 'Commerce' | 'Arts' | 'Others';
   needs?: string;
   preferredLanguage: 'en' | 'hi' | 'hinglish';
   isPremium: boolean;
+  streak: number;
+  lastLogin?: number;
+  notificationsEnabled?: boolean;
+};
+
+export type AppNotification = {
+  id: string;
+  title: string;
+  body: string;
+  type: 'deadline' | 'status' | 'news';
+  timestamp: number;
+  read: boolean;
+  actionUrl?: string;
+};
+
+export type NewsItem = {
+  id: string;
+  title: string;
+  summary: string;
+  audioUrl?: string;
+  timestamp: number;
+  category: 'Scholarship' | 'Exam' | 'Scheme';
+};
+
+export type Quiz = {
+  id: string;
+  question: string;
+  options: string[];
+  answerIndex: number;
+  explanation: string;
 };
 
 export type TrackerApplication = {
@@ -49,4 +81,24 @@ export type TrackerApplication = {
   status: 'Submitted' | 'Under Review' | 'Approved' | 'Rejected';
   updatedAt: number;
   notes?: string;
+};
+
+export type UserDocument = {
+  id: string;
+  userId: string;
+  name: string;
+  type: string;
+  url: string;
+  expiryDate?: number;
+  uploadedAt: number;
+};
+
+export type UserFeedback = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  type: 'issue' | 'suggestion' | 'general';
+  content: string;
+  timestamp: number;
+  status: 'pending' | 'reviewed' | 'resolved';
 };

@@ -28,60 +28,123 @@ service cloud.firestore {
       return resource.data;
     }
 
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
     // --- Validation Blueprints ---
     
     function isValidUser(data) {
+      // Identity Integrity and strict schema
       return data.keys().hasAll(['preferredLanguage']) &&
+             (data.get('uid', request.auth.uid) == request.auth.uid) &&
              data.preferredLanguage is string &&
              data.preferredLanguage in ['hi', 'en', 'hinglish'] &&
-             (data.get('name', '') is string) &&
-             (data.get('state', '') is string) &&
+             (data.get('name', '') is string && data.get('name', '').size() <= 200) &&
+             (data.get('email', '') is string && data.get('email', '').size() <= 200) &&
+             (data.get('state', '') is string && data.get('state', '').size() <= 100) &&
+             (data.get('class', '') is string && data.get('class', '').size() <= 20) &&
+             (data.get('stream', '') is string && data.get('stream', '').size() <= 50) &&
              (data.get('isPremium', false) is bool) &&
-             (data.get('uid', request.auth.uid) == request.auth.uid);
+             (data.get('streak', 0) is int) &&
+             (data.get('lastLogin', 0) is int) &&
+             (data.get('needs', '') is string && data.get('needs', '').size() <= 2000);
     }
 
     function isValidApplication(data) {
       return data.keys().hasAll(['schemeName', 'status', 'applicationId', 'updatedAt']) &&
-             data.schemeName is string && data.schemeName.size() < 200 &&
-             data.applicationId is string && data.applicationId.size() < 100 &&
+             data.schemeName is string && data.schemeName.size() <= 200 &&
+             data.applicationId is string && data.applicationId.size() <= 100 &&
              data.status in ['Submitted', 'Under Review', 'Approved', 'Rejected'] &&
+             data.updatedAt is int &&
+             (data.get('notes', '') is string && data.get('notes', '').size() <= 5000);
+    }
+
+    function isValidConversation(data) {
+      return data.keys().hasAll(['userId', 'title', 'lastMessage', 'updatedAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 500 &&
+             data.lastMessage is string && data.lastMessage.size() <= 2000 &&
              data.updatedAt is int;
+    }
+
+    function isValidChatMessage(data, userId) {
+      return data.keys().hasAll(['userId', 'role', 'content', 'timestamp']) &&
+             data.userId == userId &&
+             data.role in ['user', 'assistant'] &&
+             data.content is string && data.content.size() <= 10000 &&
+             data.timestamp is int &&
+             (data.get('thought', '') is string || data.get('thought', null) == null);
+    }
+
+    function isValidUserDocument(data, userId) {
+      return data.keys().hasAll(['userId', 'name', 'type', 'url', 'uploadedAt']) &&
+             data.userId == userId &&
+             data.name is string && data.name.size() <= 200 &&
+             data.type is string && data.type.size() <= 100 &&
+             data.url is string && data.url.size() <= 1000 &&
+             data.uploadedAt is int &&
+             (data.get('expiryDate', 0) is int);
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['userId', 'type', 'content', 'timestamp']) &&
+             data.userId == request.auth.uid &&
+             data.type in ['issue', 'suggestion', 'general'] &&
+             data.content is string && data.content.size() <= 2000 &&
+             data.timestamp is int &&
+             (data.get('userEmail', '') is string && data.get('userEmail', '').size() <= 200) &&
+             (data.get('status', 'pending') == 'pending');
     }
 
     // --- Collections ---
 
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser(incoming());
-      allow update: if isOwner(userId) && isValidUser(incoming()) && (
-        // Prevent users from escalating their own premium status
-        (incoming().isPremium == existing().get('isPremium', false) || 
-         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'state', 'preferredLanguage']))
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isEmailVerified() && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isEmailVerified() && isValidUser(incoming()) && (
+        // Standard case: isPremium doesn't change
+        (incoming().isPremium == existing().get('isPremium', false)) ||
+        // Unlock Premium: can only change from false to true
+        (existing().get('isPremium', false) == false && incoming().isPremium == true)
       );
       
       match /conversations/{convId} {
-        allow list, get: if isOwner(userId);
-        allow create, update: if isOwner(userId) && 
-                              incoming().userId == userId &&
-                              incoming().title is string &&
-                              incoming().updatedAt is int;
-        allow delete: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(convId);
+        allow create: if isOwner(userId) && isValidId(convId) && isEmailVerified() && isValidConversation(incoming());
+        allow update: if isOwner(userId) && isValidId(convId) && isEmailVerified() && isValidConversation(incoming()) &&
+                        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'lastMessage', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(convId);
 
         match /messages/{msgId} {
-          allow list, get: if isOwner(userId);
-          allow create: if isOwner(userId) && 
-                        incoming().role in ['user', 'assistant'] &&
-                        incoming().content is string &&
-                        incoming().content.size() < 10000;
-          allow delete: if isOwner(userId);
+          allow list: if isOwner(userId);
+          allow get: if isOwner(userId) && isValidId(msgId);
+          allow create: if isOwner(userId) && isValidId(msgId) && isEmailVerified() && isValidChatMessage(incoming(), userId);
+          allow delete: if isOwner(userId) && isValidId(msgId);
         }
       }
 
       match /applications/{appId} {
-        allow list, get: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isValidApplication(incoming());
-        allow delete: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(appId);
+        allow create: if isOwner(userId) && isValidId(appId) && isEmailVerified() && isValidApplication(incoming());
+        allow update: if isOwner(userId) && isValidId(appId) && isEmailVerified() && isValidApplication(incoming()) &&
+                        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'notes']);
+        allow delete: if isOwner(userId) && isValidId(appId);
       }
+
+      match /documents/{docId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(docId);
+        allow create: if isOwner(userId) && isValidId(docId) && isEmailVerified() && isValidUserDocument(incoming(), userId);
+        allow delete: if isOwner(userId) && isValidId(docId);
+      }
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow create: if isSignedIn() && isValidId(feedbackId) && isValidFeedback(incoming());
+      allow list, get: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }
