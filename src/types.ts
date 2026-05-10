@@ -37,6 +37,10 @@ export type Scheme = {
 export type UserProfile = {
   name?: string;
   state?: string;
+  aadharNumber?: string;
+  aadharDocUrl?: string;
+  phoneNumber?: string;
+  address?: string;
   class?: string;
   stream?: 'PCB' | 'PCM' | 'Commerce' | 'Arts' | 'Others';
   needs?: string;
@@ -45,6 +49,10 @@ export type UserProfile = {
   streak: number;
   lastLogin?: number;
   notificationsEnabled?: boolean;
+  whatsappNumber?: string;
+  occupation?: 'Farmer' | 'Student' | 'Worker' | 'Unemployed' | 'Other';
+  hasCompletedTutorial?: boolean;
+  savedSchemeIds?: string[];
 };
 
 export type AppNotification = {
@@ -101,4 +109,13 @@ export type UserFeedback = {
   content: string;
   timestamp: number;
   status: 'pending' | 'reviewed' | 'resolved';
+};
+
+export type FormDraft = {
+  id: string;
+  userId: string;
+  formName: string;
+  formData: Record<string, string>;
+  formDefinition: any;
+  updatedAt: number;
 };

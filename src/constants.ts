@@ -42,6 +42,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Rice, Wheat at low costs', 'Identity proof for other schemes'],
     documents: ['Aadhar Card', 'Address Proof', 'Income Certificate'],
     category: 'Social',
+    officialUrl: 'https://nfsa.gov.in/',
     image: 'https://images.unsplash.com/photo-1594818378821-081162ba8299?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
@@ -57,7 +58,8 @@ export const SCHEMES: Scheme[] = [
     documents: ['Aadhar Card', 'Birth Certificate', 'Income Certificate'],
     category: 'Social',
     state: 'Uttar Pradesh',
-    image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop',
+    officialUrl: 'https://mksy.up.gov.in/',
+    image: 'https://images.unsplash.com/photo-1526644485127-d2970f64e172?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
   {
@@ -72,6 +74,7 @@ export const SCHEMES: Scheme[] = [
     documents: ['Aadhar Card', 'Marksheets', 'Valid ID'],
     category: 'Education',
     state: 'Bihar',
+    officialUrl: 'https://www.7nishchay-yuvaupmission.bihar.gov.in/',
     image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
@@ -86,6 +89,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['High interest rate', 'Tax benefits under 80C'],
     documents: ['Birth Certificate', 'Identity Proof', 'Address Proof'],
     category: 'Finance',
+    officialUrl: 'https://www.nsiindia.gov.in/',
     image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
@@ -100,6 +104,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Up to 300 units free electricity', 'Subsidy on solar panels'],
     documents: ['Electricity Bill', 'Property Documents', 'Aadhar Card'],
     category: 'Finance',
+    officialUrl: 'https://pmsuryaghar.gov.in/',
     image: 'https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
@@ -114,6 +119,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Free LPG connection', 'Cash assistance for stove and first refill'],
     documents: ['Aadhar Card', 'BPL Certificate', 'Bank Passbook'],
     category: 'Social',
+    officialUrl: 'https://www.pmuy.gov.in/',
     image: 'https://images.unsplash.com/photo-1559027615-cd9d7a9bbc53?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
@@ -128,6 +134,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Collateral-free loan up to ₹50,000', 'Interest subsidy'],
     documents: ['Vending Certificate', 'Aadhar Card', 'Bank Passbook'],
     category: 'Finance',
+    officialUrl: 'https://pmsvanidhi.mohua.gov.in/',
     image: 'https://images.unsplash.com/photo-1532622724791-782f06bfe861?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   }

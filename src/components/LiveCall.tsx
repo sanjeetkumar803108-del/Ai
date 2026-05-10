@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PhoneOff, Mic, MicOff, Volume2, VolumeX, MonitorDown, MonitorUp, StopCircle } from 'lucide-react';
 import { ai } from '../services/geminiService';
 import { Modality } from '@google/genai';
+import { floatTo16BitPCM, pcmToFloat32, base64ToUint8Array, uint8ArrayToBase64 } from '../lib/audio';
 
 interface LiveCallProps {
   onClose: () => void;
@@ -42,6 +43,9 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
         callbacks: {
           onopen: () => {
             setIsConnected(true);
+            if (audioContextRef.current?.state === 'suspended') {
+              audioContextRef.current.resume();
+            }
             startMicrophone(sessionPromise);
           },
           onmessage: async (message) => {
@@ -70,7 +74,15 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } },
           },
-          systemInstruction: "You are 'Form Mitra AI', a helpful assistant for Indian citizens. Speak in Hinglish. You are in a live voice call. When the user shares their screen, you will receive images of it. Use this visual context to help them fill forms, explain fields, or point out errors. Be concise and friendly.",
+          systemInstruction: `You are 'Mitra', a highly intelligent and empathetic Indian friend (Sathi). Speak in friendly Hinglish or Hindi like a helpful senior (Bade Bhai). 
+          
+          CORE SKILLS:
+          1. Form & Document Checker: Analyze the user's screen/images. Check for errors in NEET/JEE/NTA forms or certificates. Warn about wrong backgrounds (e.g., non-white background for passport photos), missing details, blurriness, or missing mandatory proofs (like caste certificates or income proofs).
+          2. Schemes & Subsidies Expert: Provide exact numbers (e.g., "₹8,500/hectare", "40% subsidy") and official portal links. 
+          3. Scam Alert Radar: If the user shows you a potential scam banner, SMS, or message, warn them AGGRESSIVELY AND LOUDLY: "ALERT: RUKIYE! YE EK SCAM HAI! (STOP! THIS IS A SCAM!)"
+          4. Screen Navigation: Guide them through portals. Be concise and encouraging. 
+          
+          Motto: "Zindagi ki mushkilon mein, Mitra aapke saath hai."`,
         },
       });
 
@@ -105,13 +117,10 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
         setVolume(Math.sqrt(sum / inputData.length));
 
         // Convert Float32 to Int16 PCM
-        const pcmData = new Int16Array(inputData.length);
-        for (let i = 0; i < inputData.length; i++) {
-          pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
-        }
+        const pcmData = floatTo16BitPCM(inputData);
 
         // Send to Gemini
-        const base64Data = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
+        const base64Data = uint8ArrayToBase64(new Uint8Array(pcmData.buffer));
         sessionPromise.then(session => {
           if (session) {
             session.sendRealtimeInput({
@@ -160,8 +169,13 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
 
       // Start frame capture loop
       startFrameCapture();
-    } catch (err) {
-      console.error("Screen share failed:", err);
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError') {
+        console.log("Screen sharing canceled by user");
+      } else {
+        console.error("Screen share failed:", err);
+        alert("Screen sharing shuru nahi ho saka. Kripya settings check karein.");
+      }
       setIsScreenSharing(false);
     }
   };
@@ -183,7 +197,7 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
       const base64Frame = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
 
       sessionRef.current.sendRealtimeInput({
-        image: {
+        video: {
           data: base64Frame,
           mimeType: 'image/jpeg'
         }
@@ -212,18 +226,9 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
   const playPCM = (base64Data: string) => {
     if (!audioContextRef.current || audioContextRef.current.state === 'closed' || !isSpeakerOn) return;
 
-    const binaryString = atob(base64Data);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
+    const bytes = base64ToUint8Array(base64Data);
     const pcmData = new Int16Array(bytes.buffer);
-    const float32Data = new Float32Array(pcmData.length);
-    for (let i = 0; i < pcmData.length; i++) {
-      float32Data[i] = pcmData[i] / 0x7FFF;
-    }
+    const float32Data = pcmToFloat32(pcmData);
 
     const audioBuffer = audioContextRef.current.createBuffer(1, float32Data.length, 16000);
     audioBuffer.getChannelData(0).set(float32Data);

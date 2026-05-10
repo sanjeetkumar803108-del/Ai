@@ -4,80 +4,155 @@ const apiKey = process.env.GEMINI_API_KEY;
 
 export let ai: GoogleGenAI | null = null;
 
+export const SCREEN_GURU_TOOLS = [
+  {
+    functionDeclarations: [
+      {
+        name: "highlight_element",
+        description: "Highlight a specific UI element on the user's screen using relative coordinates (0-100).",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            x: { type: "NUMBER", description: "X coordinate (0-100)" },
+            y: { type: "NUMBER", description: "Y coordinate (0-100)" },
+            w: { type: "NUMBER", description: "Width (0-100)" },
+            h: { type: "NUMBER", description: "Height (0-100)" },
+            label: { type: "STRING", description: "Label text for the highlight" }
+          },
+          required: ["x", "y", "w", "h"]
+        }
+      },
+      {
+        name: "navigate_to_tab",
+        description: "Navigate to a specific tab in the application (e.g., 'vault', 'schemes', 'guide', 'chat', 'home', 'tools').",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            tab: { type: "STRING", description: "The tab identifier to navigate to." }
+          },
+          required: ["tab"]
+        }
+      },
+      {
+        name: "fill_form_field",
+        description: "Fill a specific field in the current practice form. Use this when the user asks you to help fill or when you see they are struggling.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            field_name: { type: "STRING", description: "The name of the field to fill (e.g., 'Aadhar Number', 'Full Name')" },
+            value: { type: "STRING", description: "The value to enter into the field" }
+          },
+          required: ["field_name", "value"]
+        }
+      }
+    ]
+  }
+];
+
 if (apiKey) {
   ai = new GoogleGenAI({ apiKey });
 }
 
-export const getSpeech = async (text: string) => {
+export const getSpeech = async (text: string): Promise<string | null> => {
   if (!ai) throw new Error("AI not initialized.");
 
-  try {
-    console.log("TTS Request for text length:", text.length);
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-tts-preview",
-      contents: [{ parts: [{ text: `Say clearly and naturally: ${text}` }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Kore' },
+  const maxRetries = 2;
+  let attempt = 0;
+
+  const runRequest = async (): Promise<string | null> => {
+    try {
+      console.log(`TTS Request (Attempt ${attempt + 1}) for text length:`, text.length);
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-tts-preview",
+        contents: [{ parts: [{ text: `Say clearly and naturally: ${text}` }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
+            },
           },
         },
-      },
-    });
+      });
 
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (base64Audio) {
-      console.log("TTS successfully received audio data, length:", base64Audio.length);
-    } else {
-      console.warn("TTS response received but no audio data found in candidate");
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (base64Audio) {
+        console.log("TTS successfully received audio data, length:", base64Audio.length);
+      } else {
+        console.warn("TTS response received but no audio data found in candidate");
+      }
+      return base64Audio || null;
+    } catch (error: any) {
+      const errorStr = JSON.stringify(error);
+      const isQuota = errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED");
+      const isTransient = errorStr.includes("500") || errorStr.includes("xhr error") || errorStr.includes("UNKNOWN");
+
+      if (isQuota) {
+        console.error("Gemini TTS Quota Exceeded (429). Please wait before trying again.");
+        return null;
+      }
+
+      if (isTransient && attempt < maxRetries) {
+        attempt++;
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(`Transient Gemini TTS Error, retrying in ${delay}ms...`, errorStr);
+        await new Promise(r => setTimeout(r, delay));
+        return runRequest();
+      }
+
+      console.error("Gemini TTS Persistent Error:", error);
+      return null;
     }
-    return base64Audio || null;
-  } catch (error: any) {
-    console.error("Gemini TTS Error:", error);
-    // Don't crash the whole app for audio failure, just return null
-    return null;
-  }
+  };
+
+  return runRequest();
 };
 
 export const analyzeForm = async (imageBase64: string, mimeType: string) => {
   if (!ai) throw new Error("AI not initialized. Check your API key.");
 
   const prompt = `
-    You are 'Form Mitra AI', an expert assistant for Indian government procedures.
-    Analyze this photo of a form and provide a detailed guide in JSON format.
+    You are 'Mitra', a warm, helpful, and empathetic 'Bade Bhai' or friend who is an expert in Indian government procedures.
+    Analyze this photo of a form and provide a detailed guide in JSON format. 
+    Help the user feel confident and supported while filling this form.
     
-    Explanations must be in simple Hinglish (Hindi + English) as used in common conversation.
+    Explanations must be in friendly, simple Hinglish (Hindi + English) as used in warm daily conversation.
     
     Response MUST be a valid JSON object with this structure:
     {
       "formName": "Official name of the form",
-      "summary": "Simple 1-line explanation in Hinglish of what this form is for",
+      "summary": "Warm 1-line explanation in Hinglish of what this form is for (e.g., 'Ye form aapko scholarship dilane mein help karega!')",
       "fields": [
         {
           "field": "Name of the field in the form",
-          "explanation": "Simple explanation in Hinglish of what to fill here",
+          "explanation": "Friendly explanation in Hinglish of what to fill here",
+          "whyItMatters": "Explain 'why this information is needed' or 'why this field is critical' in warm, helpful Hinglish (e.g., 'Ye field bank transfer ke liye zaroori hai')",
           "isCritical": true/false,
-          "commonMistake": "Mention a common mistake people make here in Hinglish",
-          "exampleValue": "Provide a sample dummy value to show how to fill it correctly (e.g. 'Sanjeev Kumar' for Name, or '12/04/1995' for DOB)"
+          "commonMistake": "Mention a common mistake people make here in Hinglish, but gently",
+          "exampleValue": "Provide a sample dummy value to show how to fill it correctly"
         }
       ],
       "pitfalls": [
-        "Major reason for rejection 1",
-        "Major reason for rejection 2"
+        {
+          "risk": "Major reason for rejection in Hinglish",
+          "correctiveAction": "Specific step from actionPlan to fix this"
+        }
       ],
       "smartTips": [
-        "Dynamic advice based on form context 1",
-        "Dynamic advice based on form context 2",
-        "Pitfall to avoid specific to this form category"
+        "Encouraging advice 1 in Hinglish",
+        "Encouraging advice 2 in Hinglish"
       ],
-      "mitraTip": "A small final word of encouragement from Mitra in Hinglish"
+      "actionPlan": [
+        "Step 1 to fix",
+        "Step 2 to fix"
+      ],
+      "mitraTip": "A warm, encouraging final word from Mitra in Hinglish (e.g., 'Aap fikar mat kijiye, main help ke liye hoon!')"
     }
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
@@ -100,6 +175,7 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
         {
           "field": "Full Name",
           "explanation": "Apna poora naam likhein jo Aadhar card par hai.",
+          "whyItMatters": "Sahi naam se hi government records match hote hain.",
           "isCritical": true,
           "commonMistake": "Initials mat use karein, poora naam likhein.",
           "exampleValue": "Sanjeev Kumar"
@@ -107,6 +183,7 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
         {
           "field": "Date of Birth",
           "explanation": "Janm tithi DD/MM/YYYY format mein bharein.",
+          "whyItMatters": "Aapki umar se eligibility check ki jaati hai.",
           "isCritical": true,
           "commonMistake": "Wrong date format apply karna.",
           "exampleValue": "15/08/2005"
@@ -114,18 +191,29 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
         {
           "field": "Aadhar Number",
           "explanation": "12 anko ka Aadhar number dhyan se bharein.",
+          "whyItMatters": "Identity verification ke liye ye sabse zaroori hai.",
           "isCritical": true,
           "commonMistake": "Ek bhi digit galat hona.",
           "exampleValue": "1234 5678 9012"
         }
       ],
       "pitfalls": [
-        "Signature missing hona",
-        "Overwriting ya cutting karna"
+        {
+          "risk": "Signature missing hona",
+          "correctiveAction": "Form ke niche apne signature zaroor karein."
+        },
+        {
+          "risk": "Overwriting ya cutting karna",
+          "correctiveAction": "Galti hone par naya form use karein, cutting na karein."
+        }
       ],
       "smartTips": [
         "Form bharne se pehle instructions dhyan se padhein.",
         "Blue ya Black ballpoint pen ka hi use karein."
+      ],
+      "actionPlan": [
+        "Form ke niche apne signature zaroor karein.",
+        "Galti hone par naya form use karein, cutting na karein."
       ],
       "mitraTip": "AI service temporarily limited hai, lekin aap upar di gayi general tips follow kar sakte hain!"
     });
@@ -147,7 +235,7 @@ export const getFieldExample = async (formName: string, fieldName: string, expla
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-flash-lite",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "Example not available";
@@ -201,7 +289,7 @@ export const generateSchemeLetter = async (schemeName: string, schemeDetails: an
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -283,7 +371,7 @@ export const generateFormalLetter = async (topic: string, details: string, userP
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -347,6 +435,7 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
     - benefits: Array of 3-5 benefit strings
     - documents: Array of required document strings
     - officialSource: Name of the government department or portal found via search
+    - officialUrl: Direct link to the official government portal for this scheme (MUST be valid .gov.in or .nic.in link)
     - confidenceScore: A number from 0 to 100 representing how well this scheme matches the user's intent and query. Use 100 for exact name matches.
     
     Output the result as a JSON array of objects.
@@ -354,7 +443,7 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [{ text: prompt }]
@@ -382,6 +471,7 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
         benefits: ["Direct cash transfer of ₹6000 annually"],
         documents: ["Aadhar card", "Land papers", "Bank account"],
         officialSource: "pmkisan.gov.in",
+        officialUrl: "https://pmkisan.gov.in/",
         confidenceScore: 90
       },
       {
@@ -396,6 +486,7 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
         benefits: ["Cashless treatment up to ₹5 lakh"],
         documents: ["Aadhar card", "Ration card"],
         officialSource: "pmjay.gov.in",
+        officialUrl: "https://pmjay.gov.in/",
         confidenceScore: 85
       }
     ];
@@ -435,7 +526,7 @@ export const getDailyNews = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -488,7 +579,7 @@ export const getDailyQuiz = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-flash-lite",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -511,48 +602,55 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
   if (!ai) throw new Error("AI not initialized.");
 
   const prompt = `
-    You are 'Form Mitra AI Audit Bot'. 
-    Analyze this photo of a filled government form and compare it with the user's profile to predict potential rejection risks.
+    You are 'Mitra's AI Audit Bot', a highly experienced expert in Indian government and exam (NEET, JEE, NTA, UPSC) forms. 
+    Analyze this photo of a filled application form or a document and compare it with the user's profile to predict rejection risks.
     
     User Profile Data:
     - Full Name: ${userProfile.name || 'Not provided'}
     - State: ${userProfile.state || 'Not provided'}
+    - Category: ${userProfile.category || 'General'}
     - Class: ${userProfile.class || 'Not provided'}
     - Stream: ${userProfile.stream || 'Not provided'}
-    - Preferred Language: ${userProfile.preferredLanguage || 'Hinglish'}
-    - Additional Needs: ${userProfile.needs || 'Not provided'}
 
-    Task:
-    1. Perform OCR on the form to extract filled values.
-    2. Identify fields that are mandatory but missing.
-    3. Spot discrepancies between extracted form values and user profile (e.g., name spelling, state mismatch).
-    4. Flag technical errors like date format, signature missing, or photo clarity.
-    5. Provide a 'Rejection Risk Score' (0-100%).
+    CORE TASKS:
+    1. OCR & Field Mapping: Extract ALL identifiable fields and their values from the image.
+    2. Missing Info Check: Identify fields that are clearly mandatory (e.g., Name, DOB, Signature, Guardian Name) but are empty or blurred.
+    3. Profile Mismatch: Spot discrepancies between extracted values and the user's Profile (e.g., name spelling, address mismatch).
+    4. PHOTO & SIGNATURE AUDIT: 
+       - Check the passport photo background. (Crucial: Many Indian forms require a WHITE background. If it's blue/red/natural, flag it as High Risk).
+       - Check if the photo is blurred or if the face is not clear.
+       - Check if the signature is present and within the designated boundary.
+    5. DOCUMENT AUDIT: If the user is from a reserved category, check if caste certificate mentions are present.
+    6. REJECTION PREDICTION: Calculate a 'Rejection Risk Score' (0-100%).
 
     Output Format (JSON):
     {
       "riskScore": number,
-      "verdict": "Clear message in Hinglish about overall status",
-      "discrepancies": [
+      "verdict": "A reassuring but honest verdict in warm Hinglish (e.g., 'Dost, photo ka background thik karna hoga...')",
+      "identifiedFields": [
+        { "field": "Field name", "value": "Extracted value", "status": "ok" | "error" | "missing" }
+      ],
+      "majorIssues": [
         {
-          "field": "Field Name",
-          "extracted": "What was found in the form",
-          "expected": "What is in user profile or required data",
-          "severity": "high" | "medium" | "low",
-          "reason": "Why this causes rejection in Hinglish"
+          "issue": "Specific issue description in Hinglish",
+          "severity": "high" | "medium",
+          "fix": "Actionable step to fix it in Hinglish"
         }
       ],
-      "missingFields": ["List of mandatory fields not filled"],
-      "qualityNotes": ["Notes on image clarity or visibility"],
-      "actionPlan": ["Step 1 to fix", "Step 2 to fix"]
+      "photoAudit": {
+        "backgroundStatus": "Brief report on background color/quality",
+        "clarity": "Report on photo clarity",
+        "isAccepted": true/false
+      },
+      "actionPlan": ["Pehla step...", "Dusra step..."]
     }
 
-    Keep the 'reason' and 'verdict' in simple Hinglish (Hindi + English).
+    Respond ONLY with JSON. Keep all explanations in friendly, expert Hinglish.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
@@ -568,9 +666,9 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
     return {
       "riskScore": 0,
       "verdict": "AI is currently busy processing requests (Quota Exceeded). But don't worry, aap form dhyan se check karke submit kar sakte hain.",
-      "discrepancies": [],
-      "missingFields": [],
-      "qualityNotes": ["AI services are momentarily limited."],
+      "identifiedFields": [],
+      "majorIssues": [],
+      "photoAudit": { "backgroundStatus": "Checking manually advised", "clarity": "Please check yourself", "isAccepted": true },
       "actionPlan": ["Manual check karein", "Thodi der baad firse AI audit try karein"]
     };
   }
@@ -580,13 +678,14 @@ export const analyzeScreenForGuidance = async (imageBase64: string, mimeType: st
   if (!ai) throw new Error("AI not initialized.");
 
   const prompt = `
-    You are 'Form Mitra AI', analyzing a user's screen during a form-filling process.
+    You are 'Mitra', analyzing your friend's screen during a form-filling process to help them out.
     User Message: "${userMessage}"
     
-    1. Identify the active field the user is looking at.
+    1. Identify the active field the user is currently interacting with or should fill next.
     2. Provide voice-guided instructions in simple Hinglish on what to enter.
-    3. Flag any visible mistakes (spelling mismatches, invalid formats).
-    4. Advise on data masking if sensitive fields are visible.
+    3. Flag any visible mistakes (spelling mismatches, invalid formats, or missing mandatory marks).
+    4. Provide precise 'highlightBox' relative coordinates (x, y, w, h) from 0 to 100 for the relevant UI element.
+    5. Advise on data masking if sensitive fields like passwords are visible.
     
     Output Format (JSON):
     {
@@ -599,7 +698,7 @@ export const analyzeScreenForGuidance = async (imageBase64: string, mimeType: st
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
@@ -657,7 +756,7 @@ export const getComparisonRecommendation = async (schemes: any[], userProfile: a
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -680,7 +779,73 @@ Kripya thodi der baad AI se deep analysis try karein!
   }
 };
 
-export const getAIResponse = async (userMessage: string, chatHistory: { role: 'user' | 'model', parts: { text: string }[] }[] = [], userProfile?: any) => {
+export const getProfileRecommendations = async (userProfile: any) => {
+  if (!ai) throw new Error("AI not initialized.");
+
+  const langHint = userProfile?.preferredLanguage === 'hi' 
+    ? 'pure Hindi' 
+    : userProfile?.preferredLanguage === 'en' 
+      ? 'English' 
+      : 'Hinglish (Hindi written in English script)';
+
+  const prompt = `
+    You are 'Mitra', a warm, expert 'Bade Bhai' or senior companion who is an expert in Indian government schemes and education.
+    Your goal is to make the user feel supported, hopeful, and informed about their future.
+    
+    User Profile:
+    - Name: ${userProfile.name || 'Dost'}
+    - State: ${userProfile.state || 'India'}
+    - Class: ${userProfile.class || 'Not specified'}
+    - Stream: ${userProfile.stream || 'Not specified'}
+    - Needs: ${userProfile.needs || 'Himat aur support'}
+    
+    Task:
+    Analyze the user's profile and suggest the top 3-4 most relevant government schemes or scholarships. 
+    Explain them in a way that feels like a personal recommendation from a friend.
+    
+    For each suggestion:
+    - Scheme Name (in English & Hindi).
+    - Kyun Apply Karein? (Explain eligibility with empathy).
+    - Isse Kya Fayda Hoga? (Major benefits in simple Hinglish).
+    - Mitra's Special Tip (Pro-tip to succeed with a friendly touch).
+    
+    Use an encouraging, positive, and empathetic tone in ${langHint}.
+    Keep it high-impact and easy to read.
+    
+    Output Format:
+    Use professional markdown with warm emojis.
+    Heading: Mitra's Personalized Recommendations for You ✨
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+    return response.text || "";
+  } catch (error: any) {
+    console.warn("Gemini Profile Reco (Quota or Error):", error?.message || error);
+    return `
+### Mitra's Personalized Recommendations 🌟
+
+Hello! AI services temporarily limited hain, lekin Bihar ke students ke liye yeh schemes hamesha top par rehti hain:
+
+1. **Bihar Student Credit Card** 💳
+   - **Kyun:** Higher studies (12th ke baad) ke liye ₹4 lakh tak ka loan.
+   - **Fayda:** Bahut kam interest rate aur simple process.
+   - **Mitra Tip:** Apne documents (Marksheet, Aadhar) pehle se ready rakhein.
+
+2. **Bihar Post-Matric Scholarship** 🎓
+   - **Kyun:** SC/ST/BC/EBC students ke liye matric ke baad ki padhai ke liye help.
+   - **Fayda:** Tuition fees mein kaafi rahat milti hai.
+   - **Mitra Tip:** PMS portal par details sahi se bharein taaki verification fast ho.
+
+Thodi der baad firse try karein to main aapki profile ka deeper analysis kar paunga!
+    `.trim();
+  }
+};
+
+export const getAIResponse = async (userMessage: string, chatHistory: any[] = [], userProfile?: any, imageBase64?: string, mimeType?: string) => {
   if (!ai) throw new Error("AI not initialized. Check your API key.");
 
   const langHint = userProfile?.preferredLanguage === 'hi' 
@@ -693,52 +858,73 @@ export const getAIResponse = async (userMessage: string, chatHistory: { role: 'u
     ? `The user is from the state of ${userProfile.state}. Prioritize schemes relevant to this state if applicable.`
     : '';
 
+  const whatsappHint = userProfile?.whatsappNumber 
+    ? `The user's linked WhatsApp number is ${userProfile.whatsappNumber}. Use this to confirm reminder setups.`
+    : `The user has NOT linked WhatsApp yet. If they ask for reminders or deadline alerts, you MUST reply: "Zaroor bhai! Kripya apna WhatsApp number de dijiye ya apni Profile mein ja kar 'Link WhatsApp' box mein number daal dijiye, main aapko last date se pehle message karke inform kar dunga."`;
+
   const systemInstruction = `
-    You are 'Form Mitra AI', a helpful assistant for Indian citizens. 
+    You are 'Mitra', not just an AI, but a highly intelligent, helpful, and empathetic Indian friend (Sathi). 
+    Your tone is warm, friendly, and encouraging, like a trusted elder brother (Bade Bhai) or a close friend who truly cares about the user's success.
+    
+    Talk in friendly, encouraging Hinglish or Hindi. Talk like a helpful senior (Bade Bhai).
+    
     CURRENT DATE: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
     
     ${stateHint}
+    ${whatsappHint}
     
-    Your goal is to explain government schemes (like PM Kisan, Ayushman Bharat, etc.) 
-    and provide guidance on filling out forms.
+    CORE SKILLS & RESPONSIBILITIES:
+
+    1. Form & Document Checker (CRITICAL):
+       - Analyze uploaded photos of forms, passport photos, or signatures for competitive exams (NEET/JEE/NTA) or RTPS certificates.
+       - Identify errors such as: wrong background in photos, missing details, missing mandatory proofs, or blurriness.
+       - Warn the user clearly: "Bhai, ye photo NEET ke liye nahi chalegi, background white hona chahiye!" or "Sign thoda aur clear karke upload kijiye."
     
-    RULES:
-    1. Language: ${langHint}
-    2. Tone: Helpful, patient, and friendly.
-    3. Keep it simple: Avoid complex bureaucratic jargon.
-    4. Structured: Use bullet points for steps.
-    5. Disclaimer: Always mention that users should verify details on the official government website.
-    6. Specifics: If asked about a scheme, provide eligibility, benefits, and required documents. 
-    7. WEB SEARCH & FRESHNESS (CRITICAL): You are connected to Google Search. ALWAYS use it for ANY query regarding government schemes, latest updates, or official dates. 
-       - You MUST perform a deep search across all official Indian government portals (.gov.in, .nic.in, pib.gov.in) to find the most accurate and up-to-date information for both new and old schemes.
-       - If you find any discrepancy between your training data and current official results, you MUST correct it and explicitly say: "Main official website se details verify kar raha hoon... (Verifying from official websites)".
-       - Look for the 'Last Updated' date or 'Latest Notifications' on government portals to ensure truthfulness.
-       - Always provide the official URL if found.
-    8. FORMAL APPLICATIONS (CRITICAL LAYOUT): If the user asks for an application letter (TC, Bank, Leave, etc.), you MUST follow this exact paper-like layout:
-       - TITLE: Centered and Bold heading.
-       - TO SECTION:
-         To,
-         [Post/Designation],
-         [Institution Name],
-         [Address].
-       - DATE: "Date:- DD/MM/YYYY"
-       - SUBJECT: "Subject:- [Clear Subject Line]"
-       - SALUTATION: "Respected Sir/Madam,"
-       - BODY: Clear paragraphs explaining the request.
-       - CLOSING: 
-         "Thanking You,"
-         "Yours Sincerely/Faithfully,"
-         "Signature"
-         "Name", "Class/Position", "Roll No/ID" placeholders.
-    9. Thinking: If the model provides a "thought" or "reasoning" part, ensure it is helpful to understand the logic.
+    2. Schemes & Subsidies Expert:
+       - Explain Indian government schemes (National & State wise).
+       - CRITICAL: Always provide EXACT NUMBERS (e.g., "₹8,500/hectare", "40% subsidy") and OFFICIAL portal links (e.g., pmkisan.gov.in).
+       - Never be vague. Be precise like an official sarkaari guide but warm like a friend.
+    
+    3. Scam Alert Radar (AGGRESSIVE):
+       - Guard the user against fraud. Aggressively analyze forwarded messages, SMS, or screenshots for common Indian scams (e.g., "Electricity bill disconnection", "KBC Lottery", "Bank KYC Update", "Random APK files"). 
+       - If you detect a scam, warn the user immediately in **BOLD LETTERS**: "⚠️ **ALERT: RUKIYE! YE EK SCAM HAI!** ⚠️" 
+       - Explain the fraud trick simply so the user understands why it's a scam: "Aise links se bachiye, ye log aapka bank khali kar sakte hain. Don't worry, main hoon na!"
+    
+    4. Voice Note Processing:
+       - You are capable of understanding audio queries (even if transcribed) in Hindi and regional dialects like Bhojpuri, Magahi, or Maithili.
+       - Acknowledge the voice input warmly and reply in friendly text, summarizing the key points.
+    
+    5. Exam & Career Counseling (NEET/JEE):
+       - Help students with their forms, document requirements, and basics of counseling.
+       - Encourage them: "Padhai kaisi chal rahi hai? Tension mat lo, hum milkar form perfect bharenge!"
+
+    6. Medical & Insurance Decoder:
+       - Help decode hospital bills and TPA rejection letters. Highlight EXACT non-payable items.
+       - Be empathetic: "Health issues mein paperwork ka tension sabse bura hota hai. Main dekhta hoon kya dikat hai."
+
+    7. Sarkaari Collections (RTPS):
+       - Help with Income, Caste, Domicile (Niwas) certificates.
+       - Tell them exactly what extra proofs are needed if you spot something missing.
+
+    BEHAVIORAL RULES:
+    1. Language: ${langHint} (Natural Hinglish/Hindi - how friends chat).
+    2. Warmth: Use phrases like "Aap fikar mat kijiye," "Main hoon na," "Sab theek ho jayega," "Himat mat hariye."
+    3. Structured: Use bullet points for steps, but keep the vibe conversational.
+    4. Web Search: Use Google Search for LATEST subsidy rates, exam dates, and official links.
+    5. Motto: "Zindagi ki mushkilon mein, Mitra aapke saath hai."
   `;
 
   try {
+    const parts: any[] = [{ text: userMessage }];
+    if (imageBase64 && mimeType) {
+      parts.push({ inlineData: { data: imageBase64, mimeType } });
+    }
+
     const response = await ai.models.generateContent({ 
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [
         ...chatHistory.map(h => ({ role: h.role, parts: h.parts })),
-        { role: 'user', parts: [{ text: userMessage }] }
+        { role: 'user', parts }
       ],
       config: {
         systemInstruction,

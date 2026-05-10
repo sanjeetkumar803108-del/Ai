@@ -9,6 +9,8 @@
         "email": { "type": "string" },
         "name": { "type": "string" },
         "state": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "occupation": { "type": "string", "enum": ["Farmer", "Student", "Worker", "Unemployed", "Other"] },
         "class": { "type": "string" },
         "stream": { "type": "string", "enum": ["PCB", "PCM", "Commerce", "Arts", "Others"] },
         "preferredLanguage": { "type": "string", "enum": ["hi", "en", "hinglish"] },
@@ -69,6 +71,39 @@
         "timestamp": { "type": "integer" }
       },
       "required": ["userId", "type", "content", "timestamp"]
+    },
+    "FormDraft": {
+      "title": "Form Draft",
+      "description": "A partially filled form draft",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "formName": { "type": "string" },
+        "formData": { "type": "object" },
+        "formDefinition": { "type": "object" },
+        "updatedAt": { "type": "integer" },
+        "isOfflineDraft": { "type": "boolean" }
+      },
+      "required": ["userId", "formName", "formData", "formDefinition", "updatedAt"]
+    },
+    "CachedScheme": {
+      "title": "Cached AI Scheme",
+      "description": "AI-generated scheme result cached for the user",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "hindiName": { "type": "string" },
+        "hindiDescription": { "type": "string" },
+        "eligibility": { "type": "array", "items": { "type": "string" } },
+        "benefits": { "type": "array", "items": { "type": "string" } },
+        "documents": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string" },
+        "mitraId": { "type": "string" },
+        "type": { "type": "string", "enum": ["ai"] },
+        "cachedAt": { "type": "integer" }
+      },
+      "required": ["name", "description", "category", "cachedAt"]
     }
   },
   "firestore": {
@@ -87,6 +122,14 @@
     "/users/{userId}/applications/{appId}": {
       "schema": "Application",
       "description": "List of government scheme applications tracked by the user"
+    },
+    "/users/{userId}/drafts/{draftId}": {
+      "schema": "FormDraft",
+      "description": "User's partially filled form drafts"
+    },
+    "/users/{userId}/cachedSchemes/{id}": {
+      "schema": "CachedScheme",
+      "description": "AI-generated schemes cached for the user"
     },
     "/feedbacks/{feedbackId}": {
       "schema": "Feedback",

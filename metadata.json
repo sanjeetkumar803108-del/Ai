@@ -1,6 +1,6 @@
 {
   "name": "Form Mitra AI",
-  "description": "AI assistant helping Indian users understand government schemes and fill forms in Hinglish/Hindi.",
+  "description": "AI assistant for Indian government schemes with deep search, form analysis, and persistent offline support for cached schemes and drafts.",
   "requestFramePermissions": ["camera", "microphone", "display-capture"],
   "majorCapabilities": ["AI Chat", "Form Analysis", "Voice Support"]
 }
