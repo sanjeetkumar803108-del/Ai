@@ -2,187 +2,41 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 0. Global Safety Net
+    
+    // 1. Connection Test & Public Data
+    match /test/{any=**} {
+      allow read, write: if true;
+    }
+
+    match /schemes/{any=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /schemes {
+      allow read: if true;
+    }
+
+    // 2. User Data (Owner only)
+    // We use a recursive match for the entire user tree
+    match /users/{userId}/{allData=**} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == userId);
+    }
+    
+    // Also match the user document itself
+    match /users/{userId} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || request.auth.token.email == userId);
+    }
+
+    // 3. Feedback
+    match /feedbacks/{id} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    
+    // Global Lock
     match /{document=**} {
       allow read, write: if false;
-    }
-
-    // --- Helpers ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    function isEmailVerified() {
-      return request.auth.token.email_verified == true;
-    }
-
-    // --- Validation Blueprints ---
-    
-    function isValidUser(data) {
-      // Identity Integrity and strict schema
-      return data.keys().hasAll(['preferredLanguage']) &&
-             (data.get('uid', request.auth.uid) == request.auth.uid) &&
-             data.preferredLanguage is string &&
-             data.preferredLanguage in ['hi', 'en', 'hinglish'] &&
-             (data.get('name', '') is string && data.get('name', '').size() <= 200) &&
-             (data.get('email', '') is string && data.get('email', '').size() <= 200) &&
-             (data.get('state', '') is string && data.get('state', '').size() <= 100) &&
-             (data.get('class', '') is string && data.get('class', '').size() <= 20) &&
-             (data.get('stream', '') is string && data.get('stream', '') in ['PCB', 'PCM', 'Commerce', 'Arts', 'Others', '']) &&
-             (data.get('whatsappNumber', '') is string && data.get('whatsappNumber', '').size() <= 20) &&
-             (data.get('occupation', '') is string && data.get('occupation', '') in ['Farmer', 'Student', 'Worker', 'Unemployed', 'Other', '']) &&
-             (data.get('isPremium', false) is bool) &&
-             (data.get('streak', 0) is int) &&
-             (data.get('lastLogin', 0) is int || data.get('lastLogin', null) is timestamp) &&
-             (data.get('hasCompletedTutorial', false) is bool) &&
-             (data.get('savedSchemeIds', []) is list) &&
-             (data.get('needs', '') is string && data.get('needs', '').size() <= 2000);
-    }
-
-    function isValidApplication(data) {
-      return data.keys().hasAll(['schemeName', 'status', 'applicationId', 'updatedAt']) &&
-             data.schemeName is string && data.schemeName.size() <= 200 &&
-             data.applicationId is string && data.applicationId.size() <= 100 &&
-             data.status in ['Submitted', 'Under Review', 'Approved', 'Rejected'] &&
-             (data.updatedAt is int || data.updatedAt is timestamp) &&
-             (data.get('notes', '') is string && data.get('notes', '').size() <= 5000);
-    }
-
-    function isValidConversation(data) {
-      return data.keys().hasAll(['userId', 'title', 'lastMessage', 'updatedAt']) &&
-             data.userId == request.auth.uid &&
-             data.title is string && data.title.size() <= 500 &&
-             data.lastMessage is string && data.lastMessage.size() <= 2000 &&
-             (data.updatedAt is int || data.updatedAt is timestamp);
-    }
-
-    function isValidChatMessage(data, userId) {
-      return data.keys().hasAll(['userId', 'role', 'content', 'timestamp']) &&
-             data.userId == userId &&
-             data.role in ['user', 'assistant'] &&
-             data.content is string && data.content.size() <= 15000 &&
-             (data.timestamp is int || data.timestamp is timestamp) &&
-             (data.get('thought', '') is string || data.get('thought', null) == null) &&
-             (data.get('image', '') is string || data.get('image', null) == null);
-    }
-
-    function isValidUserDocument(data, userId) {
-      return data.keys().hasAll(['userId', 'name', 'type', 'url', 'uploadedAt']) &&
-             data.userId == userId &&
-             data.name is string && data.name.size() <= 200 &&
-             data.type is string && data.type.size() <= 100 &&
-             data.url is string && data.url.size() <= 1000 &&
-             (data.uploadedAt is int || data.uploadedAt is timestamp) &&
-             (data.get('expiryDate', 0) is int || data.get('expiryDate', null) is timestamp);
-    }
-
-    function isValidFeedback(data) {
-      return data.keys().hasAll(['userId', 'type', 'content', 'timestamp']) &&
-             data.userId == request.auth.uid &&
-             data.type in ['issue', 'suggestion', 'general'] &&
-             data.content is string && data.content.size() <= 2000 &&
-             (data.timestamp is int || data.timestamp is timestamp) &&
-             (data.get('userEmail', '') is string && data.get('userEmail', '').size() <= 200) &&
-             (data.get('status', 'pending') == 'pending' || data.get('status', 'reviewed') == 'reviewed' || data.get('status', 'resolved') == 'resolved');
-    }
-
-    function isValidFormDraft(data, userId) {
-      return data.keys().hasAll(['userId', 'formName', 'formData', 'formDefinition', 'updatedAt']) &&
-             data.userId == userId &&
-             data.formName is string && data.formName.size() <= 300 &&
-             data.formData is map &&
-             data.formDefinition is map &&
-             (data.updatedAt is int || data.updatedAt is timestamp) &&
-             (data.get('isOfflineDraft', false) is bool);
-    }
-
-    function isValidCachedScheme(data) {
-      return data.keys().hasAll(['name', 'description', 'category', 'cachedAt']) &&
-             data.name is string && data.name.size() <= 300 &&
-             data.description is string && data.description.size() <= 5000 &&
-             data.category is string &&
-             (data.cachedAt is int || data.cachedAt is timestamp);
-    }
-
-    // --- Collections ---
-
-    match /users/{userId} {
-      allow get: if isOwner(userId) && isValidId(userId);
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming()) && (
-        // Standard case: isPremium doesn't change
-        (incoming().isPremium == existing().get('isPremium', false)) ||
-        // Unlock Premium: can only change from false to true
-        (existing().get('isPremium', false) == false && incoming().isPremium == true)
-      );
-      
-      match /cachedSchemes/{id} {
-        allow list: if isOwner(userId);
-        allow get: if isOwner(userId) && isValidId(id);
-        allow create: if isOwner(userId) && isValidId(id) && isValidCachedScheme(incoming());
-        allow delete: if isOwner(userId) && isValidId(id);
-      }
-      
-      match /conversations/{convId} {
-        allow list: if isOwner(userId);
-        allow get: if isOwner(userId) && isValidId(convId);
-        allow create: if isOwner(userId) && isValidId(convId) && isEmailVerified() && isValidConversation(incoming());
-        allow update: if isOwner(userId) && isValidId(convId) && isEmailVerified() && isValidConversation(incoming()) &&
-                        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'lastMessage', 'updatedAt']);
-        allow delete: if isOwner(userId) && isValidId(convId);
-
-        match /messages/{msgId} {
-          allow list: if isOwner(userId);
-          allow get: if isOwner(userId) && isValidId(msgId);
-          allow create: if isOwner(userId) && isValidId(msgId) && isEmailVerified() && isValidChatMessage(incoming(), userId);
-          allow delete: if isOwner(userId) && isValidId(msgId);
-        }
-      }
-
-      match /applications/{appId} {
-        allow list: if isOwner(userId);
-        allow get: if isOwner(userId) && isValidId(appId);
-        allow create: if isOwner(userId) && isValidId(appId) && isEmailVerified() && isValidApplication(incoming());
-        allow update: if isOwner(userId) && isValidId(appId) && isEmailVerified() && isValidApplication(incoming()) &&
-                        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'notes']);
-        allow delete: if isOwner(userId) && isValidId(appId);
-      }
-
-      match /documents/{docId} {
-        allow list: if isOwner(userId);
-        allow get: if isOwner(userId) && isValidId(docId);
-        allow create: if isOwner(userId) && isValidId(docId) && isEmailVerified() && isValidUserDocument(incoming(), userId);
-        allow delete: if isOwner(userId) && isValidId(docId);
-      }
-
-      match /drafts/{draftId} {
-        allow list: if isOwner(userId);
-        allow get: if isOwner(userId) && isValidId(draftId);
-        allow create: if isOwner(userId) && isValidId(draftId) && isEmailVerified() && isValidFormDraft(incoming(), userId);
-        allow update: if isOwner(userId) && isValidId(draftId) && isEmailVerified() && isValidFormDraft(incoming(), userId);
-        allow delete: if isOwner(userId) && isValidId(draftId);
-      }
-    }
-
-    match /feedbacks/{feedbackId} {
-      allow create: if isSignedIn() && isValidId(feedbackId) && isValidFeedback(incoming());
-      allow list, get: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }

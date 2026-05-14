@@ -13,6 +13,7 @@ export type Message = {
   timestamp: number;
   image?: string;
   thought?: string | null;
+  rating?: 'up' | 'down';
 };
 
 export type Scheme = {
@@ -24,7 +25,8 @@ export type Scheme = {
   eligibility: string[];
   benefits: string[];
   documents: string[];
-  category: 'Education' | 'Agriculture' | 'Health' | 'Social' | 'Finance';
+  category: 'Education' | 'Agriculture' | 'Health' | 'Social' | 'Finance' | 'Employment';
+  community?: 'Student' | 'Farmer' | 'Normal' | 'Jobs';
   officialUrl?: string;
   state?: string;
   image?: string;
@@ -32,6 +34,8 @@ export type Scheme = {
   officialSource?: string;
   mitraId: string;
   aiVersion?: string;
+  deadline?: number;
+  lastUpdate?: number;
 };
 
 export type UserProfile = {
@@ -50,7 +54,11 @@ export type UserProfile = {
   lastLogin?: number;
   notificationsEnabled?: boolean;
   whatsappNumber?: string;
-  occupation?: 'Farmer' | 'Student' | 'Worker' | 'Unemployed' | 'Other';
+  occupation?: 'Farmer' | 'Student' | 'Naukri' | 'Normal' | 'Worker' | 'Unemployed' | 'Other';
+  community?: 'Student' | 'Farmer' | 'Normal' | 'Jobs';
+  gender?: 'Male' | 'Female' | 'Other';
+  monthlyIncome?: string;
+  category?: 'General' | 'OBC' | 'SC' | 'ST' | 'EWS';
   hasCompletedTutorial?: boolean;
   savedSchemeIds?: string[];
 };
@@ -105,8 +113,10 @@ export type UserFeedback = {
   id: string;
   userId: string;
   userEmail: string;
-  type: 'issue' | 'suggestion' | 'general';
+  type: 'issue' | 'suggestion' | 'general' | 'scheme' | 'guide';
   content: string;
+  rating?: number;
+  relatedId?: string;
   timestamp: number;
   status: 'pending' | 'reviewed' | 'resolved';
 };

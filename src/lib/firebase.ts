@@ -1,14 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer, initializeFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, getDocFromServer, initializeFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 
-// Use initializeFirestore to enable long polling which is more reliable in some sandboxed environments
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, (firebaseConfig as any).firestoreDatabaseId || '(default)');
+// Use standard Firestore initialization
+export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId || '(default)');
 
 // Enable offline persistence
 if (typeof window !== 'undefined') {
@@ -77,13 +75,29 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 export async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-    console.log('Firebase connection verified');
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
+    const dbId = (firebaseConfig as any).firestoreDatabaseId || '(default)';
+    console.log('Verifying Firebase connection to database:', dbId);
+    
+    // Check if we can hit the test path
+    const testDoc = doc(db, 'test', 'connection');
+    try {
+      await getDocFromServer(testDoc);
+      console.log('Firebase connection verified (Server)');
+    } catch (e: any) {
+      console.warn('getDocFromServer failed, trying local getDoc...', e.message);
+      await getDoc(testDoc);
+      console.log('Firebase connection verified (Local/Cache)');
     }
-    // We don't throw here to avoid crashing the app immediately, but it will be in logs
-    console.warn('Initial connection check failed:', error);
+  } catch (error: any) {
+    console.error('Firebase Connection Test Failed CODE:', error.code);
+    console.error('Firebase Connection Test Failed MSG:', error.message);
+    
+    if (error.code === 'permission-denied') {
+      console.error("PERMISSION ERROR: The database might be in locked mode or rules are not allowing this path.");
+    }
+    
+    if (error.code === 'unavailable') {
+      console.error("CRITICAL: Firestore backend is unreachable. This may be due to network restrictions or database provisioning lag.");
+    }
   }
 }

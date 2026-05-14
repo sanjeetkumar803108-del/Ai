@@ -10,14 +10,25 @@
         "name": { "type": "string" },
         "state": { "type": "string" },
         "whatsappNumber": { "type": "string" },
-        "occupation": { "type": "string", "enum": ["Farmer", "Student", "Worker", "Unemployed", "Other"] },
+        "occupation": { "type": "string", "enum": ["Farmer", "Student", "Worker", "Unemployed", "Normal", "Naukri", "Other"] },
+        "community": { "type": "string", "enum": ["Student", "Farmer", "Normal", "Jobs"] },
         "class": { "type": "string" },
         "stream": { "type": "string", "enum": ["PCB", "PCM", "Commerce", "Arts", "Others"] },
         "preferredLanguage": { "type": "string", "enum": ["hi", "en", "hinglish"] },
         "isPremium": { "type": "boolean" },
         "streak": { "type": "integer" },
         "lastLogin": { "type": "integer" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "hasCompletedTutorial": { "type": "boolean" },
+        "savedSchemeIds": { "type": "array", "items": { "type": "string" } },
+        "aadharNumber": { "type": "string" },
+        "aadharDocUrl": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "address": { "type": "string" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "monthlyIncome": { "type": "string" },
+        "category": { "type": "string", "enum": ["General", "OBC", "SC", "ST", "EWS"] },
+        "notificationsEnabled": { "type": "boolean" },
+        "needs": { "type": "string" }
       },
       "required": ["uid", "preferredLanguage"]
     },
@@ -65,8 +76,10 @@
       "properties": {
         "userId": { "type": "string" },
         "userEmail": { "type": "string" },
-        "type": { "type": "string", "enum": ["issue", "suggestion", "general"] },
+        "type": { "type": "string", "enum": ["issue", "suggestion", "general", "scheme", "guide"] },
         "content": { "type": "string" },
+        "rating": { "type": "integer" },
+        "relatedId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "reviewed", "resolved"] },
         "timestamp": { "type": "integer" }
       },
@@ -130,6 +143,10 @@
     "/users/{userId}/cachedSchemes/{id}": {
       "schema": "CachedScheme",
       "description": "AI-generated schemes cached for the user"
+    },
+    "/schemes/{schemeId}": {
+      "schema": { "$ref": "CachedScheme" },
+      "description": "Global government schemes data for all users"
     },
     "/feedbacks/{feedbackId}": {
       "schema": "Feedback",

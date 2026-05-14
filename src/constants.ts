@@ -12,6 +12,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['₹2,000 every 4 months', 'Direct Benefit Transfer (DBT)'],
     documents: ['Aadhar Card', 'Land Records', 'Bank Account Details'],
     category: 'Agriculture',
+    community: 'Farmer',
     officialUrl: 'https://pmkisan.gov.in/',
     image: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -27,6 +28,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Cashless treatment', 'Covers pre and post hospitalization'],
     documents: ['Aadhar Card', 'Ration Card', 'PM Letter (if available)'],
     category: 'Health',
+    community: 'Normal',
     officialUrl: 'https://pmjay.gov.in/',
     image: 'https://images.unsplash.com/photo-1576091160550-217359f42f8c?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -42,6 +44,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Rice, Wheat at low costs', 'Identity proof for other schemes'],
     documents: ['Aadhar Card', 'Address Proof', 'Income Certificate'],
     category: 'Social',
+    community: 'Normal',
     officialUrl: 'https://nfsa.gov.in/',
     image: 'https://images.unsplash.com/photo-1594818378821-081162ba8299?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -57,10 +60,13 @@ export const SCHEMES: Scheme[] = [
     benefits: ['₹15,000 in total installments', 'Educational support'],
     documents: ['Aadhar Card', 'Birth Certificate', 'Income Certificate'],
     category: 'Social',
+    community: 'Normal',
     state: 'Uttar Pradesh',
     officialUrl: 'https://mksy.up.gov.in/',
     image: 'https://images.unsplash.com/photo-1526644485127-d2970f64e172?q=80&w=800&auto=format&fit=crop',
-    aiVersion: 'Mitra Core v1.0'
+    aiVersion: 'Mitra Core v1.0',
+    deadline: Date.now() + 2 * 24 * 60 * 60 * 1000, 
+    lastUpdate: Date.now() - 1 * 24 * 60 * 60 * 1000 
   },
   {
     id: 'bihar-student-credit-card',
@@ -73,10 +79,13 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Low interest loan', 'Covers tuition and living expenses'],
     documents: ['Aadhar Card', 'Marksheets', 'Valid ID'],
     category: 'Education',
+    community: 'Student',
     state: 'Bihar',
     officialUrl: 'https://www.7nishchay-yuvaupmission.bihar.gov.in/',
     image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop',
-    aiVersion: 'Mitra Core v1.0'
+    aiVersion: 'Mitra Core v1.0',
+    deadline: Date.now() + 15 * 24 * 60 * 60 * 1000, 
+    lastUpdate: Date.now() - 5000 
   },
   {
     id: 'sukanya-samriddhi',
@@ -89,6 +98,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['High interest rate', 'Tax benefits under 80C'],
     documents: ['Birth Certificate', 'Identity Proof', 'Address Proof'],
     category: 'Finance',
+    community: 'Normal',
     officialUrl: 'https://www.nsiindia.gov.in/',
     image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -104,6 +114,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Up to 300 units free electricity', 'Subsidy on solar panels'],
     documents: ['Electricity Bill', 'Property Documents', 'Aadhar Card'],
     category: 'Finance',
+    community: 'Normal',
     officialUrl: 'https://pmsuryaghar.gov.in/',
     image: 'https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -119,6 +130,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Free LPG connection', 'Cash assistance for stove and first refill'],
     documents: ['Aadhar Card', 'BPL Certificate', 'Bank Passbook'],
     category: 'Social',
+    community: 'Normal',
     officialUrl: 'https://www.pmuy.gov.in/',
     image: 'https://images.unsplash.com/photo-1559027615-cd9d7a9bbc53?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
@@ -134,8 +146,57 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Collateral-free loan up to ₹50,000', 'Interest subsidy'],
     documents: ['Vending Certificate', 'Aadhar Card', 'Bank Passbook'],
     category: 'Finance',
+    community: 'Jobs',
     officialUrl: 'https://pmsvanidhi.mohua.gov.in/',
     image: 'https://images.unsplash.com/photo-1532622724791-782f06bfe861?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'pmkvy',
+    mitraId: 'MITRA-STATIC-PMKVY-011',
+    name: 'PM Kaushal Vikas Yojana',
+    hindiName: 'प्रधानमंत्री कौशल विकास योजना',
+    description: 'Skill certification scheme to enable Indian youth to take up industry-relevant skill training.',
+    hindiDescription: 'भारतीय युवाओं को उद्योग-प्रासंगिक कौशल प्रशिक्षण लेने में सक्षम बनाने के लिए कौशल प्रमाणन योजना।',
+    eligibility: ['Indian youth aged 18-35', 'Unemployed or school/college dropouts'],
+    benefits: ['Free skill training', 'Certification and placement support'],
+    documents: ['Aadhar Card', 'Bank Account', 'Educational Certificates'],
+    category: 'Employment',
+    community: 'Jobs',
+    officialUrl: 'https://www.pmkvyofficial.org/',
+    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'ncs-portal',
+    mitraId: 'MITRA-STATIC-NCS-012',
+    name: 'National Career Service',
+    hindiName: 'राष्ट्रीय करियर सेवा (NCS)',
+    description: 'Portal providing a wide range of employment and career-related services to the citizens.',
+    hindiDescription: 'नागरिकों को रोजगार और करियर संबंधी सेवाओं की एक विस्तृत श्रृंखला प्रदान करने वाला पोर्टल।',
+    eligibility: ['Job seekers', 'Employers', 'Counselors'],
+    benefits: ['Free job match-making', 'Career counseling', 'Skill training info'],
+    documents: ['Aadhar Card', 'Resume', 'Educational Details'],
+    category: 'Employment',
+    community: 'Jobs',
+    officialUrl: 'https://www.ncs.gov.in/',
+    image: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800&auto=format&fit=crop',
+    aiVersion: 'Mitra Core v1.0'
+  },
+  {
+    id: 'mgnrega',
+    mitraId: 'MITRA-STATIC-MGNREGA-010',
+    name: 'MGNREGA (Work from Village)',
+    hindiName: 'मनरेगा (ग्रामीण रोजगार गारंटी)',
+    description: 'Guarantees 100 days of wage employment in a financial year to every rural household.',
+    hindiDescription: 'प्रत्येक ग्रामीण परिवार को एक वित्तीय वर्ष में 100 दिनों के मजदूरी रोजगार की गारंटी।',
+    eligibility: ['Rural households', 'Adult members willing to do unskilled manual work'],
+    benefits: ['Guaranteed employment', 'Unemployment allowance if work not provided'],
+    documents: ['Job Card', 'Aadhar Card', 'Bank Passbook'],
+    category: 'Employment',
+    community: 'Farmer',
+    officialUrl: 'https://nrega.nic.in/',
+    image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   }
 ];
@@ -143,7 +204,7 @@ export const SCHEMES: Scheme[] = [
 export const STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
   "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manitoba", "Meghalaya", "Mizoram", 
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
   "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", 
   "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
 ];

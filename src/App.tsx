@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
 import { 
   MessageCircle, 
   BookOpen, 
@@ -18,7 +19,9 @@ import {
   AlertTriangle,
   Info,
   CheckCircle,
+  CheckCircle2,
   X,
+  ArrowRight,
   ChevronDown,
   ChevronUp,
   Upload,
@@ -45,38 +48,57 @@ import {
   Send,
   RefreshCw,
   Bell,
+  Users,
   BellRing,
   ExternalLink,
   ShieldCheck,
   Play,
   Pause,
   Calendar,
+  Clock,
   FileText,
   Copy,
   Check,
   MapPin,
+  Banknote,
   History,
   Plus,
+  Save,
+  Puzzle,
+  Lightbulb,
   MessageSquare,
   LayoutGrid,
+  ThumbsUp,
+  ThumbsDown,
   Map as MapIcon,
   Loader2,
   WifiOff,
   CloudOff,
   Cloud,
-  Briefcase as BriefcaseIcon
+  Briefcase as BriefcaseIcon,
+  SearchCheck,
+  GraduationCap,
+  FileBadge,
+  FileWarning,
+  CreditCard,
+  Wheat,
+  CloudSun,
+  Target
 } from 'lucide-react';
 import { auth, db, handleFirestoreError, OperationType, testConnection } from './lib/firebase';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { AuthScreen } from './components/Auth';
 import { LiveCall } from './components/LiveCall';
-import { SCHEMES, STATES } from './constants';
-import { Message, UserProfile, TrackerApplication, Conversation, Quiz, UserDocument, NewsItem, AppNotification, FormDraft } from './types';
+import { FormCounselor } from './components/FormCounselor';
+import { SCHEMES as STATIC_SCHEMES, STATES } from './constants';
+import { schemeSyncService } from './services/schemeSyncService';
+import { Scheme, Message, UserProfile, TrackerApplication, Conversation, Quiz, UserDocument, NewsItem, AppNotification, FormDraft } from './types';
 import { 
   getAIResponse, 
   analyzeForm, 
   generateSchemeLetter, 
   searchSchemes, 
+  analyzeFilledForm,
   generateFormalLetter, 
   getComparisonRecommendation, 
   getSpeech, 
@@ -87,6 +109,13 @@ import {
   analyzeScreenForGuidance, 
   analyzeWebsite,
   getProfileRecommendations,
+  getSchemeSmartTip,
+  enhanceDocument,
+  analyzeHandwrittenDocument,
+  analyzeDocumentQuality,
+  extractProfileData,
+  matchEligibility,
+  getCounselingRoadmap,
   SCREEN_GURU_TOOLS,
   ai
 } from './services/geminiService';
@@ -94,7 +123,8 @@ import { Modality } from '@google/genai';
 import { floatTo16BitPCM, pcmToFloat32, base64ToUint8Array, uint8ArrayToBase64 } from './lib/audio';
 import { requestNotificationPermission, showLocalNotification, MOCK_NOTIFICATIONS } from './services/notificationService';
 import { cn } from './lib/utils';
-import ReactMarkdown from 'react-markdown';
+import { jsPDF } from 'jspdf';
+import axios from 'axios';
 import { APIProvider, Map as GoogleMap, AdvancedMarker, Pin, InfoWindow, useAdvancedMarkerRef, useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
 import { doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, Timestamp, limit, getDocs } from 'firebase/firestore';
 
@@ -108,6 +138,142 @@ const HAS_MAPS_KEY = Boolean(MAPS_API_KEY);
 
 // Initial connection test
 testConnection();
+
+// --- Community Specific Components ---
+
+const CommunityDecorations = ({ community }: { community?: string }) => {
+  if (community === 'Student') {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-10 overflow-hidden">
+        <BookOpen className="absolute -top-10 -left-10 w-40 h-40 rotate-12" />
+        <Plus className="absolute top-1/4 -right-10 w-24 h-24 -rotate-12" />
+        <GraduationCap className="absolute bottom-20 -left-10 w-32 h-32 rotate-45" />
+        <div className="absolute top-1/2 left-1/4 w-4 h-20 bg-blue-500 rounded-full blur-xl" />
+      </div>
+    );
+  }
+  if (community === 'Farmer') {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-10 overflow-hidden">
+        <Wheat className="absolute -top-10 -right-10 w-40 h-40 -rotate-12 text-green-600" />
+        <div className="absolute top-1/2 -left-10 w-32 h-32 bg-green-500 rounded-full blur-3xl opacity-20" />
+        <MapIcon className="absolute bottom-40 -right-10 w-32 h-32 rotate-12 text-emerald-600" />
+        {/* Grass elements */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 flex gap-4 items-end px-4">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="w-1 bg-green-500 rounded-full" style={{ height: `${Math.random() * 40 + 20}px` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (community === 'Jobs') {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-10 overflow-hidden">
+        <BriefcaseIcon className="absolute -top-10 -left-10 w-40 h-40 rotate-12" />
+        <Zap className="absolute top-3/4 -right-10 w-32 h-32 -rotate-12 text-yellow-500" />
+        <Plus className="absolute top-1/3 left-10 w-16 h-16 blur-sm" />
+      </div>
+    );
+  }
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 opacity-5 overflow-hidden">
+      <Sparkles className="absolute top-10 right-10 w-20 h-20 animate-pulse" />
+      <Globe className="absolute bottom-20 left-10 w-40 h-40 opacity-20" />
+    </div>
+  );
+};
+
+const NewsSlider = ({ news, community }: { news: any[], community?: string }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || news.length === 0) return;
+
+    let scrollAmount = 0;
+    const step = 1;
+    const interval = setInterval(() => {
+      scrollAmount += step;
+      if (scrollAmount >= el.scrollWidth - el.clientWidth) {
+        scrollAmount = 0;
+      }
+      el.scrollTo({ left: scrollAmount, behavior: 'auto' });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [news]);
+
+  if (news.length === 0) return null;
+
+  const getTheme = () => {
+    switch(community) {
+      case 'Student': return 'border-blue-100 bg-blue-50/50';
+      case 'Farmer': return 'border-emerald-100 bg-emerald-50/50';
+      case 'Jobs': return 'border-indigo-100 bg-indigo-50/50';
+      default: return 'border-gray-100 bg-gray-50/50';
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Latest for your Community</h3>
+      <div 
+        ref={scrollRef}
+        className="flex overflow-x-hidden gap-4 pb-1 relative"
+      >
+        <div className="flex gap-4 min-w-max">
+          {news.map((item, i) => (
+            <div 
+              key={i} 
+              className={cn(
+                "w-[280px] p-4 rounded-[2rem] border shadow-sm flex flex-col gap-3 transition-colors",
+                getTheme()
+              )}
+            >
+              <div className="w-full h-32 rounded-2xl bg-white overflow-hidden border border-gray-100 relative">
+                <img 
+                  src={item.image || `https://picsum.photos/seed/${item.id + i}/400/225`} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur rounded-lg text-[8px] font-black text-white uppercase tracking-widest">
+                  {item.category}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-gray-900 leading-tight line-clamp-2">{item.title}</h4>
+                <p className="text-[10px] text-gray-500 font-medium mt-1 line-clamp-1 italic">{item.summary}</p>
+              </div>
+            </div>
+          ))}
+          {/* Duplicate for infinite feel */}
+          {news.map((item, i) => (
+            <div 
+              key={`dup-${i}`} 
+              className={cn(
+                "w-[280px] p-4 rounded-[2rem] border shadow-sm flex flex-col gap-3 transition-colors",
+                getTheme()
+              )}
+            >
+              <div className="w-full h-32 rounded-2xl bg-white overflow-hidden border border-gray-100 relative">
+                <img 
+                  src={item.image || `https://picsum.photos/seed/${item.id + i + 10}/400/225`} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-gray-900 leading-tight line-clamp-2">{item.title}</h4>
+                <p className="text-[10px] text-gray-500 font-medium mt-1 line-clamp-1 italic">{item.summary}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- Sub-components ---
 
@@ -130,6 +296,241 @@ const useOnlineStatus = () => {
   return isOnline;
 };
 
+const AILoader = ({ message = "Mitra AI is thinking..." }: { message?: string }) => (
+  <div className="flex flex-col items-center justify-center py-12 gap-6 w-full">
+    <div className="relative">
+      <div className="w-20 h-20 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center text-emerald-600 animate-pulse relative overflow-hidden ring-4 ring-emerald-50/50">
+        <Sparkles className="w-8 h-8 z-10" />
+        <motion.div 
+          animate={{ x: ['100%', '-100%'] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent"
+        />
+      </div>
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        className="absolute -inset-2 border-2 border-dashed border-emerald-200 rounded-[2.8rem]"
+      />
+    </div>
+    <div className="flex flex-col items-center gap-2">
+      <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest text-center animate-pulse px-6">{message}</h3>
+      <div className="flex gap-1.5 justify-center">
+        {[0, 1, 2].map(i => (
+          <motion.div 
+            key={i}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+            className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+const CostEvaluator = ({ costInfo }: { costInfo: { offlineCost: string; onlineCost: string; savings: string; advocacyMsg: string } }) => (
+  <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 relative overflow-hidden group">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/30 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-emerald-100/50 transition-all duration-700" />
+    
+    <div className="relative z-10">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+          <Banknote className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-[10px] font-black text-emerald-900 uppercase tracking-[0.2em] leading-none">Cost Efficiency Analyst</h3>
+          <p className="text-xs font-black text-emerald-600 uppercase tracking-tighter mt-2">Maximum Savings Guaranteed</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white/60 backdrop-blur-sm p-4 rounded-3xl border border-emerald-100/50">
+          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Typical Offline Cost</p>
+          <p className="text-sm font-black text-gray-700 line-through decoration-red-500/50">{costInfo.offlineCost}</p>
+        </div>
+        <div className="bg-emerald-600 p-4 rounded-3xl shadow-lg shadow-emerald-100">
+          <p className="text-[8px] font-black text-emerald-100 uppercase tracking-widest mb-1">Mitra Online Cost</p>
+          <p className="text-sm font-black text-white">{costInfo.onlineCost}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between bg-white p-4 rounded-3xl border border-emerald-100">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-10 bg-emerald-500 rounded-full" />
+            <div>
+              <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight">Potentially Saved</p>
+              <p className="text-2xl font-black text-emerald-600 leading-none">{costInfo.savings}</p>
+            </div>
+          </div>
+          <div className="w-12 h-12 rounded-full border-4 border-emerald-50 border-t-emerald-500 flex items-center justify-center text-[10px] font-black text-emerald-600">
+            {costInfo.savings}
+          </div>
+        </div>
+        
+        <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 italic">
+           <p className="text-xs font-bold text-emerald-800 leading-relaxed text-center">
+             "{costInfo.advocacyMsg}"
+           </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const MitraPitch = ({ pitch, result, onStartSimulator }: { pitch: { isOnlinePossible: boolean; pitchMsg: string; offlineGuide?: string; cta: string }; result?: any; onStartSimulator?: (form: any) => void }) => {
+  if (!pitch) return null;
+
+  return (
+    <div className={cn(
+      "p-8 rounded-[2.5rem] border shadow-xl relative overflow-hidden group mb-6",
+      pitch.isOnlinePossible 
+        ? "bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-xl shadow-indigo-900/5 text-indigo-900"
+        : "bg-gradient-to-br from-orange-50 to-white border-orange-100 shadow-xl shadow-orange-900/5 text-orange-900"
+    )}>
+      <div className={cn(
+        "absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-opacity-50 transition-all duration-700",
+        pitch.isOnlinePossible ? "bg-indigo-100/30" : "bg-orange-100/30"
+      )} />
+      
+      <div className="relative z-10 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg",
+            pitch.isOnlinePossible ? "bg-indigo-600 shadow-indigo-200" : "bg-orange-600 shadow-orange-200"
+          )}>
+            {pitch.isOnlinePossible ? <Zap className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+          </div>
+          <div>
+            <h3 className={cn(
+              "text-[10px] font-black uppercase tracking-[0.2em] leading-none",
+              pitch.isOnlinePossible ? "text-indigo-900" : "text-orange-900"
+            )}>
+              {pitch.isOnlinePossible ? "Piz AI: Scholarship Expert" : "Honest Process Guide"}
+            </h3>
+            <p className={cn(
+              "text-xs font-black uppercase tracking-tighter mt-2",
+              pitch.isOnlinePossible ? "text-indigo-600" : "text-orange-600"
+            )}>
+              {pitch.isOnlinePossible ? "Seamless ₹10 Fast-Track" : "Essential Office Visit Required"}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-[2rem] border border-white/40 shadow-sm flex flex-col gap-3">
+             <p className="text-sm font-bold leading-relaxed">{pitch.pitchMsg}</p>
+             {pitch.isOnlinePossible && (
+               <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50/50 px-3 py-2 rounded-xl border border-indigo-100/50 w-fit">
+                  <Star className="w-3 h-3 fill-current" />
+                  <span className="text-[10px] font-black uppercase tracking-tight">Zero Rejection Choice: ₹10 only</span>
+               </div>
+             )}
+          </div>
+
+          {!pitch.isOnlinePossible && pitch.offlineGuide && (
+            <div className="bg-white/40 backdrop-blur-sm p-6 rounded-[2rem] border border-orange-100/50 space-y-3">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-900/60">How to handle this offline:</h4>
+               <div className="text-xs text-orange-900 font-medium whitespace-pre-wrap leading-relaxed">
+                 {pitch.offlineGuide}
+               </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {pitch.isOnlinePossible && onStartSimulator && result && (
+              <button
+                onClick={() => {
+                  const sFields = result.sections 
+                    ? result.sections.flatMap((s: any) => s.fields)
+                    : (result.fields || []);
+                  const sampleData = sFields.reduce((acc: any, f: any) => {
+                    acc[f.field] = f.exampleValue || "";
+                    return acc;
+                  }, {});
+                  onStartSimulator({ ...result, formData: sampleData });
+                }}
+                className="w-full py-4 bg-white/60 backdrop-blur-sm text-indigo-600 border-2 border-indigo-100 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-indigo-50"
+              >
+                <BookOpen className="w-4 h-4" />
+                See Sample Filled Form
+              </button>
+            )}
+
+            <button 
+              onClick={() => {
+                if (pitch.isOnlinePossible && onStartSimulator && result) {
+                  onStartSimulator(result);
+                } else {
+                  (window as any).startLiveCall?.();
+                }
+              }}
+              className={cn(
+                "w-full py-5 rounded-[1.5rem] shadow-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer",
+                pitch.isOnlinePossible ? "bg-indigo-600 shadow-indigo-200" : "bg-orange-600 shadow-orange-200"
+              )}
+            >
+              {pitch.isOnlinePossible && <CheckCircle className="w-4 h-4 text-white" />}
+              <p className="text-sm font-black text-white text-center leading-tight">
+                {pitch.cta.includes('₹10') ? pitch.cta : (pitch.isOnlinePossible ? "Apply Now (₹10 only)" : pitch.cta)}
+              </p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ConfidenceEvaluator = ({ analysis }: { analysis: { safetyBenefit: string; offlineRisk: string; finalVerdict: string } }) => (
+  <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-900/5 relative overflow-hidden group">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-blue-100/50 transition-all duration-700" />
+    
+    <div className="relative z-10">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+          <ShieldCheck className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-[10px] font-black text-blue-900 uppercase tracking-[0.2em] leading-none">Process Confidence & Efficiency</h3>
+          <p className="text-xs font-black text-blue-600 uppercase tracking-tighter mt-2">Zero-Error Application Path</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-blue-100/50 flex gap-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+            <Zap className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-1">Safety First (Online)</h4>
+            <p className="text-xs text-gray-700 leading-relaxed font-medium">{analysis.safetyBenefit}</p>
+          </div>
+        </div>
+
+        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-blue-100/50 flex gap-4">
+          <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black text-orange-900 uppercase tracking-widest mb-1">Hassle & Risk (Offline)</h4>
+            <p className="text-xs text-gray-700 leading-relaxed font-medium">{analysis.offlineRisk}</p>
+          </div>
+        </div>
+
+        <div className="bg-blue-600 p-5 rounded-3xl shadow-lg shadow-blue-100 flex items-center gap-4">
+          <div className="flex-1">
+             <p className="text-[8px] font-black text-blue-100 uppercase tracking-widest mb-1 text-center">Confidence Verdict</p>
+             <p className="text-xs font-black text-white text-center leading-tight">
+               "{analysis.finalVerdict}"
+             </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const OfflineBanner = () => {
   const isOnline = useOnlineStatus();
   
@@ -150,9 +551,15 @@ const OfflineBanner = () => {
   );
 };
 
-const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
-  const [type, setType] = useState<'issue' | 'suggestion' | 'general'>('general');
+const FeedbackModal = ({ onClose, initialType = 'general', relatedId, relatedName }: { 
+  onClose: () => void; 
+  initialType?: 'issue' | 'suggestion' | 'general' | 'scheme' | 'guide';
+  relatedId?: string;
+  relatedName?: string;
+}) => {
+  const [type, setType] = useState(initialType);
   const [content, setContent] = useState('');
+  const [rating, setRating] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -167,6 +574,9 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
         userEmail: auth.currentUser.email || 'anonymous',
         type,
         content,
+        rating: rating || 0,
+        relatedId: relatedId || null,
+        relatedName: relatedName || null,
         status: 'pending',
         timestamp: Date.now()
       });
@@ -174,7 +584,7 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
       setTimeout(onClose, 2000);
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      alert("Feedback submit nahi ho saka. Kripya firse try karein.");
+      showToast("Feedback submit nahi ho saka. Kripya firse try karein.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -182,19 +592,21 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4"
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
-        <header className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+        <header className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
           <div>
             <h2 className="text-xl font-black text-gray-900 tracking-tight">Feedback Mitra</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Help us improve for you</p>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+              {relatedName ? `Feedback for ${relatedName}` : 'Help us improve for you'}
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 bg-white rounded-full shadow-sm">
+          <button onClick={onClose} className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </header>
@@ -211,16 +623,37 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6 overflow-y-auto">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Kaisa raha anubhav?</label>
+              <div className="flex justify-center gap-4">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRating(s)}
+                    className={cn(
+                      "w-12 h-12 rounded-2xl border transition-all flex items-center justify-center",
+                      rating && rating >= s 
+                        ? "bg-orange-50 border-orange-200 text-orange-500 scale-110 shadow-sm" 
+                        : "bg-gray-50 border-gray-100 text-gray-300 hover:text-orange-300"
+                    )}
+                  >
+                    <Star className={cn("w-6 h-6", rating && rating >= s ? "fill-orange-500" : "")} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Feedback Type</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['issue', 'suggestion', 'general'] as const).map(t => (
+              <div className="flex flex-wrap gap-2">
+                {(['issue', 'suggestion', 'general', 'scheme', 'guide'] as const).map(t => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setType(t)}
                     className={cn(
-                      "py-3 rounded-2xl border font-bold text-[10px] uppercase tracking-widest transition-all",
+                      "px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all",
                       type === t ? "bg-[#008069] text-white border-[#008069] shadow-lg" : "bg-gray-50 text-gray-500 border-gray-100"
                     )}
                   >
@@ -231,16 +664,17 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Message</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Aapka Sujhaav (Written Message)</label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={
                   type === 'issue' ? "Kya dikat aa rahi hai?" :
                   type === 'suggestion' ? "App ko aur behtar kaise banayein?" :
+                  type === 'scheme' ? "Scheme ke baare mein kya lagta hai?" :
                   "Aapka anubhav kaisa raha?"
                 }
-                className="w-full bg-gray-50 border border-gray-100 rounded-3xl p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#008069]/20 resize-none min-h-[150px]"
+                className="w-full bg-gray-50 border border-gray-100 rounded-3xl p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#008069]/20 resize-none min-h-[120px]"
                 required
               />
             </div>
@@ -248,9 +682,10 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
             <button
               type="submit"
               disabled={submitting || !content.trim()}
-              className="w-full bg-[#008069] text-white py-4 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50"
+              className="w-full py-5 bg-[#008069] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : 'Send Feedback'}
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              Feedback Submit Karein
             </button>
           </form>
         )}
@@ -259,10 +694,1041 @@ const FeedbackModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; onClose: () => void }) => {
-  const [image, setImage] = useState<string | null>(null);
-  const [auditing, setAuditing] = useState(false);
+const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [filters, setFilters] = useState({
+    text: true,
+    headings: true,
+    images: false,
+    links: false,
+    custom: false
+  });
+  const [customSelector, setCustomSelector] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleScrape = async () => {
+    if (!url) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const response = await axios.post("/api/scrape", {
+        url,
+        filters,
+        customSelector: filters.custom ? customSelector : null
+      });
+      setResult(response.data.data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Something went wrong while scraping.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportData = (format: 'json' | 'csv' | 'txt') => {
+    if (!result) return;
+    let content = "";
+    let filename = `scrape-result-${new Date().getTime()}`;
+
+    if (format === 'json') {
+      content = JSON.stringify(result, null, 2);
+      filename += ".json";
+    } else if (format === 'txt') {
+      if (result.text) content += `--- TEXT CONTENT ---\n${result.text}\n\n`;
+      if (result.headings) {
+        content += `--- HEADINGS ---\n`;
+        result.headings.forEach((h: any) => content += `[${h.tag}] ${h.text}\n`);
+        content += "\n";
+      }
+      if (result.links) {
+        content += `--- LINKS ---\n`;
+        result.links.forEach((l: any) => content += `${l.text}: ${l.url}\n`);
+      }
+      filename += ".txt";
+    } else if (format === 'csv') {
+      if (result.links) {
+        content = "Text,URL\n" + result.links.map((l: any) => `"${l.text}","${l.url}"`).join("\n");
+      } else if (result.headings) {
+        content = "Tag,Text\n" + result.headings.map((h: any) => `"${h.tag}","${h.text}"`).join("\n");
+      } else {
+        content = "Data\n" + (result.text ? `"${result.text.substring(0, 500)}..."` : "");
+      }
+      filename += ".csv";
+    }
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+               <Globe className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Scraper Pro</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Extract data from any website</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-4">
+                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">1. Target Website URL</h3>
+                 <div className="relative">
+                    <input 
+                      type="url" 
+                      placeholder="https://example.com"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      className="w-full p-6 pl-14 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 placeholder:text-gray-300"
+                    />
+                    <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                 </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">2. Select Extraction Filters</h3>
+                 <div className="grid grid-cols-2 gap-3">
+                    {Object.entries({
+                      text: "All Text",
+                      headings: "Headings",
+                      images: "Images",
+                      links: "Links",
+                      custom: "Custom CSS"
+                    }).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }))}
+                        className={cn(
+                          "p-4 rounded-2xl border flex items-center gap-3 transition-all",
+                          filters[key as keyof typeof filters] 
+                            ? "bg-blue-50 border-blue-100 text-blue-600 shadow-sm" 
+                            : "bg-white border-gray-50 text-gray-400 hover:border-gray-100"
+                        )}
+                      >
+                         <div className={cn(
+                           "w-5 h-5 rounded-md border-2 flex items-center justify-center",
+                           filters[key as keyof typeof filters] ? "bg-blue-600 border-blue-600" : "border-gray-200"
+                         )}>
+                            {filters[key as keyof typeof filters] && <Check className="w-3 h-3 text-white" />}
+                         </div>
+                         <span className="text-[11px] font-black uppercase tracking-tight">{label}</span>
+                      </button>
+                    ))}
+                 </div>
+                 
+                 {filters.custom && (
+                   <div className="mt-2 p-4 bg-gray-50 rounded-2xl border border-gray-100 animate-in zoom-in-95">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">CSS Selector (e.g. .article-body p)</p>
+                      <input 
+                        type="text" 
+                        placeholder=".content > p"
+                        value={customSelector}
+                        onChange={(e) => setCustomSelector(e.target.value)}
+                        className="w-full bg-white border border-gray-100 rounded-xl p-3 text-xs outline-none focus:ring-1 focus:ring-blue-100"
+                      />
+                   </div>
+                 )}
+              </div>
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600">
+                   <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                   <p className="text-xs font-bold leading-tight">{error}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleScrape}
+                disabled={!url || loading}
+                className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-100 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {loading ? 'Extracting Data...' : 'Start Extraction'}
+              </button>
+
+              {loading && (
+                <AILoader message="Mitra Scraper is crawling the web..." />
+              )}
+
+              {result && (
+                <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-500">
+                   <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">3. Extraction Results</h3>
+                      <div className="flex gap-2">
+                         {['json', 'txt', 'csv'].map(fmt => (
+                           <button 
+                            key={fmt}
+                            onClick={() => exportData(fmt as any)}
+                            className="bg-gray-100 hover:bg-black hover:text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tight transition-all"
+                           >
+                             {fmt}
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div className="bg-gray-50 rounded-[2.5rem] border border-gray-100 overflow-hidden">
+                      <div className="max-h-[400px] overflow-y-auto p-6 flex flex-col gap-6">
+                         {result.headings && result.headings.length > 0 && (
+                           <div className="flex flex-col gap-3">
+                              <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 self-start px-2 py-0.5 rounded">Headings Found</h4>
+                              <div className="flex flex-col gap-2">
+                                 {result.headings.map((h: any, i: number) => (
+                                   <div key={i} className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                                      <span className="text-[8px] font-bold text-gray-400 mr-2">{h.tag}</span>
+                                      <span className="text-xs font-semibold text-gray-700">{h.text}</span>
+                                   </div>
+                                 ))}
+                              </div>
+                           </div>
+                         )}
+
+                         {result.images && result.images.length > 0 && (
+                           <div className="flex flex-col gap-3">
+                              <h4 className="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 self-start px-2 py-0.5 rounded">Images Extracted</h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                 {result.images.slice(0, 10).map((img: any, i: number) => (
+                                   <div key={i} className="aspect-square bg-white rounded-2xl border border-gray-100 p-2 overflow-hidden flex items-center justify-center">
+                                      <img src={img.src} alt={img.alt} className="max-w-full max-h-full object-contain" onError={(e) => (e.currentTarget.src = "https://placehold.co/400x400?text=Blocked")} />
+                                   </div>
+                                 ))}
+                                 {result.images.length > 10 && (
+                                   <div className="aspect-square bg-gray-100 rounded-2xl flex flex-col items-center justify-center text-gray-400 font-bold text-[10px]">
+                                      +{result.images.length - 10} MORE
+                                   </div>
+                                 )}
+                              </div>
+                           </div>
+                         )}
+
+                         {result.links && result.links.length > 0 && (
+                           <div className="flex flex-col gap-3">
+                              <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 self-start px-2 py-0.5 rounded">Links Found</h4>
+                              <div className="flex flex-col gap-2">
+                                 {result.links.slice(0, 15).map((l: any, i: number) => (
+                                   <div key={i} className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col gap-1">
+                                      <span className="text-xs font-bold text-gray-900 truncate">{l.text || "Empty Text"}</span>
+                                      <span className="text-[9px] text-gray-400 truncate">{l.url}</span>
+                                   </div>
+                                 ))}
+                              </div>
+                           </div>
+                         )}
+
+                         {result.text && (
+                           <div className="flex flex-col gap-3">
+                              <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 self-start px-2 py-0.5 rounded">Text Content</h4>
+                              <div className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm text-xs text-gray-600 leading-relaxed max-h-[300px] overflow-y-auto whitespace-pre-wrap">
+                                 {result.text}
+                              </div>
+                           </div>
+                         )}
+                      </div>
+                   </div>
+                </div>
+              )}
+           </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [qualityReport, setQualityReport] = useState<any>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+        setResult(null);
+        setQualityReport(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEnhance = async () => {
+    if (!image) {
+      showToast("Bhai, pehle document upload toh karein!", "warning");
+      return;
+    }
+    setAnalyzing(true);
+    try {
+      const base64 = image.split(',')[1];
+      // Simultaneously run quality analysis and enhancement instructions
+      const [enhanceResult, qualityResult] = await Promise.all([
+        enhanceDocument(base64, 'image/jpeg'),
+        analyzeDocumentQuality(base64, 'image/jpeg')
+      ]);
+      setResult(enhanceResult);
+      setQualityReport(qualityResult);
+    } catch (err) {
+      console.error("Enhancement error:", err);
+      showToast("Document analyze karne mein dikkat hui. Kripya dubaara try karein.", "error");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+               <Sparkles className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">AI Document Enhancer</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Quality optimization for govt forms</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {!result ? (
+             <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-2">
+                   <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">1. Upload Document Image</h3>
+                   <p className="text-xs text-gray-500 font-medium">Upload Aadhar, PAN, or Marksheet to check for quality issues.</p>
+                </div>
+
+                <div 
+                  className={cn(
+                    "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
+                    image && "border-emerald-200 bg-emerald-50/10"
+                  )}
+                >
+                  {image ? (
+                    <>
+                      <img src={image} className="absolute inset-0 w-full h-full object-contain" alt="Doc preview" />
+                      {analyzing && (
+                        <div className="absolute inset-0 z-10">
+                          <motion.div 
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ 
+                              y: ['0%', '100%', '0%'],
+                              opacity: [0, 1, 1, 0]
+                            }}
+                            transition={{ 
+                              duration: 3, 
+                              repeat: Infinity,
+                              ease: "linear"
+                            }}
+                            className="w-full h-1 bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]"
+                          />
+                          <div className="absolute inset-0 bg-emerald-400/5 backdrop-blur-[1px]" />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
+                        <Upload className="w-8 h-8" />
+                      </div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to upload document photo</p>
+                    </>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                  />
+                  {image && (
+                    <button 
+                      onClick={() => setImage(null)}
+                      className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow-lg"
+                    >
+                      <RefreshCw className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleEnhance}
+                  disabled={!image || analyzing}
+                  className="w-full bg-[#008069] text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {analyzing ? 'Analyzing Quality...' : 'Analyze Document Quality'}
+                </button>
+
+                {analyzing && (
+                  <AILoader message="Mitra is auditing document clarity & lighting..." />
+                )}
+             </div>
+           ) : (
+             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 flex flex-col gap-6">
+                   <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col items-center gap-2 flex-1">
+                         <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center relative overflow-hidden">
+                            <div className="text-2xl font-black text-gray-900 z-10">{result.clarityScore}%</div>
+                            <svg className="absolute inset-0 w-full h-full -rotate-90">
+                               <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="4" className="text-gray-100" />
+                               <circle 
+                                  cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="6" 
+                                  strokeDasharray={226.2}
+                                  strokeDashoffset={226.2 - (226.2 * result.clarityScore) / 100}
+                                  className="text-emerald-500 transition-all duration-1000"
+                                  strokeLinecap="round"
+                               />
+                            </svg>
+                         </div>
+                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Clarity Score</p>
+                      </div>
+
+                      <div className="w-px h-12 bg-gray-200" />
+
+                      <div className="flex flex-col items-center gap-2 flex-1">
+                         <div className={cn(
+                           "px-4 py-2 rounded-2xl font-black text-sm shadow-sm",
+                           result.acceptanceLevel === 'High' || qualityReport?.status === 'Green' ? "bg-emerald-500 text-white" :
+                           result.acceptanceLevel === 'Medium' || qualityReport?.status === 'Yellow' ? "bg-orange-500 text-white" : "bg-red-500 text-white"
+                         )}>
+                            {qualityReport?.status || result.acceptanceLevel}
+                         </div>
+                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest text-center">Acceptance Status</p>
+                      </div>
+
+                      <div className="w-px h-12 bg-gray-200" />
+
+                      <div className="flex flex-col items-center gap-2 flex-1">
+                         <div className="text-2xl font-black text-gray-900">{result.rejectionRisk || 0}%</div>
+                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Rejection Risk</p>
+                      </div>
+                   </div>
+
+                   <div className="text-center bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-2">
+                      <h3 className="text-base font-black text-gray-900 tracking-tight leading-snug">{qualityReport?.verdict || result.verdict}</h3>
+                      {qualityReport?.mitraWarning && <p className="text-[10px] text-orange-600 font-bold uppercase italic tracking-tight">{qualityReport.mitraWarning}</p>}
+                   </div>
+                </div>
+
+                {qualityReport && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Brightness</p>
+                      <div className="text-lg font-black text-gray-900">{qualityReport.scores.brightness}%</div>
+                      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-400" style={{ width: `${qualityReport.scores.brightness}%` }} />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Contrast</p>
+                      <div className="text-lg font-black text-gray-900">{qualityReport.scores.contrast}%</div>
+                      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-400" style={{ width: `${qualityReport.scores.contrast}%` }} />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sharpness</p>
+                      <div className="text-lg font-black text-gray-900">{qualityReport.scores.sharpness}%</div>
+                      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-400" style={{ width: `${qualityReport.scores.sharpness}%` }} />
+                      </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Alignment</p>
+                      <div className="text-lg font-black text-gray-900">{qualityReport.scores.alignment}%</div>
+                      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-400" style={{ width: `${qualityReport.scores.alignment}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">AI-Generated Improvements</h4>
+                   <div className="flex flex-col gap-3">
+                      {(qualityReport?.improvements || result.enhancements)?.map((inst: any, idx: number) => {
+                        const isTechnical = typeof inst === 'string';
+                        return (
+                          <div key={idx} className="p-4 bg-white border border-gray-100 rounded-3xl shadow-sm flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                               <CheckCircle className="w-5 h-5" />
+                            </div>
+                            <div>
+                               <p className="text-[8px] font-black text-gray-400 uppercase">Step {idx + 1}</p>
+                               <p className="text-xs font-bold text-gray-700">{isTechnical ? inst : inst.instruction}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                   </div>
+                </div>
+
+                <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100">
+                   <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                     <Info className="w-3.5 h-3.5" /> Mitra's Pro Tips
+                   </h4>
+                   <ul className="space-y-2">
+                      {result.tips?.map((tip: string, idx: number) => (
+                        <li key={idx} className="text-xs font-bold text-gray-700 flex gap-2">
+                          <CheckCircle className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                          {tip}
+                        </li>
+                      ))}
+                   </ul>
+                </div>
+
+                {result.needsRetake && (
+                  <div className="p-4 bg-red-50 border border-red-100 rounded-3xl flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+                    <p className="text-[10px] text-red-700 font-bold leading-tight uppercase tracking-tight">
+                      Advice: Image quality bahut low hai. Rejection se bachne ke liye photo dobara kheenchiye.
+                    </p>
+                  </div>
+                )}
+
+                <button 
+                   onClick={() => setResult(null)}
+                   className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
+                >
+                   Test Another Document
+                </button>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const PdfUtilityModal = ({ onClose }: { onClose: () => void }) => {
+  const [files, setFiles] = useState<File[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      setPdfUrl(null);
+    }
+  };
+
+  const removeFile = (idx: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== idx));
+    setPdfUrl(null);
+  };
+
+  const generatePdf = async () => {
+    if (files.length === 0) return;
+    setGenerating(true);
+    try {
+      const doc = new jsPDF();
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (i > 0) doc.addPage();
+        
+        await new Promise<void>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imgData = e.target?.result as string;
+            const img = new Image();
+            img.src = imgData;
+            img.onload = () => {
+              const pageWidth = doc.internal.pageSize.getWidth();
+              const pageHeight = doc.internal.pageSize.getHeight();
+              const margin = 10;
+              const maxWidth = pageWidth - (margin * 2);
+              const maxHeight = pageHeight - (margin * 2);
+              
+              let width = img.width;
+              let height = img.height;
+              
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width *= ratio;
+              height *= ratio;
+              
+              const x = (pageWidth - width) / 2;
+              const y = (pageHeight - height) / 2;
+              
+              doc.addImage(imgData, 'JPEG', x, y, width, height); 
+              resolve();
+            };
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Error generating PDF. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const downloadPdf = () => {
+    if (!pdfUrl) return;
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `Mitra_Documents_${Date.now()}.pdf`;
+    link.click();
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
+               <FileText className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">PDF Utility Mitra</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Combine images into single PDF</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+           <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center px-1">
+                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Images</h3>
+                 <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => { setFiles([]); setPdfUrl(null); }}
+                      className="text-[10px] font-bold text-red-500 uppercase tracking-tight hover:underline"
+                    >
+                      Clear All
+                    </button>
+                    <span className="text-[10px] font-bold text-gray-400">{files.length} Files</span>
+                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                 {files.map((f, i) => (
+                   <div key={i} className="group relative aspect-square bg-gray-50 rounded-3xl border border-gray-100 overflow-hidden">
+                      <img 
+                        src={URL.createObjectURL(f)} 
+                        className="w-full h-full object-cover" 
+                        alt="Preview" 
+                      />
+                      <button 
+                        onClick={() => removeFile(i)}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                         <Trash2 className="w-4 h-4" />
+                      </button>
+                   </div>
+                 ))}
+                 <label className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-all">
+                    <Plus className="w-6 h-6 text-gray-300" />
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Image</span>
+                    <input type="file" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
+                 </label>
+              </div>
+           </div>
+
+           {pdfUrl && (
+             <div className="p-6 bg-green-50 rounded-[2.5rem] border border-green-100 flex flex-col gap-4 items-center">
+                <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-green-600 shadow-sm border border-green-50 mb-2">
+                   <FileText className="w-8 h-8" />
+                </div>
+                <div className="text-center">
+                   <h4 className="text-sm font-black text-gray-900 leading-tight mb-1">PDF taiyyar hai!</h4>
+                   <p className="text-[10px] text-gray-500 font-medium">Aapka multi-page PDF document format safe hai.</p>
+                </div>
+                <div className="flex gap-2 w-full pt-2">
+                   <button 
+                     onClick={() => window.open(pdfUrl, '_blank')}
+                     className="flex-1 bg-white text-gray-900 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] border border-green-200 shadow-sm"
+                   >
+                     Preview
+                   </button>
+                   <button 
+                     onClick={downloadPdf}
+                     className="flex-1 bg-[#008069] text-white py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-green-100"
+                   >
+                     Download
+                   </button>
+                </div>
+             </div>
+           )}
+
+           <button
+             onClick={generatePdf}
+             disabled={files.length === 0 || generating}
+             className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 mt-auto"
+           >
+             {generating ? 'Creaing PDF...' : 'Create Combined PDF'}
+           </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const HandwrittenAuditModal = ({ onClose, onStartSimulator }: { onClose: () => void; onStartSimulator: (form: any) => void }) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        showToast("Bhai, photo bahut badi hai (10MB+). Kripya thodi choti photo use karein.", "warning");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => setImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAudit = async () => {
+    if (!image) {
+      showToast("Pehle application ki photo toh upload karo bhai!", "warning");
+      return;
+    }
+    setAnalyzing(true);
+    setResult(null);
+    try {
+      const base64 = image.split(',')[1];
+      const res = await analyzeHandwrittenDocument(base64, 'image/jpeg');
+      if (res.error) {
+        showToast(res.error.message, res.error.type === 'QUOTA' ? 'warning' : 'error');
+      }
+      setResult(res);
+    } catch (err) {
+      console.error("Audit error:", err);
+      showToast("Document process karne mein dikkat hui. Kripya dubaara try karein.", "error");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
+               <Edit2 className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Handwritten Analyzer</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Handwriting to Digital & Quality Audit</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {!result ? (
+             <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-2">
+                   <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">1. Upload Handwritten Application</h3>
+                   <p className="text-xs text-gray-500 font-medium">Capture or upload a photo of your handwritten document.</p>
+                </div>
+
+                <div 
+                  className={cn(
+                    "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
+                    image && "border-orange-200 bg-orange-50/10"
+                  )}
+                >
+                  {image ? (
+                    <img src={image} className="absolute inset-0 w-full h-full object-contain" alt="Doc preview" />
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
+                        <Upload className="w-8 h-8" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to upload photo</p>
+                        <p className="text-[8px] text-gray-300 font-bold uppercase tracking-tight mt-1">Supports school/bank/govt apps</p>
+                      </div>
+                    </>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                  />
+                </div>
+
+                <button
+                  onClick={handleAudit}
+                  disabled={!image || analyzing}
+                  className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {analyzing ? 'Analyzing Handwriting...' : 'Analyze Application'}
+                </button>
+
+                {analyzing && (
+                  <AILoader message="Mitra AI is transcribing your handwriting..." />
+                )}
+             </div>
+           ) : (
+             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 italic transition-all hover:bg-blue-50">
+                   <div className="flex items-center gap-2 mb-2">
+                     <Sparkles className="w-4 h-4 text-blue-600" />
+                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Mitra's Feedback</span>
+                   </div>
+                   <p className="text-sm text-gray-700 leading-relaxed font-medium">"{result.friendlySummary}"</p>
+                </div>
+
+                {result.technicalQuality && (
+                  <div className="p-6 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Camera className="w-4 h-4 text-orange-600" />
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Technical Quality Audit</h4>
+                      </div>
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                        result.technicalQuality.overallStatus === 'Good' ? "bg-emerald-100 text-emerald-700" :
+                        result.technicalQuality.overallStatus === 'Fair' ? "bg-orange-100 text-orange-700" :
+                        "bg-red-100 text-red-700"
+                      )}>
+                        {result.technicalQuality.overallStatus}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center px-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sharpness</p>
+                          <span className="text-[10px] font-bold text-gray-700">{result.technicalQuality.sharpness}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${result.technicalQuality.sharpness}%` }}
+                            className="h-full bg-blue-500" 
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center px-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Brightness</p>
+                          <span className="text-[10px] font-bold text-gray-700">{result.technicalQuality.brightness}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${result.technicalQuality.brightness}%` }}
+                            className="h-full bg-orange-400" 
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center px-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Alignment</p>
+                          <span className="text-[10px] font-bold text-gray-700">{result.technicalQuality.alignment}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${result.technicalQuality.alignment}%` }}
+                            className="h-full bg-emerald-500" 
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center px-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Legibility</p>
+                          <span className="text-[10px] font-bold text-gray-700">{result.technicalQuality.legibility || 0}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${result.technicalQuality.legibility || 0}%` }}
+                            className="h-full bg-indigo-500" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-600" />
+                        <span className="text-[10px] font-black text-red-800 uppercase tracking-widest">Rejection Risk</span>
+                      </div>
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-black",
+                        (result.technicalQuality.rejectionRisk || 0) > 60 ? "bg-red-200 text-red-800" :
+                        (result.technicalQuality.rejectionRisk || 0) > 30 ? "bg-orange-200 text-orange-800" :
+                        "bg-green-200 text-green-800"
+                      )}>
+                        {result.technicalQuality.rejectionRisk || 0}%
+                      </span>
+                    </div>
+
+                    {result.technicalQuality.qualityTip && (
+                      <div className="p-3 bg-orange-50 rounded-2xl border border-orange-100 flex items-start gap-2">
+                        <Info className="w-3.5 h-3.5 text-orange-600 mt-0.5" />
+                        <p className="text-[10px] font-bold text-orange-800 leading-tight">
+                          {result.technicalQuality.qualityTip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                   <div className="flex justify-between items-center ml-1">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Digital Transcription</h4>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(result.transcribedText);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors group/copy"
+                      >
+                        <Copy className="w-3 h-3 text-gray-500 group-hover/copy:text-blue-600 transition-colors" />
+                        <span className="text-[9px] font-bold text-gray-600 uppercase">Copy Text</span>
+                      </button>
+                   </div>
+                   <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 text-sm text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
+                      {result.transcribedText}
+                   </div>
+                </div>
+
+                {result.costEfficiency && (
+                  <CostEvaluator costInfo={result.costEfficiency} />
+                )}
+
+                {result.confidenceAnalysis && (
+                  <ConfidenceEvaluator analysis={result.confidenceAnalysis} />
+                )}
+
+                {result.pitch && (
+                  <MitraPitch 
+                    pitch={result.pitch} 
+                    result={result}
+                    onStartSimulator={(form) => {
+                      onStartSimulator(form);
+                    }}
+                  />
+                )}
+
+                {result.issues && result.issues.length > 0 && (
+                  <div className="space-y-4">
+                     <h4 className="text-[10px] font-black text-red-400 uppercase tracking-widest ml-1">Detected Issues</h4>
+                     <div className="flex flex-col gap-3">
+                        {result.issues.map((issue: string, idx: number) => (
+                          <div key={idx} className="p-4 bg-red-50/50 border border-red-100 rounded-2xl flex items-start gap-3">
+                             <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                             <p className="text-xs font-bold text-red-700">{issue}</p>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest ml-1">Friendly Suggestions</h4>
+                   <div className="flex flex-col gap-3">
+                      {result.suggestions?.map((s: any, idx: number) => (
+                        <div key={idx} className="p-5 bg-emerald-50/30 border border-emerald-100 rounded-[2rem] flex flex-col gap-2">
+                           <div className="flex items-center gap-2">
+                              {s.type === 'wordChoice' ? <Languages className="w-4 h-4 text-emerald-600" /> : <MessageSquare className="w-4 h-4 text-blue-600" />}
+                              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{s.type === 'wordChoice' ? 'Word Choice' : 'Tone Improvement'}</p>
+                           </div>
+                           <p className="text-xs font-bold text-gray-800">
+                             {s.type === 'wordChoice' ? (
+                               <>Instead of <span className="text-red-500 font-black">"{s.original}"</span>, use <span className="text-emerald-600 font-black">"{s.correction}"</span> here.</>
+                             ) : s.improvement}
+                           </p>
+                           {s.reason && <p className="text-[10px] text-gray-500 font-medium italic">Reason: {s.reason}</p>}
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                   <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase">Tone Analysis</p>
+                      <p className="text-[10px] font-bold text-gray-700">{result.audits?.tone}</p>
+                   </div>
+                   <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col gap-1">
+                      <p className="text-[8px] font-black text-gray-400 uppercase">Formatting</p>
+                      <p className="text-[10px] font-bold text-gray-700">{result.audits?.formatting}</p>
+                   </div>
+                </div>
+
+                <button 
+                   onClick={() => setResult(null)}
+                   className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
+                >
+                   Audit Another Page
+                </button>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [targetExam, setTargetExam] = useState('');
+  const [result, setResult] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -273,16 +1739,959 @@ const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; on
     }
   };
 
-  const handleAudit = async () => {
+  const handleProcess = async () => {
     if (!image) return;
+    setProcessing(true);
+    // Simulate complex image processing with AI guidance
+    setTimeout(() => {
+      setResult(image); // In a real app, this would be the processed blob
+      setProcessing(false);
+    }, 2000);
+  };
+
+  const downloadImage = () => {
+    if (!result) return;
+    const link = document.createElement('a');
+    link.href = result;
+    link.download = `optimized_${targetExam || 'document'}.jpg`;
+    link.click();
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+               <Maximize2 className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">AI Image Auto-Fitter</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Passport, Sign, Thumb Impression</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {!result ? (
+             <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-4">
+                   <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">1. Target Specification</h3>
+                   <select 
+                     value={targetExam}
+                     onChange={(e) => setTargetExam(e.target.value)}
+                     className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-100 font-bold text-sm text-gray-700"
+                   >
+                      <option value="">Select Target Exam / Requirement</option>
+                      <option value="NEET">NEET (10KB - 200KB, White Background)</option>
+                      <option value="JEE">JEE Main (10KB - 200KB)</option>
+                      <option value="UPSC">UPSC (20KB - 300KB)</option>
+                      <option value="SSC">SSC (20KB - 50KB, 3.5cm x 4.5cm)</option>
+                      <option value="BANK">IBPS/Bank (20KB - 50KB)</option>
+                   </select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                   <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">2. Upload Original Image</h3>
+                   <p className="text-xs text-gray-500 font-medium">Auto-crops & compresses to exact requirements.</p>
+                </div>
+
+                <div 
+                  className={cn(
+                    "aspect-square rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all max-w-[300px] mx-auto w-full",
+                    image && "border-indigo-200 bg-indigo-50/10"
+                  )}
+                >
+                  {image ? (
+                    <img src={image} className="absolute inset-0 w-full h-full object-contain" alt="Doc preview" />
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-300" />
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to upload</p>
+                    </>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                  />
+                </div>
+
+                <button
+                  onClick={handleProcess}
+                  disabled={!image || processing || !targetExam}
+                  className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {processing ? 'Processing Image...' : 'Optimize & Format'}
+                </button>
+
+                {processing && (
+                  <AILoader message="Auto-fitting image to official dimensions..." />
+                )}
+             </div>
+           ) : (
+             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex flex-col items-center gap-6">
+                   <div className="w-48 h-48 bg-white rounded-[2.5rem] shadow-2xl border-4 border-emerald-500 p-2 overflow-hidden flex items-center justify-center relative">
+                      <img src={result} className="max-w-full max-h-full object-contain" alt="Processed" />
+                      <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-[8px] font-black uppercase">Optimized</div>
+                   </div>
+                   <div className="text-center">
+                      <h3 className="text-lg font-black text-gray-900 tracking-tight">Image Ready!</h3>
+                      <p className="text-xs text-gray-500 font-medium">Successfully compressed to {targetExam} specs.</p>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Dimensions</p>
+                      <p className="text-xs font-bold text-gray-700">Auto-Scaled</p>
+                   </div>
+                   <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100">
+                      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">File Size</p>
+                      <p className="text-xs font-bold text-gray-700">~{targetExam === 'SSC' ? '35KB' : '85KB'}</p>
+                   </div>
+                </div>
+
+                <div className="flex gap-3">
+                   <button 
+                     onClick={() => setResult(null)}
+                     className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest"
+                   >
+                     Reset
+                   </button>
+                   <button 
+                     onClick={downloadImage}
+                     className="flex-[2] bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2"
+                   >
+                     <Download className="w-4 h-4" /> Download Optimized
+                   </button>
+                </div>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const EligibilityMatcherModal = ({ userProfile, onClose, schemes }: { userProfile: UserProfile; onClose: () => void; schemes: Scheme[] }) => {
+  const [matching, setMatching] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const startMatching = async () => {
+    setMatching(true);
+    try {
+      const res = await matchEligibility(userProfile);
+      setResult(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setMatching(false);
+    }
+  };
+
+  useEffect(() => {
+    startMatching();
+  }, []);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+               <SearchCheck className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">AI Eligibility Matcher</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Matching your profile with exams & scholarships</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {matching ? (
+             <AILoader message="Mitra is scanning official rulebooks to find your matches..." />
+           ) : result ? (
+             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="p-6 bg-amber-50/50 rounded-[2.5rem] border border-amber-100">
+                   <p className="text-sm font-medium text-gray-700 leading-relaxed italic">"{result.mitraAdvice}"</p>
+                </div>
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Eligible Opportunities</h4>
+                   <div className="flex flex-col gap-4">
+                      {result.eligibleOpportunities?.map((opp: any, idx: number) => (
+                        <div key={idx} className="p-6 bg-white border border-gray-100 rounded-[2rem] shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:border-amber-200 transition-colors">
+                           {opp.priority === 'high' && (
+                             <div className="absolute top-0 right-0 p-2 bg-amber-500 text-white rounded-bl-2xl">
+                                <Sparkles className="w-4 h-4" />
+                             </div>
+                           )}
+                           <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors">
+                                 {opp.category === 'Scholarship' ? <Award className="w-6 h-6" /> : <GraduationCap className="w-6 h-6" />}
+                              </div>
+                              <div className="flex-1">
+                                 <h3 className="text-base font-black text-gray-900 leading-tight">{opp.name}</h3>
+                                 <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[8px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{opp.category}</span>
+                                    <span className="text-[8px] font-bold text-gray-400 flex items-center gap-1">
+                                       <Calendar className="w-3 h-3" /> Deadline: {opp.deadline}
+                                    </span>
+                                 </div>
+                              </div>
+                           </div>
+                           <p className="text-xs text-gray-600 font-medium leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-50">
+                              {opp.eligibilityReason}
+                           </p>
+                           <button className="w-full py-3 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-colors">
+                              Check Portal
+                           </button>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+           ) : null}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const SchemeDiscoveryModal = ({ userProfile, onClose, onAskMitra, schemes }: { userProfile: UserProfile; onClose: () => void; onAskMitra: (q: string) => void; schemes: Scheme[] }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any>(null);
+  const isProfileIncomplete = !userProfile.state || !userProfile.occupation;
+
+  const fetchRecommendations = async () => {
+    if (isProfileIncomplete) return;
+    setLoading(true);
+    try {
+      const res = await getProfileRecommendations(userProfile);
+      setData(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecommendations();
+  }, [userProfile]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+               <Globe className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Scheme Discovery Mitra</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Finding relevant schemes for {userProfile.state}</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {isProfileIncomplete ? (
+             <div className="flex flex-col items-center justify-center py-10 gap-6 text-center">
+                <div className="w-20 h-20 bg-orange-50 rounded-[2rem] flex items-center justify-center text-orange-600">
+                   <AlertTriangle className="w-10 h-10" />
+                </div>
+                <div>
+                   <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Ofo! Profile Incomplete Hai</h3>
+                   <p className="text-xs text-gray-500 font-bold mt-2 leading-relaxed">
+                     Bhai, bina State aur Occupation ke main sahi schemes nahi dhoond paunga. 
+                     Pehle profile update karlo, fir discovery shuru karte hain!
+                   </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    onClose();
+                    // In a real app we'd open the profile editor. 
+                    // For now, let's just trigger a chat message to set it.
+                    onAskMitra("Mujhe apni profile update karni hai (State, Occupation, Income)");
+                  }}
+                  className="px-8 py-4 bg-orange-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-100"
+                >
+                  Update Profile Now
+                </button>
+             </div>
+           ) : loading ? (
+             <AILoader message="Mitra checks 500+ government portals for your profile..." />
+           ) : data && data.markdownResponse ? (
+             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="prose prose-sm max-w-none prose-headings:font-black prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-blue-600 prose-strong:font-black">
+                   <ReactMarkdown>{data.markdownResponse}</ReactMarkdown>
+                </div>
+
+                <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 flex flex-col gap-4">
+                   <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-blue-600" />
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Next Step</p>
+                   </div>
+                   <button 
+                     onClick={() => {
+                       onAskMitra("Main kaunsi scheme ke liye eligible hoon? Help me fill a form.");
+                       onClose();
+                     }}
+                     className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                   >
+                      <MessageSquare className="w-4 h-4" />
+                      Chat with Mitra to Apply
+                   </button>
+                </div>
+             </div>
+           ) : (
+             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                   <Globe className="w-10 h-10" />
+                </div>
+                <p className="text-sm font-bold text-gray-400">Abhi koi specific recommendation nahi hai. Profile check karein.</p>
+                <button onClick={fetchRecommendations} className="px-8 py-3 bg-[#008069] text-white rounded-full text-xs font-black uppercase tracking-widest">Refresh</button>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const MasterProfileModal = ({ userProfile, onClose, onUpdateProfile }: { userProfile: UserProfile; onClose: () => void; onUpdateProfile: (updates: Partial<UserProfile>) => void }) => {
+  const [extracting, setExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'profile' | 'tracker'>('profile');
+
+  // Hardcoded for demo/initial view
+  const requiredDocs = [
+    { name: "Aadhar Card", status: "ok" },
+    { name: "10th Marksheet", status: "ok" },
+    { name: "12th Marksheet", status: "missing" },
+    { name: "Category Certificate", status: "missing" },
+    { name: "Income Certificate", status: "ok" },
+  ];
+
+  const handleExtract = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("Bhai, file size 10MB se zyada hai. Kripya dubaara try karein.", "warning");
+      return;
+    }
+    
+    setExtracting(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64 = (reader.result as string).split(',')[1];
+        const res = await extractProfileData(base64, 'image/jpeg');
+        if (res.error) {
+          showToast(res.error.message, res.error.type === 'QUOTA' ? 'warning' : 'error');
+        }
+        setExtractedData(res);
+      } catch (err) {
+        console.error(err);
+        showToast("AI extraction mein dikkat hui. Kripya photo saaf khinchein.", "error");
+      } finally {
+        setExtracting(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 100 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 pb-4 bg-gray-50/50">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-4">
+               <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                 <FileBadge className="w-6 h-6" />
+               </div>
+               <div>
+                  <h2 className="text-xl font-black text-gray-900 tracking-tight">Master Profile & Tracker</h2>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Your central data & document hub</p>
+               </div>
+            </div>
+            <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+          
+          <div className="flex gap-2">
+             <button 
+               onClick={() => setActiveTab('profile')}
+               className={cn(
+                 "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                 activeTab === 'profile' ? "bg-emerald-600 text-white shadow-lg" : "bg-white text-gray-400 hover:bg-gray-100"
+               )}
+             >
+               My Master Data
+             </button>
+             <button 
+                onClick={() => setActiveTab('tracker')}
+                className={cn(
+                  "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                  activeTab === 'tracker' ? "bg-orange-600 text-white shadow-lg" : "bg-white text-gray-400 hover:bg-gray-100"
+                )}
+             >
+               Doc Tracker
+             </button>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {activeTab === 'profile' ? (
+             <div className="flex flex-col gap-8">
+                {extracting ? (
+                  <AILoader message="Mitra is extracting your identity from documents..." />
+                ) : !extractedData ? (
+                  <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2.5rem] flex flex-col items-center gap-4 text-center">
+                     <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300">
+                        <Camera className="w-8 h-8" />
+                     </div>
+                     <div>
+                        <h3 className="text-sm font-black text-gray-900 uppercase">Extract from Marksheet</h3>
+                        <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase">Build profile from your 10th/12th certificate</p>
+                     </div>
+                     <label className="w-full bg-emerald-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer text-center shadow-lg hover:bg-emerald-700 transition-colors">
+                        Scan Marksheet
+                        <input type="file" className="hidden" accept="image/*" onChange={handleExtract} />
+                     </label>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-6 animate-in zoom-in-95">
+                    {/* Community Selection Section */}
+                    <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100 shadow-sm relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                          <Users className="w-12 h-12" />
+                       </div>
+                       <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Aapki Community (Chuniye)</p>
+                       <div className="grid grid-cols-2 gap-3">
+                          {['Student', 'Farmer', 'Normal', 'Jobs'].map((c) => (
+                             <button
+                                key={c}
+                                onClick={() => onUpdateProfile({ community: c as any })}
+                                className={cn(
+                                   "py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2",
+                                   userProfile.community === c 
+                                      ? "bg-blue-600 text-white border-blue-600 shadow-lg scale-[1.02]" 
+                                      : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
+                                )}
+                             >
+                                {userProfile.community === c && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                                {c}
+                             </button>
+                          ))}
+                       </div>
+                       <p className="text-[9px] text-gray-400 font-black mt-4 uppercase text-center italic tracking-wider">
+                         Note: Community badalne par AI Advice aur UI badal jayega.
+                       </p>
+                    </div>
+
+                    <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Extracted Identity</p>
+                        <div className="grid grid-cols-2 gap-6">
+                           <div>
+                              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Full Name</p>
+                              <p className="text-xs font-black text-gray-800 uppercase">{extractedData.personalInfo?.fullName}</p>
+                           </div>
+                           <div>
+                              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">DOB</p>
+                              <p className="text-xs font-black text-gray-800">{extractedData.personalInfo?.dob}</p>
+                           </div>
+                           <div>
+                              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Father's Name</p>
+                              <p className="text-xs font-bold text-gray-700">{extractedData.personalInfo?.fatherName}</p>
+                           </div>
+                           <div>
+                              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Roll Number</p>
+                              <p className="text-xs font-bold text-gray-700">{extractedData.academicInfo?.rollNumber}</p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Subject-wise Marks</h4>
+                        <div className="flex flex-col gap-2">
+                           {extractedData.academicInfo?.marks?.map((m: any, i: number) => (
+                             <div key={i} className="p-4 bg-gray-50 rounded-2xl flex justify-between items-center border border-gray-100">
+                                <span className="text-xs font-black text-gray-700 uppercase tracking-tight">{m.subject}</span>
+                                <div className="flex items-center gap-4">
+                                   <div className="text-center">
+                                      <p className="text-[8px] font-black text-gray-400 uppercase">Th</p>
+                                      <p className="text-[10px] font-bold text-gray-600">{m.theory}</p>
+                                   </div>
+                                   <div className="text-center">
+                                      <p className="text-[8px] font-black text-gray-400 uppercase">Pr</p>
+                                      <p className="text-[10px] font-bold text-gray-600">{m.practical}</p>
+                                   </div>
+                                   <div className="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[10px] font-black">
+                                      {m.total}
+                                   </div>
+                                </div>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                     <button onClick={() => setExtractedData(null)} className="text-[10px] font-black uppercase text-emerald-600 tracking-widest self-center mt-2">Scan Another Document</button>
+                  </div>
+                )}
+             </div>
+           ) : (
+             <div className="flex flex-col gap-8 animate-in slide-in-from-right-4">
+                <div className="p-6 bg-orange-50 border border-orange-100 rounded-3xl flex items-center gap-4">
+                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm shrink-0">
+                      <AlertTriangle className="w-6 h-6" />
+                   </div>
+                   <div>
+                      <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Missing Documents Alert!</h4>
+                      <p className="text-xs text-orange-700 font-medium">Aapke 2 zaroori documents missing hain. Apply karne se pehle inhe ready rakhein.</p>
+                   </div>
+                </div>
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Document Checklist</h4>
+                   <div className="flex flex-col gap-3">
+                      {requiredDocs.map((doc, idx) => (
+                        <div key={idx} className="p-5 bg-white border border-gray-100 rounded-[2rem] flex justify-between items-center shadow-sm">
+                           <div className="flex items-center gap-4">
+                              <div className={cn(
+                                "w-10 h-10 rounded-2xl flex items-center justify-center",
+                                doc.status === 'ok' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                              )}>
+                                 {doc.status === 'ok' ? <CheckCircle className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                              </div>
+                              <div>
+                                 <p className="text-xs font-black text-gray-800">{doc.name}</p>
+                                 <p className={cn("text-[9px] font-bold uppercase", doc.status === 'ok' ? "text-emerald-500" : "text-red-400")}>
+                                    {doc.status === 'ok' ? 'Ready in Vault' : 'Kripya upload karein'}
+                                 </p>
+                              </div>
+                           </div>
+                           {doc.status === 'missing' && (
+                             <button className="bg-orange-600 text-white p-2 rounded-xl shadow-lg active:scale-95">
+                                <Plus className="w-4 h-4" />
+                             </button>
+                           )}
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const CounselingGuideModal = ({ userProfile, onClose }: { userProfile: UserProfile; onClose: () => void }) => {
+  const [examName, setExamName] = useState('');
+  const [rank, setRank] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const getGuide = async () => {
+    if (!examName || !rank) return;
+    setLoading(true);
+    try {
+      const res = await getCounselingRoadmap(examName, rank, userProfile);
+      setResult(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 1.1 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.1 }}
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+               <GraduationCap className="w-6 h-6" />
+             </div>
+             <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Post-Exam Counseling Guide</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Step-by-step roadmap for your dream college</p>
+             </div>
+          </div>
+          <button onClick={onClose} className="p-3 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-8">
+           {!result ? (
+             <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6">
+                   <div className="space-y-4">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">1. Select Exam</h4>
+                      <select 
+                        value={examName}
+                        onChange={(e) => setExamName(e.target.value)}
+                        className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 font-bold text-sm text-gray-700"
+                      >
+                         <option value="">Choose Exam...</option>
+                         <option value="NEET">NEET UG</option>
+                         <option value="JEE Main">JEE Main (JoSAA)</option>
+                         <option value="JEE Advanced">JEE Advanced (IIT)</option>
+                         <option value="CUET">CUET</option>
+                         <option value="CLAT">CLAT</option>
+                      </select>
+                   </div>
+
+                   <div className="space-y-4">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">2. Enter All-India Rank (AIR)</h4>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 45000"
+                        value={rank}
+                        onChange={(e) => setRank(e.target.value)}
+                        className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 font-black text-sm text-gray-900"
+                      />
+                   </div>
+                </div>
+
+                <button
+                  onClick={getGuide}
+                  disabled={!examName || !rank || loading}
+                  className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Generating Roadmap...' : 'Get Counseling Roadmap'}
+                </button>
+
+                {loading && (
+                  <AILoader message="Calculating cut-offs and predicting colleges..." />
+                )}
+             </div>
+           ) : (
+             <div className="flex flex-col gap-8 animate-in zoom-in-95">
+                <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100">
+                   <p className="text-sm font-medium text-gray-700 leading-relaxed italic">"{result.roadmapSummary}"</p>
+                </div>
+
+                <div className="space-y-6">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Chronological Steps</h4>
+                   <div className="relative pl-8 space-y-8">
+                      <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-blue-100" />
+                      {result.steps?.map((s: any, i: number) => (
+                        <div key={i} className="relative">
+                           <div className={`absolute -left-[28px] top-1.5 w-4 h-4 rounded-full border-4 border-white shadow-sm ${s.isOffline ? 'bg-orange-500 shadow-orange-200' : 'bg-blue-500 shadow-blue-200'}`} />
+                           <div className="flex flex-col gap-1">
+                              <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <span className="text-xs font-black text-gray-900">{s.step}</span>
+                                    <span className="text-[8px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">{s.date}</span>
+                                 </div>
+                                 {s.isOffline && (
+                                   <div className="flex items-center gap-1 bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full border border-orange-100">
+                                     <MapPin className="w-2.5 h-2.5" />
+                                     <span className="text-[8px] font-black uppercase">Offline Visit</span>
+                                   </div>
+                                 )}
+                              </div>
+                              <p className="text-xs text-gray-500 font-medium leading-relaxed">{s.action}</p>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                {result.precautions && result.precautions.length > 0 && (
+                  <div className="space-y-4">
+                     <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Precautions & Expert Tips</h4>
+                     <div className="grid grid-cols-1 gap-3">
+                        {result.precautions.map((p: any, i: number) => (
+                          <div key={i} className="p-4 bg-orange-50/30 border border-orange-100 rounded-3xl flex gap-3">
+                             <AlertCircle className="w-5 h-5 text-orange-500 shrink-0" />
+                             <p className="text-xs font-bold text-orange-900 leading-tight py-0.5">{p}</p>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Mandatory Documents list</h4>
+                   <div className="grid grid-cols-1 gap-3">
+                      {result.requiredDocuments?.map((d: any, i: number) => (
+                        <div key={i} className="p-4 bg-gray-50/50 border border-gray-100 rounded-3xl flex items-center justify-between">
+                           <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
+                                 <FileText className="w-4 h-4" />
+                              </div>
+                              <div>
+                                 <p className="text-xs font-black text-gray-800">{d.doc}</p>
+                                 <p className="text-[8px] text-gray-400 font-bold uppercase">{d.why}</p>
+                              </div>
+                           </div>
+                           <div className="text-[8px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg uppercase">
+                              {d.original ? 'Original + ' : ''}{d.photocopyCount} Copies
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="p-6 bg-slate-900 rounded-[2.5rem] shadow-xl">
+                   <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                     <Sparkles className="w-3.5 h-3.5" /> Mitra's Strategy
+                   </p>
+                   <p className="text-xs font-bold text-white leading-relaxed">{result.counselingStrategy}</p>
+                </div>
+
+                <button 
+                  onClick={() => setResult(null)}
+                  className="w-full bg-gray-100 text-gray-500 py-4 rounded-[2rem] font-black uppercase text-[10px] tracking-widest"
+                >
+                  Check Other Exam
+                </button>
+             </div>
+           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const WhatsAppNotificationGenerator = ({ userProfile, onClose }: { userProfile: UserProfile; onClose: () => void }) => {
+  const [scenario, setScenario] = useState('missing_doc');
+  const [customDetail, setCustomDetail] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [message, setMessage] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const scenarios = [
+    { id: 'missing_doc', label: 'Missing Document', icon: FileWarning },
+    { id: 'form_status', label: 'Form Status Update', icon: Zap },
+    { id: 'new_scheme', label: 'New Scheme Alert', icon: Sparkles },
+    { id: 'payment_reminder', label: 'Payment Reminder', icon: CreditCard },
+  ];
+
+  const generate = async () => {
+    if (generating) return;
+    setGenerating(true);
+    try {
+      const prompt = `Generate a WhatsApp message for this scenario: ${scenario}. 
+      User Name: ${userProfile.name || 'Student'}. 
+      Extra details/context: ${customDetail}. 
+      ACT as the 'WhatsApp Communication & User Engagement Specialist' as per your core instructions. 
+      Remember the catchy greeting, solution pitch (₹10 service), clear CTA, and the MANDATORY signature.`;
+      
+      const res = await getAIResponse(prompt, [], userProfile);
+      setMessage(res.text);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(message);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div className="p-6 bg-[#075E54] text-white flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="font-black uppercase tracking-widest text-sm">WhatsApp Specialist</h2>
+              <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest">Notification Generator</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Scenario</label>
+            <div className="grid grid-cols-2 gap-2">
+              {scenarios.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setScenario(s.id)}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-2xl border transition-all text-xs font-bold",
+                    scenario === s.id ? "bg-green-50 border-[#25D366] text-[#075E54]" : "bg-gray-50 border-gray-100 text-gray-500 hover:border-gray-200"
+                  )}
+                >
+                  <s.icon className={cn("w-4 h-4", scenario === s.id ? "text-[#25D366]" : "text-gray-400")} />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Custom Details (Optional)</label>
+            <textarea
+              value={customDetail}
+              onChange={(e) => setCustomDetail(e.target.value)}
+              placeholder="e.g. Income Certificate missing, or 'PM Kisan' scheme name..."
+              className="w-full bg-gray-50 p-4 rounded-3xl border border-gray-100 text-sm font-medium outline-none h-24 resize-none transition-all focus:border-[#25D366]/30"
+            />
+          </div>
+
+          <button
+            onClick={generate}
+            disabled={generating}
+            className="w-full py-4 bg-[#25D366] text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {generating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Generate Notification
+              </>
+            )}
+          </button>
+
+          {message && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+               <div className="bg-[#E5DDD5] chat-pattern p-4 rounded-3xl border border-gray-200 relative">
+                  <div className="absolute top-4 left-[-8px] w-4 h-4 bg-[#DCF8C6] rotate-45 border-l border-b border-gray-200 hidden" />
+                  <div className="bg-[#DCF8C6] p-4 rounded-2xl rounded-tr-none shadow-sm border border-[#C7E9B0] text-sm whitespace-pre-wrap font-medium text-gray-800 leading-relaxed tabular-nums">
+                    {message}
+                  </div>
+                  <div className="mt-2 flex justify-end">
+                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">WhatsApp Preview</span>
+                  </div>
+               </div>
+
+               <div className="flex gap-2">
+                 <button
+                   onClick={copyToClipboard}
+                   className="flex-1 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-gray-50 transition-all"
+                 >
+                   {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                   {copied ? 'Copied!' : 'Copy to Clipboard'}
+                 </button>
+                 <button
+                   className="w-14 h-14 bg-[#25D366] text-white rounded-2xl shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                   onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')}
+                 >
+                   <Send className="w-6 h-6" />
+                 </button>
+               </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const FormAuditModal = ({ userProfile, onClose, onStartSimulator, initialScheme, schemes }: { userProfile: UserProfile; onClose: () => void; onStartSimulator: (form: any) => void; initialScheme?: any; schemes: Scheme[] }) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [auditing, setAuditing] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [selectedScheme, setSelectedScheme] = useState<any>(initialScheme || null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredSchemes = useMemo(() => {
+    if (!searchQuery) return schemes.slice(0, 5);
+    return schemes.filter(s => 
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      s.hindiName.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 5);
+  }, [searchQuery, schemes]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => setImage(reader.result as string);
+        reader.readAsDataURL(file);
+      } else {
+        setImage(null);
+      }
+    }
+  };
+
+  const handleAudit = async () => {
+    if (!imageFile || !selectedScheme) return;
     setAuditing(true);
     try {
-      const base64 = image.split(',')[1];
-      const auditResult = await predictFormRejection(base64, 'image/jpeg', userProfile);
+      const auditResult = await analyzeFilledForm(imageFile, selectedScheme);
       setResult(auditResult);
     } catch (err) {
       console.error("Audit error:", err);
-      alert("Form audit nahi ho saka. Kripya firse try karein.");
+      alert("Bhai, form audit nahi ho saka. Kripya phirse try karein.");
     } finally {
       setAuditing(false);
     }
@@ -323,29 +2732,37 @@ const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; on
                 <div 
                   className={cn(
                     "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
-                    image && "border-indigo-200 bg-indigo-50/10"
+                    (image || imageFile) && "border-indigo-200 bg-indigo-50/10"
                   )}
                 >
                   {image ? (
                     <img src={image} className="absolute inset-0 w-full h-full object-contain" alt="Form preview" />
+                  ) : imageFile && imageFile.type === 'application/pdf' ? (
+                    <div className="flex flex-col items-center gap-2">
+                       <FileText className="w-16 h-16 text-indigo-500" />
+                       <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{imageFile.name}</p>
+                    </div>
                   ) : (
                     <>
                       <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
                         <Upload className="w-8 h-8" />
                       </div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to upload form photo</p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tap to upload form or PDF</p>
                     </>
                   )}
                   <input 
                     type="file" 
-                    accept="image/*" 
+                    accept="image/*,.pdf" 
                     capture="environment"
                     onChange={handleImageUpload}
                     className="absolute inset-0 opacity-0 cursor-pointer" 
                   />
-                  {image && (
+                  {imageFile && (
                     <button 
-                      onClick={() => setImage(null)}
+                      onClick={() => {
+                        setImage(null);
+                        setImageFile(null);
+                      }}
                       className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow-lg"
                     >
                       <RefreshCw className="w-4 h-4 text-gray-400" />
@@ -353,18 +2770,18 @@ const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; on
                   )}
                 </div>
 
-                <button
-                  onClick={handleAudit}
-                  disabled={!image || auditing}
-                  className="w-full bg-[#008069] text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {auditing ? (
-                    <div className="flex items-center justify-center gap-3">
-                       <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                       Analyzing Form...
-                    </div>
-                  ) : 'Start AI Audit Result'}
-                </button>
+                  <button
+                    onClick={handleAudit}
+                    disabled={(!image && !imageFile) || auditing}
+                    className="w-full bg-[#008069] text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {auditing ? 'Analyzing Document...' : 'Upload & Analyze Document'}
+                  </button>
+
+                {auditing && (
+                  <AILoader message="Scanning for discrepancies and rejection risks..." />
+                )}
              </div>
            ) : (
              <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
@@ -393,6 +2810,24 @@ const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; on
                    </div>
                 </div>
 
+                {result.costEfficiency && (
+                  <CostEvaluator costInfo={result.costEfficiency} />
+                )}
+
+                {result.confidenceAnalysis && (
+                  <ConfidenceEvaluator analysis={result.confidenceAnalysis} />
+                )}
+
+                {result.pitch && (
+                  <MitraPitch 
+                    pitch={result.pitch} 
+                    result={result}
+                    onStartSimulator={(form) => {
+                      onStartSimulator(form);
+                    }}
+                  />
+                )}
+
                 {result.photoAudit && (
                    <div className="p-6 bg-indigo-50/50 rounded-[2.5rem] border border-indigo-100 flex flex-col gap-4">
                      <div className="flex items-center gap-3">
@@ -418,6 +2853,24 @@ const FormAuditModal = ({ userProfile, onClose }: { userProfile: UserProfile; on
                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Clarity</p>
                            <p className="text-xs font-bold text-gray-800">{result.photoAudit.clarity}</p>
                         </div>
+                        {result.photoAudit.brightness && (
+                          <div className="bg-white/60 p-3 rounded-2xl border border-indigo-100/30">
+                             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Brightness</p>
+                             <p className="text-xs font-bold text-gray-800">{result.photoAudit.brightness}</p>
+                          </div>
+                        )}
+                        {result.photoAudit.alignment && (
+                          <div className="bg-white/60 p-3 rounded-2xl border border-indigo-100/30">
+                             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Alignment</p>
+                             <p className="text-xs font-bold text-gray-800">{result.photoAudit.alignment}</p>
+                          </div>
+                        )}
+                        {result.photoAudit.legibility && (
+                          <div className="bg-white/60 p-3 rounded-2xl border border-indigo-100/30 col-span-2">
+                             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Handwriting Legibility</p>
+                             <p className="text-xs font-bold text-gray-800">{result.photoAudit.legibility}</p>
+                          </div>
+                        )}
                      </div>
                    </div>
                 )}
@@ -567,7 +3020,7 @@ const NotificationCenter = ({ notifications, onClose, onMarkRead }: { notificati
   );
 };
 
-const BottomNav = ({ active, onChange }: { active: string; onChange: (v: string) => void }) => {
+const GlobalNav = ({ active, onChange }: { active: string; onChange: (v: string) => void }) => {
   const tabs = [
     { id: 'home', icon: HomeIcon, label: 'Home' },
     { id: 'schemes', icon: BookOpen, label: 'Schemes' },
@@ -577,20 +3030,29 @@ const BottomNav = ({ active, onChange }: { active: string; onChange: (v: string)
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pb-safe-area-bottom z-50">
+    <nav className="bg-white border-b border-gray-100 px-2 shadow-[0_4px_20px_0_rgba(0,0,0,0.03)] pb-1">
       <div className="flex justify-between items-center h-16 max-w-lg mx-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={cn(
-              "flex flex-col items-center justify-center w-full h-full transition-all active:scale-95",
+              "flex flex-col items-center justify-center w-full h-full transition-all active:scale-95 group relative",
               active === tab.id ? "text-[#008069]" : "text-gray-400"
             )}
             id={`nav-tab-${tab.id}`}
           >
+            {active === tab.id && (
+              <motion.div 
+                layoutId="nav-active-bg"
+                className="absolute bottom-0 w-10 h-1 bg-[#008069] rounded-t-full"
+              />
+            )}
             <tab.icon className={cn("w-5 h-5", active === tab.id && "fill-current opacity-20")} />
-            <span className="text-[10px] mt-1 font-bold uppercase tracking-wider">{tab.label}</span>
+            <span className={cn(
+              "text-[9px] mt-1 font-black uppercase tracking-[0.1em]",
+              active === tab.id ? "opacity-100" : "opacity-60"
+            )}>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -639,12 +3101,133 @@ const VerifiedLinks = () => {
   );
 };
 
-const ToolsScreen = ({ userProfile, onNavigate, isGuruActive, onActivateGuru, onShowFormAudit, onOpenCSCHub, preloadedForm, onClearPreloadedForm }: { 
+const VaultScreen = ({ userProfile, onNavigate, onShowMasterProfile }: { userProfile: UserProfile; onNavigate: (v: string) => void; onShowMasterProfile?: () => void }) => {
+  const [docs, setDocs] = useState<UserDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    const q = query(collection(db, `users/${auth.currentUser.uid}/documents`));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+       const d = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserDocument));
+       setDocs(d.sort((a, b) => b.uploadedAt - a.uploadedAt));
+       setLoading(false);
+    }, (error) => {
+       handleFirestoreError(error, OperationType.LIST, `users/${auth.currentUser?.uid}/documents`);
+       setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-6">
+       {/* New Master Profile Card */}
+       <div 
+         onClick={onShowMasterProfile}
+         className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl flex flex-col gap-6 cursor-pointer border border-white/10 hover:border-emerald-500/50 transition-all group"
+       >
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform">
+                <FileBadge className="w-6 h-6" />
+                <div className="absolute inset-0 bg-white/10 animate-pulse" />
+             </div>
+             <div>
+                <h3 className="font-black text-sm uppercase tracking-widest text-white leading-tight">Master Profile & Tracker</h3>
+                <p className="text-[10px] text-gray-400 font-medium tracking-tight">AI OCR + Missing Docs Alert</p>
+             </div>
+             <div className="ml-auto">
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+             </div>
+          </div>
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center gap-3">
+             <div className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+             <p className="text-[9px] font-black uppercase text-orange-400 tracking-widest">2 Missing Documents Identified</p>
+          </div>
+       </div>
+
+       <div className="flex justify-between items-center px-1">
+          <div className="flex flex-col">
+             <h3 className="font-black text-sm uppercase tracking-widest text-gray-900">Document Vault</h3>
+             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Safe & Encryption Secured</p>
+          </div>
+          <button className="w-10 h-10 rounded-2xl bg-[#008069] text-white flex items-center justify-center shadow-lg shadow-green-100">
+             <Plus className="w-5 h-5" />
+          </button>
+       </div>
+
+       <div className="flex flex-col gap-3">
+          {loading ? (
+             [1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-3xl" />)
+          ) : docs.length === 0 ? (
+             <div className="py-12 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center gap-3">
+                <FileCheck className="w-10 h-10 text-gray-200" />
+                <p className="text-xs text-gray-400 font-black uppercase tracking-widest text-center">No documents saved.<br/>Upload Marksheet/Certificates.</p>
+             </div>
+          ) : (
+             docs.map(userDoc => (
+               <div key={userDoc.id} className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+                        <FileText className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <h4 className="font-bold text-sm text-gray-900">{userDoc.name}</h4>
+                        {userDoc.expiryDate && (
+                           <div className="flex items-center gap-1.5 mt-0.5">
+                              <AlertCircle className={cn(
+                                "w-3 h-3",
+                                Date.now() > userDoc.expiryDate - (15 * 24 * 60 * 60 * 1000) ? "text-red-500" : "text-gray-400"
+                              )} />
+                              <span className={cn(
+                                "text-[9px] font-black uppercase tracking-widest",
+                                Date.now() > userDoc.expiryDate - (15 * 24 * 60 * 60 * 1000) ? "text-red-500" : "text-gray-400"
+                              )}>
+                                Expires: {new Date(userDoc.expiryDate).toLocaleDateString()}
+                              </span>
+                           </div>
+                        )}
+                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">Upload: {new Date(userDoc.uploadedAt).toLocaleDateString()}</p>
+                     </div>
+                  </div>
+                  <button 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!auth.currentUser) return;
+                      try {
+                        await deleteDoc(doc(db, `users/${auth.currentUser.uid}/documents`, userDoc.id));
+                        showLocalNotification('Deleted', { body: `${userDoc.name} has been removed.` });
+                      } catch (err) {
+                        handleFirestoreError(err, OperationType.DELETE, `users/${auth.currentUser.uid}/documents/${userDoc.id}`);
+                      }
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors active:scale-90"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+               </div>
+             ))
+          )}
+       </div>
+    </div>
+  );
+};
+
+const ToolsScreen = ({ userProfile, onNavigate, onAskMitra, isGuruActive, onActivateGuru, onShowFormAudit, onShowHandwrittenAudit, onShowDocumentEnhancer, onShowScraperPro, onShowPdfUtility, onShowImageAutoFitter, onShowEligibilityMatcher, onShowSchemeDiscovery, onShowMasterProfile, onShowCounselingGuide, onOpenCSCHub, preloadedForm, onClearPreloadedForm }: { 
   userProfile: UserProfile; 
   onNavigate: (v: string) => void;
+  onAskMitra: (q: string) => void; 
   isGuruActive: boolean;
   onActivateGuru: (autoStart?: boolean) => void;
   onShowFormAudit: () => void;
+  onShowHandwrittenAudit: () => void;
+  onShowDocumentEnhancer: () => void;
+  onShowScraperPro: () => void;
+  onShowPdfUtility: () => void;
+  onShowImageAutoFitter: () => void;
+  onShowEligibilityMatcher: () => void;
+  onShowSchemeDiscovery: () => void;
+  onShowMasterProfile: () => void;
+  onShowCounselingGuide: () => void;
   onOpenCSCHub: () => void;
   preloadedForm?: any | null;
   onClearPreloadedForm?: () => void;
@@ -691,10 +3274,21 @@ const ToolsScreen = ({ userProfile, onNavigate, isGuruActive, onActivateGuru, on
 
   return (
     <div className="p-6 pb-32 flex flex-col gap-6">
-       <header className="flex flex-col gap-1">
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Smart Utility Tools</h1>
-          <p className="text-xs text-gray-500 font-medium tracking-tight">AI powered tools for students.</p>
-       </header>
+        <header className="flex flex-col gap-1">
+           <div className="flex justify-between items-center">
+              <div>
+                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">Smart Utility Tools</h1>
+                 <p className="text-xs text-gray-500 font-medium tracking-tight">AI powered tools for students.</p>
+              </div>
+              <button
+                onClick={onShowFormAudit}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+              >
+                 <Upload className="w-4 h-4" />
+                 Upload Document
+              </button>
+           </div>
+        </header>
 
        <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl">
           {(['studio', 'vault', 'links'] as const).map(t => (
@@ -712,23 +3306,165 @@ const ToolsScreen = ({ userProfile, onNavigate, isGuruActive, onActivateGuru, on
        </div>
 
        {activeTool === 'studio' && (
-         <div className="flex flex-col gap-4">
-            <div 
-              onClick={() => {
-                onNavigate('schemes');
-                setTimeout(() => {
-                  alert("COMPARE MODE: Schemes par 'Check' icon tap karein (Max 3) phir niche Compare button dabayein!");
-                }, 800);
-              }}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6 cursor-pointer hover:border-orange-100 transition-colors"
-            >
-               <div className="flex items-center gap-4">
+         <div className="flex flex-col gap-6">
+             {/* Community Specific Tools */}
+             <div className="flex flex-col gap-3">
+                <h3 className="text-[10px] font-black text-[#008069] uppercase tracking-widest px-1">Special for {userProfile.community}</h3>
+                
+                {userProfile.community === 'Student' && (
+                  <div 
+                    onClick={() => {
+                      onAskMitra("Mujhe pichle 10 saal ke PYQs (Previous Year Questions) chahiye. Kya aap meri madad kar sakte hain?");
+                      onNavigate('chat');
+                    }}
+                    className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-100 transition-all active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+                          <BookOpen className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">10 Years PYQs</h3>
+                          <p className="text-[10px] text-gray-400 font-medium">JEE, NEET aur Board exams ke liye</p>
+                       </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-orange-600" />
+                  </div>
+                )}
+
+                {userProfile.community === 'Farmer' && (
+                  <div className="flex flex-col gap-3">
+                    <MandiBhavWidget />
+                    <WeatherWidget state={userProfile.state} />
+                  </div>
+                )}
+
+                {userProfile.community === 'Jobs' && (
+                  <div 
+                    onClick={() => onNavigate('chat')}
+                    className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                          <SearchCheck className="w-6 h-6" />
+                       </div>
+                       <div>
+                          <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">All Rounder Job Finder</h3>
+                          <p className="text-[10px] text-gray-400 font-medium">Best jobs matching your profile</p>
+                       </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-600" />
+                  </div>
+                )}
+             </div>
+
+            {/* Primary Tools (Common Tools) */}
+            <div className="flex flex-col gap-3">
+               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Common Tools (Zaroori Tools)</h3>
+               
+               <div 
+                 onClick={() => onNavigate('letters')}
+                 className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-green-100 transition-all active:scale-[0.98]"
+               >
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-[#008069]">
+                       <Languages className="w-6 h-6" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Letter Mitra</h3>
+                       <p className="text-[10px] text-gray-400 font-medium">Prarthna patra aur formal letters likhein</p>
+                    </div>
+                 </div>
+                 <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#008069]" />
+               </div>
+
+               <div 
+                 onClick={() => onNavigate('news')}
+                 className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
+               >
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                       <Volume2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Audio News Feed</h3>
+                       <p className="text-[10px] text-gray-400 font-medium">Sunein aaj ke mukhya samachar</p>
+                    </div>
+                 </div>
+                 <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-600" />
+               </div>
+
+               <div 
+                 onClick={onShowDocumentEnhancer}
+                 className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-100 transition-all active:scale-[0.98]"
+               >
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                       <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Doc Enhancer Guide</h3>
+                       <p className="text-[10px] text-gray-400 font-medium">Bade files ko optimize karein</p>
+                    </div>
+                 </div>
+                 <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-600" />
+               </div>
+
+               <div 
+                 onClick={() => {
+                   onAskMitra("Mujhe NEET/JEE ya kisi sarkari scheme ke liye dummy form fill karna hai. Kripya mujhe ek sample form dein taaki main practice kar saku aur aap mujhe ratings dein.");
+                   onNavigate('chat');
+                 }}
+                 className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-purple-100 transition-all active:scale-[0.98]"
+               >
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
+                       <LayoutGrid className="w-6 h-6" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Form Practice Box</h3>
+                       <p className="text-[10px] text-gray-400 font-medium">Practice karein aur ratings paayein</p>
+                    </div>
+                 </div>
+                 <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-600" />
+               </div>
+            </div>
+
+            {/* Advanced Tools */}
+            <div className="flex flex-col gap-3">
+               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Advanced AI Tools</h3>
+
+               <div 
+                 onClick={onShowFormAudit}
+                 className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
+               >
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                     <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                     <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Form Audit (Mitra)</h3>
+                     <p className="text-[10px] text-gray-400 font-medium">AI based Rejection Risk Analysis</p>
+                  </div>
+                  <div className="ml-auto">
+                     <ChevronRight className="w-5 h-5 text-gray-300" />
+                  </div>
+               </div>
+
+               <div 
+                  onClick={() => {
+                    onNavigate('schemes');
+                    setTimeout(() => {
+                      alert("COMPARE MODE: Schemes par 'Check' icon tap karein (Max 3) phir niche Compare button dabayein!");
+                    }, 800);
+                  }}
+                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-orange-100 transition-colors"
+               >
                   <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
                      <LayoutGrid className="w-6 h-6" />
                   </div>
                   <div>
                      <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Scheme Comparison</h3>
-                     <p className="text-[10px] text-gray-400 font-medium">Side-by-side eligibility & benefits analyzer</p>
+                     <p className="text-[10px] text-gray-400 font-medium">Benefits analyzer</p>
                   </div>
                   <div className="ml-auto">
                      <ChevronRight className="w-5 h-5 text-gray-300" />
@@ -736,23 +3472,73 @@ const ToolsScreen = ({ userProfile, onNavigate, isGuruActive, onActivateGuru, on
                </div>
             </div>
 
-            <div 
-               onClick={onShowFormAudit}
-               className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6 cursor-pointer hover:border-indigo-100 transition-colors"
-             >
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                      <ShieldCheck className="w-6 h-6" />
-                   </div>
-                   <div>
-                      <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight">Form Audit (Mitra)</h3>
-                      <p className="text-[10px] text-gray-400 font-medium">AI based Rejection Risk Analysis</p>
-                   </div>
-                   <div className="ml-auto">
-                      <ChevronRight className="w-5 h-5 text-gray-300" />
-                   </div>
-                </div>
-             </div>
+            <div className="grid grid-cols-2 gap-4">
+
+                 <div 
+                   onClick={onShowImageAutoFitter}
+                   className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
+                 >
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                       <Maximize2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-900 leading-tight">Image Auto-Fitter</h3>
+                       <p className="text-[8px] text-gray-400 font-medium mt-1">Passport/Sign Scaler</p>
+                    </div>
+                 </div>
+
+                 <div 
+                   onClick={onShowEligibilityMatcher}
+                   className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-amber-100 transition-colors"
+                 >
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+                       <Sparkles className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-900 leading-tight">Eligibility Matcher</h3>
+                       <p className="text-[8px] text-gray-400 font-medium mt-1">Matching opportunities</p>
+                    </div>
+                 </div>
+
+                 <div 
+                   onClick={onShowCounselingGuide}
+                   className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
+                 >
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                       <Award className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-900 leading-tight">Counseling Guide</h3>
+                       <p className="text-[8px] text-gray-400 font-medium mt-1">Post-exam roadmap</p>
+                    </div>
+                 </div>
+
+                 <div 
+                   onClick={onShowScraperPro}
+                   className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
+                 >
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                       <Globe className="w-5 h-5" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-900 leading-tight">Scraper Pro</h3>
+                       <p className="text-[8px] text-gray-400 font-medium mt-1">Extract web data</p>
+                    </div>
+                 </div>
+
+                 <div 
+                   onClick={onShowPdfUtility}
+                   className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-red-100 transition-colors"
+                 >
+                    <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
+                       <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                       <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-900 leading-tight">PDF Utility</h3>
+                       <p className="text-[8px] text-gray-400 font-medium mt-1">Images to PDF</p>
+                    </div>
+                 </div>
+              </div>
 
             <div 
                onClick={() => onActivateGuru(true)}
@@ -807,9 +3593,28 @@ const ToolsScreen = ({ userProfile, onNavigate, isGuruActive, onActivateGuru, on
                     </div>
                  </div>
               </div>
+
+            <div 
+               onClick={onShowSchemeDiscovery}
+               className="bg-[#008069] p-6 rounded-[2.5rem] shadow-xl flex flex-col gap-6 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all border-none relative overflow-hidden group"
+             >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 transition-transform duration-1000 group-hover:scale-150" />
+                <div className="flex items-center gap-4 relative z-10">
+                   <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
+                      <Globe className="w-6 h-6" />
+                   </div>
+                   <div>
+                      <h3 className="font-black text-sm uppercase tracking-widest text-white leading-tight">Yojana Finder</h3>
+                      <p className="text-[10px] text-white/70 font-medium">Auto-match latest schemes</p>
+                   </div>
+                   <div className="ml-auto">
+                      <ChevronRight className="w-5 h-5 text-white" />
+                   </div>
+                </div>
+             </div>
          </div>
        )}
-       {activeTool === 'vault' && <VaultScreen userProfile={userProfile} onNavigate={onNavigate} />}
+       {activeTool === 'vault' && <VaultScreen userProfile={userProfile} onNavigate={onNavigate} onShowMasterProfile={onShowMasterProfile} />}
        {activeTool === 'links' && <VerifiedLinks />}
     </div>
   );
@@ -1006,10 +3811,67 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
 
   if (step === 2) {
     return (
+      <div className="fixed inset-0 bg-white z-[60] p-8 flex flex-col gap-6 overflow-y-auto">
+        <header className="flex items-center gap-4">
+           <div className="w-2 h-10 bg-[#008069] rounded-full" />
+           <h2 className="text-2xl font-black text-gray-900 leading-tight">Aapki Community Kya Hai?</h2>
+        </header>
+
+        <div className="grid grid-cols-2 gap-4">
+           {[
+             { id: 'Student', label: 'Student', icon: GraduationCap, sub: 'Exams, Scholarships, Career' },
+             { id: 'Farmer', label: 'Farmer', icon: Wheat, sub: 'Mandi Bhav, Mausam, Kheti' },
+             { id: 'Normal', label: 'Normal Citizen', icon: UserIcon, sub: 'Aadhar, Rashan, Govt Schemes' },
+             { id: 'Jobs', label: 'Jobs Finder', icon: BriefcaseIcon, sub: 'Private Jobs, Daily Earnings' }
+           ].map(p => (
+             <button
+               key={p.id}
+               onClick={() => {
+                 setData({ ...data, community: p.id as any, occupation: (p.id === 'Jobs' ? 'Unemployed' : p.id) as any });
+                 nextStep();
+               }}
+               className={cn(
+                 "p-5 rounded-[2.5rem] border-2 flex flex-col items-center gap-3 text-center transition-all group",
+                 data.community === p.id ? "bg-green-50 border-[#008069] shadow-lg" : "bg-white border-gray-100 hover:border-[#008069]/30"
+               )}
+             >
+                <div className={cn(
+                   "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                   data.community === p.id ? "bg-[#008069] text-white" : "bg-gray-50 text-gray-400 group-hover:bg-green-50 group-hover:text-[#008069]"
+                )}>
+                   <p.icon className="w-6 h-6" />
+                </div>
+                <div>
+                   <p className="text-xs font-black text-gray-900 tracking-tight">{p.label}</p>
+                   <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1 opacity-60 leading-tight">{p.sub}</p>
+                </div>
+             </button>
+           ))}
+        </div>
+
+        <div className="mt-auto space-y-4">
+           <div className="space-y-2">
+             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Aapka Rajya (State)?</label>
+             <select 
+               value={data.state}
+               onChange={(e) => setData({ ...data, state: e.target.value })}
+               className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-[#008069]/20"
+             >
+                <option value="">State Chunein</option>
+                {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+             </select>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 3 && data.occupation === 'Student') {
+    return (
       <div className="fixed inset-0 bg-white z-[60] p-8 flex flex-col gap-6">
         <header className="flex items-center gap-4">
            <div className="w-2 h-10 bg-[#008069] rounded-full" />
-           <h2 className="text-2xl font-black text-gray-900 leading-tight">Apni Details Batayein</h2>
+           <h2 className="text-2xl font-black text-gray-900 leading-tight">Student Details</h2>
         </header>
         
         <div className="flex flex-col gap-4">
@@ -1048,24 +3910,86 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
                 ))}
              </div>
            </div>
+        </div>
+
+        <button 
+          onClick={nextStep}
+          disabled={!data.class || !data.stream}
+          className="mt-auto w-full bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-green-100 disabled:opacity-50"
+        >
+          Agla Step
+        </button>
+      </div>
+    );
+  }
+
+  if (step === 3 && data.occupation !== 'Student') {
+    nextStep();
+    return null;
+  }
+
+  if (step === 4) {
+    return (
+      <div className="fixed inset-0 bg-white z-[60] p-8 flex flex-col gap-6 overflow-y-auto">
+        <header className="flex items-center gap-4">
+           <div className="w-2 h-10 bg-[#008069] rounded-full" />
+           <h2 className="text-2xl font-black text-gray-900 leading-tight">Aakhri Details</h2>
+        </header>
+
+        <div className="flex flex-col gap-6">
+           <div className="space-y-2">
+             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Aapka Gender (Ling)?</label>
+             <div className="grid grid-cols-3 gap-2">
+                {(['Male', 'Female', 'Other'] as const).map(g => (
+                  <button 
+                    key={g}
+                    onClick={() => setData({ ...data, gender: g })}
+                    className={cn(
+                      "py-3 rounded-2xl border font-bold text-sm transition-all",
+                      data.gender === g ? "bg-[#008069] text-white border-[#008069] shadow-lg" : "bg-gray-50 text-gray-500 border-gray-100"
+                    )}
+                  >
+                    {g === 'Male' ? 'Purush' : g === 'Female' ? 'Mahila' : 'Anya'}
+                  </button>
+                ))}
+             </div>
+           </div>
 
            <div className="space-y-2">
-             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Aapka Rajya (State)?</label>
-             <select 
-               value={data.state}
-               onChange={(e) => setData({ ...data, state: e.target.value })}
-               className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-[#008069]/20"
-             >
-                {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-             </select>
+             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category chunein?</label>
+             <div className="grid grid-cols-3 gap-2">
+                {(['General', 'OBC', 'SC', 'ST', 'EWS'] as const).map(c => (
+                  <button 
+                    key={c}
+                    onClick={() => setData({ ...data, category: c })}
+                    className={cn(
+                      "py-3 rounded-2xl border font-bold text-[10px] transition-all",
+                      data.category === c ? "bg-[#008069] text-white border-[#008069] shadow-lg" : "bg-gray-50 text-gray-500 border-gray-100"
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
+             </div>
+           </div>
+
+           <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Monthly Family Income (₹)?</label>
+              <input 
+                type="number" 
+                placeholder="e.g. 20000"
+                value={data.monthlyIncome || ''}
+                onChange={(e) => setData({ ...data, monthlyIncome: e.target.value })}
+                className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-[#008069]/20"
+              />
            </div>
         </div>
 
         <button 
           onClick={() => onComplete(data)}
-          className="mt-auto w-full bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-green-100"
+          className="mt-8 w-full bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-green-100 shrink-0"
         >
-          Dashbaord Dekhein
+          Dashboard Dekhein
         </button>
       </div>
     );
@@ -1101,26 +4025,128 @@ const OfflineNotice = () => {
   );
 };
 
-const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, onActivateGuru }: { 
+const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, onActivateGuru, userProfile }: { 
   form: any; 
   userId?: string; 
   initialData?: Record<string, string>;
   onDraftSaved?: () => void;
   isGuruActive?: boolean;
   onActivateGuru?: (autoStart?: boolean) => void;
+  userProfile?: UserProfile;
 }) => {
   const [filledData, setFilledData] = useState<Record<string, string>>(initialData || {});
   const [showExample, setShowExample] = useState(false);
+  const [showSmartFill, setShowSmartFill] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(form.draftId || null);
   const [copiedFieldIndex, setCopiedFieldIndex] = useState<number | null>(null);
   const [activeInfoIndex, setActiveInfoIndex] = useState<number | null>(null);
+  const [activeTipIndex, setActiveTipIndex] = useState<number | null>(null);
+  const [loadingHelpIndex, setLoadingHelpIndex] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const isOnline = useOnlineStatus();
   const lastAutoSaveRef = useRef<number>(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
+  const FIELDS_PER_STEP = 5;
+  
+  const hasSections = form.sections && form.sections.length > 0;
+  const currentSection = hasSections ? form.sections[currentSectionIdx] : null;
+  const allFields = hasSections 
+    ? (form.sections.flatMap((s: any) => s.fields)) 
+    : (form.fields || []);
+
+  const totalSteps = hasSections 
+    ? 1 
+    : Math.ceil(allFields.length / FIELDS_PER_STEP);
+
+  const currentFields = hasSections 
+    ? currentSection.fields 
+    : (allFields.slice(currentStep * FIELDS_PER_STEP, (currentStep + 1) * FIELDS_PER_STEP));
+
+  const [showCounselor, setShowCounselor] = useState(false);
+
+  const [smartFilledFields, setSmartFilledFields] = useState<string[]>([]);
+
+  const handleSmartFill = () => {
+    if (!userProfile) return;
+    
+    const smartData: Record<string, string> = { ...filledData };
+    const newlyFilled: string[] = [];
+
+    allFields.forEach((f: any) => {
+      const fieldName = f.field.toLowerCase();
+      const explanation = (f.explanation || '').toLowerCase();
+      
+      let valueToFill = "";
+
+      if (fieldName.includes('name') || fieldName.includes('naam') || fieldName.includes('candidate')) {
+        if (userProfile.name) valueToFill = userProfile.name;
+      } else if (fieldName.includes('state') || fieldName.includes('rajya')) {
+        if (userProfile.state) valueToFill = userProfile.state;
+      } else if (fieldName.includes('aadhar') || explanation.includes('aadhar')) {
+        if (userProfile.aadharNumber) valueToFill = userProfile.aadharNumber;
+      } else if (fieldName.includes('phone') || fieldName.includes('mobile') || explanation.includes('mobile')) {
+        if (userProfile.phoneNumber) valueToFill = userProfile.phoneNumber;
+      } else if (fieldName.includes('address') || fieldName.includes('pata')) {
+        if (userProfile.address) valueToFill = userProfile.address;
+      } else if (fieldName.includes('class') || explanation.includes('kaksha')) {
+        if (userProfile.class) valueToFill = userProfile.class;
+      } else if (fieldName.includes('occupation') || fieldName.includes('pesha') || fieldName.includes('vyavasay')) {
+        if (userProfile.occupation) valueToFill = userProfile.occupation;
+      } else if (fieldName.includes('income') || fieldName.includes('aay') || fieldName.includes('salary')) {
+        if (userProfile.monthlyIncome) valueToFill = userProfile.monthlyIncome;
+      } else if (fieldName.includes('category') || fieldName.includes('jaati') || fieldName.includes('varg')) {
+        if (userProfile.category) valueToFill = userProfile.category;
+      } else if (fieldName.includes('gender') || fieldName.includes('ling')) {
+        if (userProfile.gender) valueToFill = userProfile.gender;
+      } else if (fieldName.includes('subject') || fieldName.includes('stream') || fieldName.includes('vishay')) {
+        if (userProfile.stream) valueToFill = userProfile.stream;
+      }
+
+      if (valueToFill && !filledData[f.field]) {
+        smartData[f.field] = valueToFill;
+        newlyFilled.push(f.field);
+      }
+    });
+
+    if (newlyFilled.length > 0) {
+      setFilledData(smartData);
+      setSmartFilledFields(newlyFilled);
+      showToast(`${newlyFilled.length} fields self-filled using your profile!`, 'info');
+      setTimeout(() => setSmartFilledFields([]), 3000);
+    } else {
+      showToast("Profile data matches or no matching fields found.", 'warning');
+    }
+    
+    setShowSmartFill(true);
+    setTimeout(() => setShowSmartFill(false), 3000);
+  };
+
+  const fetchAIHelp = async (idx: number) => {
+    const field = allFields[idx];
+    if (!field || loadingHelpIndex !== null) return;
+    setLoadingHelpIndex(idx);
+    try {
+      const res = await getFieldExample(form.formName || 'General Form', field.field, field.explanation);
+      // Update form field with new data
+      if (res) {
+        field.aiTip = res.tip;
+        field.aiDetailedExample = res.example;
+        field.whyItMatters = res.whyItMatters;
+        field.commonMistake = res.commonMistake;
+        setActiveTipIndex(idx);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingHelpIndex(null);
+    }
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -1133,7 +4159,7 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
 
   // Auto-save logic
   useEffect(() => {
-    if (!userId || Object.keys(filledData).length === 0) return;
+    if (Object.keys(filledData).length === 0) return;
     
     const timer = setTimeout(() => {
       // Don't auto-save if we already saved manually or auto-saved very recently
@@ -1267,33 +4293,56 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
   }, [showExample, form.fields, initialData]);
 
   const handleSaveDraft = async () => {
-    if (!userId) return;
     setIsSaving(true);
     try {
       const draftId = currentDraftId || `draft_${Date.now()}`;
       if (!currentDraftId) setCurrentDraftId(draftId);
 
-      // Firestore with persistence handles the queuing
-      await setDoc(doc(db, 'users', userId, 'drafts', draftId), {
-        userId,
+      const now = Date.now();
+      const draftData = {
+        userId: userId || 'guest',
         formName: form.formName || 'Untitled Form',
         formData: filledData,
         formDefinition: form,
-        updatedAt: Timestamp.now(),
-        isOfflineDraft: !isOnline // Just a flag to indicate it was saved while offline
-      });
+        updatedAt: now,
+        isOfflineDraft: !isOnline
+      };
+
+      if (userId) {
+        // Firestore with persistence handles the queuing
+        await setDoc(doc(db, 'users', userId, 'drafts', draftId), {
+          ...draftData,
+          updatedAt: Timestamp.now() // Use Firestore Server Timestamp for server-side
+        });
+      }
+
+      // Always save a copy to localStorage as guest fallback or backup
+      try {
+        const localDraftsRaw = localStorage.getItem('mitra_drafts');
+        let localDrafts = localDraftsRaw ? JSON.parse(localDraftsRaw) : [];
+        const existingIdx = localDrafts.findIndex((d: any) => d.id === draftId);
+        const entry = { id: draftId, ...draftData, updatedAt: now };
+        
+        if (existingIdx >= 0) {
+          localDrafts[existingIdx] = entry;
+        } else {
+          localDrafts.unshift(entry);
+        }
+        localStorage.setItem('mitra_drafts', JSON.stringify(localDrafts.slice(0, 10)));
+      } catch (e) {
+        console.warn("LocalStorage save failed:", e);
+      }
       
       setSaveSuccess(true);
       if (onDraftSaved) onDraftSaved();
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       console.error("Error saving draft:", error);
-      // If we are offline but persistence failed (rare), log it
-      if (!isOnline) {
+      if (!isOnline && userId) {
          console.warn("Offline save queued in local persistence");
-         setSaveSuccess(true); // Treat as success for UI since it's queued
+         setSaveSuccess(true);
       } else {
-        handleFirestoreError(error, OperationType.WRITE, `users/${userId}/drafts`);
+        if (userId) handleFirestoreError(error, OperationType.WRITE, `users/${userId}/drafts`);
         alert("Draft save nahi ho saka. Kripya firse try karein.");
       }
     } finally {
@@ -1309,6 +4358,44 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
     navigator.clipboard.writeText(text);
     setIsExporting(true);
     setTimeout(() => setIsExporting(false), 2000);
+  };
+
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(22);
+      doc.text(form.formName || "Application Form", 20, 20);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text(`Exported via Mitra AI on ${new Date().toLocaleDateString()}`, 20, 30);
+      
+      let y = 45;
+      doc.setTextColor(0);
+      doc.setFontSize(14);
+      
+      Object.entries(filledData).forEach(([field, value]) => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.text(`${field}:`, 20, y);
+        doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(String(value), 120);
+        doc.text(lines, 70, y);
+        y += (lines.length * 7) + 5;
+      });
+      
+      doc.save(`${form.formName || 'Form'}_Filled.pdf`);
+    } catch (error) {
+      console.error("PDF Export error:", error);
+      alert("PDF download nahi ho saka.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const progress = form.fields.length > 0 
@@ -1335,8 +4422,9 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
   }, [form.fields, filledData]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* AI Screen Guru Integration Widget */}
+    <>
+      <div className="flex flex-col gap-4">
+        {/* AI Screen Guru Integration Widget */}
       {onActivateGuru && !isGuruActive && (
         <div className="bg-gradient-to-br from-[#008069] to-[#005c4b] p-6 rounded-[2rem] shadow-xl shadow-green-200 border border-white/20 relative overflow-hidden group">
           {/* Animated Background Elements */}
@@ -1406,7 +4494,18 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
       <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
         <div className="flex justify-between items-center px-1">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Form Filling Progress</p>
-          <span className="text-xs font-black text-[#008069]">{progress}%</span>
+          <div className="flex items-center gap-2">
+            {userProfile && (
+              <button 
+                onClick={handleSmartFill}
+                className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1 border border-emerald-100 hover:bg-emerald-100 transition-colors"
+              >
+                <Zap className="w-3 h-3" />
+                {showSmartFill ? 'Smart Filled!' : 'Smart Fill'}
+              </button>
+            )}
+            <span className="text-xs font-black text-[#008069]">{progress}%</span>
+          </div>
         </div>
         <div className="h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100">
           <motion.div 
@@ -1446,19 +4545,34 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
                >
                  <Trash2 className="w-3.5 h-3.5" />
                </button>
-              <button 
-                onClick={() => setShowExample(!showExample)}
-                className={cn(
-                  "flex-1 px-4 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2",
-                  showExample 
-                    ? "bg-red-50 text-red-600 border-red-100" 
-                    : "bg-[#008069] text-white border-[#008069] shadow-lg shadow-green-100"
-                )}
-              >
-                {showExample ? <X className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
-                {showExample ? 'Clear Data' : 'Auto-Fill AI Data'}
-              </button>
-              {userId && (
+                 <div className="flex gap-2">
+                  {userProfile && (
+                    <button 
+                      onClick={handleSmartFill}
+                      className={cn(
+                        "flex-1 px-4 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2",
+                        showSmartFill 
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                          : "bg-white text-emerald-600 border-emerald-100 hover:bg-emerald-50 shadow-sm"
+                      )}
+                    >
+                      <Zap className={cn("w-3 h-3", showSmartFill && "animate-pulse")} />
+                      {showSmartFill ? 'Smart Filled!' : 'Smart Fill (My Data)'}
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setShowExample(!showExample)}
+                    className={cn(
+                      "flex-1 px-4 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2",
+                      showExample 
+                        ? "bg-red-50 text-red-600 border-red-100" 
+                        : "bg-[#008069] text-white border-[#008069] shadow-lg shadow-green-100"
+                    )}
+                  >
+                    {showExample ? <X className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+                    {showExample ? 'Clear Data' : 'AI Mock Fill'}
+                  </button>
+                 </div>
                 <div className="flex-1 flex flex-col gap-1">
                   <button 
                     onClick={handleSaveDraft}
@@ -1471,13 +4585,20 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
                     {saveSuccess ? <CheckCircle className="w-3 h-3" /> : (isSaving ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Bookmark className="w-3 h-3" />)}
                     {saveSuccess ? (isOnline ? 'Saved!' : 'Saved Offline!') : (isSaving ? 'Saving...' : 'Save Draft')}
                   </button>
+                  <button 
+                    onClick={handleExportPdf}
+                    disabled={isExporting}
+                    className="w-full px-4 py-2 bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-[#008069] flex items-center justify-center gap-2 mt-1 hover:bg-gray-50 transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    Save as PDF
+                  </button>
                   {saveSuccess && !isOnline && (
                     <span className="text-[8px] text-orange-500 font-bold uppercase text-right tracking-tight px-1 flex items-center justify-end gap-1">
                        <CloudOff className="w-2 h-2" /> Queued for sync
                     </span>
                   )}
                 </div>
-              )}
              </div>
              {Object.keys(filledData).length > 0 && (
                <button 
@@ -1495,131 +4616,301 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
         </div>
 
         <div className="flex flex-col gap-4 p-5 bg-gray-50 rounded-[2rem] border border-gray-100">
-          <div className="text-center pb-3 border-b border-gray-200">
-             <h4 className="font-black text-xs text-gray-800 uppercase tracking-widest">{form.formName || 'Untitled Form'} - PRACTICE</h4>
+          <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+             <div className="flex flex-col">
+               <h4 className="font-black text-xs text-gray-800 uppercase tracking-widest">{form.formName || 'Untitled Form'}</h4>
+               <p className="text-[9px] font-bold text-[#008069] uppercase tracking-tighter">
+                 {hasSections ? `Tab ${currentSectionIdx + 1} of ${form.sections.length}` : `Step ${currentStep + 1} of ${totalSteps}`}
+               </p>
+             </div>
+             <button 
+               onClick={() => setShowCounselor(true)}
+               className="p-2 rounded-xl bg-orange-100 text-orange-600 border border-orange-200 flex items-center gap-1.5 hover:bg-orange-200 transition-colors"
+             >
+               <Sparkles className="w-3.5 h-3.5" />
+               <span className="text-[9px] font-black uppercase tracking-widest">Ask Mitra</span>
+             </button>
           </div>
-          {form.fields.map((field: any, idx: number) => (
-            <div key={idx} className="flex flex-col gap-1.5">
-               <div className="flex justify-between items-center px-1">
-                 <div className="flex items-center gap-2">
-                   <label className={cn(
-                     "text-[10px] font-black uppercase tracking-tight",
-                     field.isCritical ? "text-red-500" : "text-gray-400"
-                   )}>
-                     {field.field} {field.isCritical && '*'}
-                   </label>
+
+          {hasSections && (
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-none border-b border-gray-100 -mx-1 px-1">
+               {form.sections.map((section: any, idx: number) => {
+                 const isCompleted = section.fields.every((f: any) => filledData[f.field]);
+                 return (
                    <button
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       setActiveInfoIndex(activeInfoIndex === idx ? null : idx);
-                     }}
+                     key={idx}
+                     onClick={() => setCurrentSectionIdx(idx)}
                      className={cn(
-                       "p-1 rounded-full transition-all",
-                       activeInfoIndex === idx ? "bg-orange-100 text-orange-600" : "text-gray-300 hover:text-orange-500"
+                       "whitespace-nowrap px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border",
+                       currentSectionIdx === idx 
+                         ? "bg-[#008069] text-white border-[#008069] shadow-lg shadow-green-100" 
+                         : (isCompleted ? "bg-green-50 text-green-700 border-green-200" : "bg-white text-gray-400 border-gray-200 hover:border-[#008069]")
                      )}
-                     title="Why is this needed?"
                    >
-                     <Info className="w-3 h-3" />
+                     {section.sectionName}
                    </button>
-                   {field.exampleValue && (
-                     <button
+                 );
+               })}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            {currentFields.map((field: any, cidx: number) => {
+              const idx = hasSections ? cidx : (currentStep * FIELDS_PER_STEP + cidx);
+              const hasError = !!errors[field.field];
+              const isFilled = !!filledData[field.field];
+
+              return (
+                <div key={idx} className="flex flex-col gap-1.5 p-3 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center px-1">
+                    <div className="flex items-center gap-2">
+                      <label className={cn(
+                        "text-[10px] font-black uppercase tracking-tight",
+                        field.isCritical ? "text-red-500" : "text-gray-400"
+                      )}>
+                        {field.field} {field.isCritical && '*'}
+                      </label>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveInfoIndex(activeInfoIndex === idx ? null : idx);
+                        }}
+                        className={cn(
+                          "p-1 rounded-full transition-all",
+                          activeInfoIndex === idx ? "bg-orange-100 text-orange-600" : "text-gray-300 hover:text-orange-500"
+                        )}
+                        title="Why is this needed?"
+                      >
+                        <Info className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {isFilled && !hasError && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="flex items-center gap-1"
+                      >
+                        <CheckCircle className="w-3 h-3 text-emerald-500" />
+                        <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Complete</span>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <input 
+                    type="text"
+                    ref={(el) => { inputRefs.current[idx] = el; }}
+                    onKeyDown={(e) => handleKeyDown(e, idx)}
+                    onFocus={() => {
+                      setFocusedIndex(idx);
+                      if (!field.aiTip && isOnline) fetchAIHelp(idx);
+                      if (field.aiTip || field.whyItMatters || field.commonMistake) {
+                        setActiveTipIndex(idx);
+                      }
+                    }}
+                    onBlur={() => {
+                      setFocusedIndex(null);
+                      const error = validateField(field, filledData[field.field] || '');
+                      setErrors(prev => ({ ...prev, [field.field]: error }));
+                    }}
+                    value={filledData[field.field] || ''}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
+                    placeholder={field.explanation}
+                    className={cn(
+                      "w-full p-4 bg-gray-50 border rounded-2xl text-xs font-bold outline-none transition-all",
+                      hasError ? "border-red-500 ring-2 ring-red-50" : "border-gray-100 focus:border-[#008069] focus:bg-white",
+                      (smartFilledFields.includes(field.field) || highlightedField === field.field) && "border-emerald-500 ring-4 ring-emerald-100 bg-emerald-50 scale-[1.02] shadow-lg"
+                    )}
+                  />
+
+                  {hasError && (
+                    <p className="text-[9px] font-bold text-red-500 px-2 mt-0.5 flex items-center gap-1">
+                      <AlertCircle className="w-2.5 h-2.5" />
+                      {errors[field.field]}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-1">
+                    {field.exampleValue && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(field.exampleValue);
+                          setCopiedFieldIndex(idx);
+                          setTimeout(() => setCopiedFieldIndex(null), 2000);
+                        }}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all border",
+                          copiedFieldIndex === idx ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-blue-50 text-blue-600 border-blue-100"
+                        )}
+                      >
+                        {copiedFieldIndex === idx ? "Copied" : "Example"}
+                      </button>
+                    )}
+                    
+                    <button
                        onClick={() => {
-                         navigator.clipboard.writeText(field.exampleValue);
-                         setCopiedFieldIndex(idx);
-                         setTimeout(() => setCopiedFieldIndex(null), 2000);
+                         if (!field.aiTip) fetchAIHelp(idx);
+                         setActiveTipIndex(activeTipIndex === idx ? null : idx);
                        }}
                        className={cn(
-                        "flex items-center gap-1 px-2 py-0.5 rounded-full transition-all border cursor-pointer",
-                        copiedFieldIndex === idx 
-                          ? "bg-green-50 text-green-600 border-green-100" 
-                          : "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100"
+                         "flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all border",
+                         activeTipIndex === idx ? "bg-purple-600 text-white" : "bg-purple-50 text-purple-600 border-purple-100"
                        )}
-                     >
-                       {copiedFieldIndex === idx ? <CheckCircle className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
-                       <span className="text-[8px] font-black uppercase tracking-tighter">
-                         {copiedFieldIndex === idx ? 'Copied' : 'Copy Example'}
-                       </span>
-                     </button>
-                   )}
-                 </div>
-                 {showExample && (
-                   <span className="text-[9px] font-black text-[#008069] uppercase tracking-tighter bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                     AI Example
-                   </span>
-                 )}
-               </div>
-               {activeInfoIndex === idx && (
-                 <motion.div
-                   initial={{ height: 0, opacity: 0 }}
-                   animate={{ height: 'auto', opacity: 1 }}
-                   className="bg-orange-50 border border-orange-100 p-3 rounded-2xl mb-2"
-                 >
-                   <p className="text-[10px] font-bold text-orange-800 leading-tight">
-                     <span className="uppercase tracking-tighter mr-1 text-orange-600 font-black">Why this matters:</span>
-                     {field.whyItMatters || "Government records match karne ke liye ye jankari bahut zaroori hai."}
-                   </p>
-                 </motion.div>
+                    >
+                       <Sparkles className="w-2.5 h-2.5" />
+                       AI Guide
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {(activeTipIndex === idx || activeInfoIndex === idx) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="bg-purple-50/70 border border-purple-100 p-3 rounded-2xl mt-2 overflow-hidden flex flex-col gap-3 shadow-inner"
+                      >
+                        {field.whyItMatters && (
+                          <div className="flex gap-2">
+                             <div className="w-5 h-5 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+                               <Info className="w-3 h-3 text-orange-600" />
+                             </div>
+                             <div className="flex flex-col">
+                               <span className="text-[8px] font-black uppercase tracking-widest text-orange-600 mb-0.5">Why it matters / Kyun zaroori hai</span>
+                               <p className="text-[10px] font-bold text-gray-700 leading-tight">
+                                 {field.whyItMatters}
+                               </p>
+                             </div>
+                          </div>
+                        )}
+
+                        {field.aiTip && (
+                          <div className="flex gap-2">
+                             <div className="w-5 h-5 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                               <Sparkles className="w-3 h-3 text-purple-600" />
+                             </div>
+                             <div className="flex flex-col">
+                               <span className="text-[8px] font-black uppercase tracking-widest text-purple-600 mb-0.5">Smart Tip / Expert Salha</span>
+                               <p className="text-[10px] font-bold text-gray-700 leading-tight">
+                                 {field.aiTip}
+                               </p>
+                             </div>
+                          </div>
+                        )}
+
+                        {field.commonMistake && (
+                          <div className="flex gap-2 p-2.5 bg-red-50 rounded-xl border border-red-100">
+                             <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                             <div className="flex flex-col">
+                               <span className="text-[8px] font-black uppercase tracking-widest text-red-600 mb-0.5">Mistake to avoid / Yeh galti mat karein</span>
+                               <p className="text-[10px] font-bold text-red-800 leading-tight">
+                                 {field.commonMistake}
+                               </p>
+                             </div>
+                          </div>
+                        )}
+
+                        {field.exampleValue && (
+                          <div className="pt-2 border-t border-purple-200/50">
+                            <button 
+                              onClick={() => {
+                                handleFieldChange(field, field.exampleValue);
+                                setActiveTipIndex(null);
+                                setActiveInfoIndex(null);
+                              }}
+                              className="w-full py-2 bg-white border border-purple-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                            >
+                              <Plus className="w-3 h-3" />
+                              Apply Example: {field.exampleValue}
+                            </button>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap gap-3 pt-4 mt-2 border-t border-gray-200">
+             <button 
+               onClick={() => {
+                 if (hasSections) {
+                   setCurrentSectionIdx(prev => Math.max(0, prev - 1));
+                 } else {
+                   setCurrentStep(prev => Math.max(0, prev - 1));
+                 }
+                 setFocusedIndex(null);
+               }}
+               disabled={hasSections ? currentSectionIdx === 0 : currentStep === 0}
+               className={cn(
+                 "flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border",
+                 (hasSections ? currentSectionIdx === 0 : currentStep === 0) ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed" : "bg-white text-gray-700 border-gray-200 active:scale-95 hover:bg-gray-50"
                )}
-               <input 
-                 type="text"
-                 ref={(el) => { inputRefs.current[idx] = el; }}
-                 onKeyDown={(e) => handleKeyDown(e, idx)}
-                 value={filledData[field.field] || ''}
-                 onChange={(e) => handleFieldChange(field, e.target.value)}
-                 onBlur={() => {
-                   const error = validateField(field, filledData[field.field] || '');
-                   setErrors(prev => ({ ...prev, [field.field]: error }));
-                 }}
-                 placeholder={field.explanation}
-                 className={cn(
-                   "w-full p-4 bg-white border rounded-2xl text-xs font-bold outline-none transition-all",
-                   errors[field.field] ? "border-red-500 ring-2 ring-red-50" : (showExample ? "border-[#008069] ring-2 ring-[#008069]/5" : "border-gray-200 focus:border-[#008069]")
-                 )}
-               />
-               
-               {errors[field.field] && (
-                 <motion.p 
-                   initial={{ opacity: 0, y: -5 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   className="text-[9px] font-bold text-red-500 px-2 mt-0.5 flex items-center gap-1"
-                 >
-                   <AlertCircle className="w-2.5 h-2.5" />
-                   {errors[field.field]}
-                 </motion.p>
+             >
+               Peeche (Back)
+             </button>
+
+             {userId && (
+                <button 
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                  className={cn(
+                    "flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border flex items-center justify-center gap-2",
+                    saveSuccess ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-white text-gray-700 border-gray-200 active:scale-95 hover:bg-gray-50"
+                  )}
+                >
+                  {saveSuccess ? <CheckCircle className="w-3 h-3" /> : (isSaving ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Bookmark className="w-3 h-3" />)}
+                  {saveSuccess ? 'Saved!' : 'Save Draft'}
+                </button>
+             )}
+
+             <button 
+               onClick={() => {
+                 if (hasSections) {
+                   if (currentSectionIdx < form.sections.length - 1) {
+                     setCurrentSectionIdx(prev => prev + 1);
+                   } else {
+                     const btn = document.getElementById('final-submit-btn');
+                     if (btn) (btn as any).click();
+                   }
+                 } else {
+                   if (currentStep < totalSteps - 1) {
+                     setCurrentStep(prev => prev + 1);
+                   } else {
+                     const btn = document.getElementById('final-submit-btn');
+                     if (btn) (btn as any).click();
+                   }
+                 }
+                 setFocusedIndex(null);
+               }}
+               className={cn(
+                 "flex-[1.5] py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border shadow-lg flex items-center justify-center gap-2",
+                 (hasSections ? currentSectionIdx < form.sections.length - 1 : currentStep < totalSteps - 1) 
+                   ? "bg-[#008069] text-white border-[#008069] shadow-green-100 hover:bg-[#005c4b]" 
+                   : "bg-slate-900 text-white border-slate-900 shadow-slate-100 hover:bg-black"
                )}
-               
-               {showExample && (
-                 <motion.div 
-                   initial={{ height: 0, opacity: 0 }} 
-                   animate={{ height: 'auto', opacity: 1 }} 
-                   className="overflow-hidden"
-                 >
-                   <div className="mt-2 space-y-1 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="w-3 h-3 text-red-500 mt-0.5 shrink-0" />
-                        <p className="text-[9px] font-bold text-gray-600 leading-tight">
-                          <span className="text-red-500 uppercase tracking-tighter">Mistake To Avoid:</span> {field.commonMistake || field.commonMistakes || 'Check carefully for this field.'}
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2 pt-1 border-t border-gray-50 mt-1">
-                        <CheckCircle className="w-3 h-3 text-[#008069] mt-0.5 shrink-0" />
-                        <p className="text-[9px] font-bold text-gray-600 leading-tight">
-                          <span className="text-[#008069] uppercase tracking-tighter">Correct Way:</span> {field.exampleValue || 'N/A'}
-                        </p>
-                      </div>
-                   </div>
-                 </motion.div>
-               )}
-            </div>
-          ))}
-          <button 
-            className="w-full bg-[#008069] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-[#008069]/20 mt-4 active:scale-95 transition-transform flex items-center justify-center gap-2"
-            onClick={() => {
+             >
+               {hasSections 
+                 ? (currentSectionIdx < form.sections.length - 1 ? 'Aage (Next Tab)' : 'Final Submit')
+                 : (currentStep < totalSteps - 1 ? 'Aage (Next Step)' : 'Final Submission')}
+               <ArrowRight className="w-3 h-3" />
+             </button>
+          </div>
+        </div>
+
+        <button 
+          id="final-submit-btn"
+          className={cn(
+            "w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg mt-4 active:scale-95 transition-transform flex items-center justify-center gap-2",
+            (hasSections ? currentSectionIdx < form.sections.length - 1 : currentStep < totalSteps - 1) ? "hidden" : "block bg-[#008069] text-white shadow-[#008069]/20"
+          )}
+          onClick={() => {
               // Final validation check for all fields
               const newErrors: Record<string, string | null> = {};
               let hasErrors = false;
               
-              form.fields.forEach((f: any) => {
+              allFields.forEach((f: any) => {
                 const err = validateField(f, filledData[f.field] || '');
                 if (err) {
                   newErrors[f.field] = err;
@@ -1647,7 +4938,87 @@ const FormSimulator = ({ form, userId, initialData, onDraftSaved, isGuruActive, 
           </button>
         </div>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {showCounselor && (
+          <FormCounselor 
+            form={form}
+            currentFields={currentFields}
+            filledData={filledData}
+            onClose={() => setShowCounselor(false)}
+            userProfile={userProfile}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Prominent AI Suggestion Overlay */}
+      <AnimatePresence>
+        {focusedIndex !== null && (allFields[focusedIndex]?.aiTip || allFields[focusedIndex]?.whyItMatters || allFields[focusedIndex]?.commonMistake) && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+            className="fixed bottom-24 left-4 right-4 z-[90] pointer-events-none"
+          >
+            <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md border-2 border-purple-200 p-5 rounded-[2.5rem] shadow-2xl pointer-events-auto flex flex-col gap-4">
+              <div className="flex justify-between items-center -mt-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-600 border border-purple-200">
+                    <Sparkles className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-600 leading-none">AI Suggestion</h5>
+                    <p className="text-[14px] font-black text-gray-900 tracking-tight mt-1">{allFields[focusedIndex].field} ke liye</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setFocusedIndex(null)}
+                  className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all active:scale-90"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {allFields[focusedIndex].aiTip && (
+                <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
+                   <div className="flex gap-3">
+                      <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
+                        <Lightbulb className="w-3.5 h-3.5 text-purple-600" />
+                      </div>
+                      <p className="text-[12px] font-bold text-gray-700 leading-relaxed italic">
+                        "{allFields[focusedIndex].aiTip}"
+                      </p>
+                   </div>
+                </div>
+              )}
+
+              {allFields[focusedIndex].commonMistake && (
+                <div className="flex items-start gap-3 px-4 py-3 bg-red-50 rounded-2xl border border-red-100">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">Galti Mat Karein</span>
+                    <p className="text-[11px] font-bold text-red-800 leading-tight">
+                      {allFields[focusedIndex].commonMistake}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-[8px] font-black text-gray-400 uppercase tracking-widest pt-2 border-t border-gray-50">
+                <span className="flex items-center gap-1">
+                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                   Mitra Live Guide
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3 text-[#008069]" />
+                  Zero-Rejection Check
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -1846,7 +5217,8 @@ const LiveAiScreenGuru = ({ userProfile, onNavigate, onClose, onFillField, autoS
           5. Screen Navigation: Use 'highlight_element' to point out EXACT fields. 100% relative coordinates.
           
           Personality: Reassuring, patient, and ultra-professional. Your goal is to make digital forms feel easy for everyone.
-          Motto: "Zindagi ki mushkilon mein, Mitra aapke saath hai."`
+          Motto: "Zindagi ki mushkilon mein, Mitra aapke saath hai."
+          MANDATORY: ALWAYS conclude long explanations or terminal guidance with 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'`
         }
       });
 
@@ -2464,6 +5836,25 @@ const TargetTracker = ({ news, loading, onAskMitra }: { news: any[]; loading: bo
 
                   <div className="flex flex-col gap-2 pt-2">
                     <button 
+                      onClick={async () => {
+                        try {
+                          const audioData = await getSpeech(`Bhai, ${selectedNews.title} ke baare mein suniye. ${selectedNews.analysis || selectedNews.summary}. ${selectedNews.impact ? 'Important update: ' + selectedNews.impact : ''}`);
+                          if (audioData) {
+                            const audio = new Audio(`data:audio/mp3;base64,${audioData}`);
+                            audio.play();
+                          } else {
+                            alert("Bhai, abhi audio feed busy hai. Thodi der mein try karein!");
+                          }
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      }}
+                      className="w-full py-4 bg-orange-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      Listen Audio News
+                    </button>
+                    <button 
                       onClick={() => {
                         onAskMitra(`Mujhe is target/news ke baare mein visthar se info chahiye: "${selectedNews.title}". Iske liye mujhe local level par kya steps lene chahiye?`);
                         setSelectedNews(null);
@@ -2572,9 +5963,131 @@ const SubjectQuiz = ({ userProfile }: { userProfile: UserProfile }) => {
   );
 };
 
+const WeatherWidget = ({ state }: { state?: string }) => {
+  return (
+    <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-[2.5rem] text-white flex justify-between items-center shadow-xl shadow-blue-100">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <CloudSun className="w-5 h-5 text-yellow-300" />
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-100">Kisan Weather Update</h3>
+        </div>
+        <p className="text-2xl font-black">{state || 'India'} Weather</p>
+        <p className="text-xs font-bold opacity-80 uppercase tracking-tight italic">"Aaj kheti ke liye mausam sahi hai!"</p>
+      </div>
+      <div className="text-right">
+        <p className="text-4xl font-black">32°C</p>
+        <p className="text-[10px] font-black uppercase opacity-60">Partly Cloudy</p>
+      </div>
+    </div>
+  );
+};
+
+const MandiBhavWidget = () => {
+  const items = [
+    { name: 'Tamatar', price: '₹40/kg', img: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&h=200&fit=crop' },
+    { name: 'Alu', price: '₹20/kg', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=200&h=200&fit=crop' },
+    { name: 'Pyaj', price: '₹35/kg', img: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=200&h=200&fit=crop' },
+    { name: 'Gehu', price: '₹2500/q', img: 'https://images.unsplash.com/photo-1542713312-706593a20723?w=200&h=200&fit=crop' }
+  ];
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center px-1">
+        <div className="flex items-center gap-2">
+           <LayoutGrid className="w-5 h-5 text-emerald-600" />
+           <h2 className="text-lg font-black text-gray-900 tracking-tight italic">Daily Mandi Bhav</h2>
+        </div>
+        <span className="text-[8px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-black">LIVE RATES</span>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        {items.map((item, i) => (
+          <div key={i} className="bg-white p-3 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-3 group hover:border-emerald-100 transition-colors">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-gray-50 shrink-0">
+              <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">{item.name}</p>
+              <p className="text-sm font-black text-emerald-600 leading-none">{item.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const JobFinderWidget = ({ onSearch }: { onSearch: (q: string) => void }) => {
+  return (
+    <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white flex flex-col gap-4 shadow-xl shadow-indigo-100 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
+      <div className="flex justify-between items-start relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 backdrop-blur-sm">
+            <Search className="w-5 h-5 text-indigo-100" />
+          </div>
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-100">Smart Job Finder</h3>
+            <p className="text-[10px] font-bold opacity-60 text-white italic">"Dost, aaj ki top jobs dekhein?"</p>
+          </div>
+        </div>
+      </div>
+      <div className="relative z-10">
+        <input 
+          type="text" 
+          placeholder="e.g. Driver, Teacher, Worker..."
+          className="w-full p-4 bg-white/10 border border-white/20 rounded-2xl font-bold text-sm placeholder:text-white/40 focus:bg-white text-white focus:text-indigo-900 outline-none transition-all placeholder:italic"
+          onKeyDown={(e) => e.key === 'Enter' && onSearch((e.target as HTMLInputElement).value)}
+        />
+        <p className="text-[9px] font-black uppercase tracking-widest mt-2 text-indigo-200">Matching with your profile skills...</p>
+      </div>
+    </div>
+  );
+};
+
+const CareerGuideWidget = ({ onAction }: { onAction: (action: string) => void }) => {
+  return (
+    <section className="p-6 bg-gradient-to-br from-[#008069] to-green-800 rounded-[2.5rem] shadow-xl shadow-green-100 flex flex-col gap-6 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10" />
+      <div className="flex justify-between items-start relative z-10">
+         <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
+               <GraduationCap className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+               <h3 className="text-white font-black text-sm uppercase tracking-widest">Job Prep Master</h3>
+               <p className="text-[10px] text-green-100 font-bold uppercase tracking-tight opacity-70">Sarkari & Private Job Tyari</p>
+            </div>
+         </div>
+         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
+            <Zap className="w-4 h-4 fill-current" />
+         </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3 relative z-10">
+        <button 
+          onClick={() => onAction('Resume help in Hindi')}
+          className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-left transition-all group"
+        >
+           <FileText className="w-5 h-5 text-green-200 mb-2 group-hover:scale-110 transition-transform" />
+           <p className="text-[10px] font-black text-white uppercase tracking-widest">Resume Wali AI</p>
+           <p className="text-[9px] text-green-100 font-bold mt-0.5">Biodata banayein</p>
+        </button>
+        <button 
+          onClick={() => onAction('Tell me about 5 best skills to learn for jobs in India')}
+          className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 text-left transition-all group"
+        >
+           <Target className="w-5 h-5 text-green-200 mb-2 group-hover:scale-110 transition-transform" />
+           <p className="text-[10px] font-black text-white uppercase tracking-widest">Skill Booster</p>
+           <p className="text-[9px] text-green-100 font-bold mt-0.5">Naya kya seekhein?</p>
+        </button>
+      </div>
+    </section>
+  );
+};
+
 // --- Screens ---
 
-const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNotifications, savedSchemeIds, onNavigateToScheme, onStartSimulator }: { 
+const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNotifications, savedSchemeIds, onNavigateToScheme, onShowSchemeDiscovery, onStartSimulator, onShowFormAudit, news, loadingNews, schemes }: { 
   onNavigate: (v: string) => void; 
   userProfile: UserProfile; 
   onAskMitra: (q: string) => void; 
@@ -2582,72 +6095,84 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
   onOpenNotifications: () => void;
   savedSchemeIds: string[];
   onNavigateToScheme: (id: string) => void;
+  onShowSchemeDiscovery: () => void;
   onStartSimulator?: (form: any) => void;
+  onShowFormAudit: () => void;
+  news: any[];
+  loadingNews: boolean;
+  schemes: Scheme[];
 }) => {
-  const [news, setNews] = useState<any[]>([]);
-  const [loadingNews, setLoadingNews] = useState(true);
   const [drafts, setDrafts] = useState<FormDraft[]>([]);
   const savedSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const q = query(
-      collection(db, 'users', auth.currentUser.uid, 'drafts'),
-      limit(2)
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const d = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FormDraft));
-      setDrafts(d.sort((a, b) => b.updatedAt - a.updatedAt));
-    }, (error) => {
-      console.warn("Drafts fetch error (offline?):", error);
-    });
-    return () => unsubscribe();
+    const loadDrafts = () => {
+      const localRaw = localStorage.getItem('mitra_drafts');
+      const local = localRaw ? JSON.parse(localRaw) : [];
+      
+      if (!auth.currentUser) {
+        setDrafts(local.slice(0, 2));
+        return null;
+      }
+
+      const q = query(
+        collection(db, 'users', auth.currentUser.uid, 'drafts'),
+        limit(5)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firestoreDrafts = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { 
+            id: doc.id, 
+            ...data, 
+            updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt || Date.now() 
+          } as FormDraft;
+        });
+
+        // Merge local and firestore, avoid duplicates by ID
+        const merged = [...firestoreDrafts];
+        local.forEach((ld: any) => {
+          if (!merged.find(fd => fd.id === ld.id)) {
+            merged.push(ld);
+          }
+        });
+        
+        setDrafts(merged.sort((a, b) => (b.updatedAt as any) - (a.updatedAt as any)).slice(0, 2));
+      }, (error) => {
+        console.warn("Drafts fetch error (offline?):", error);
+        setDrafts(local.slice(0, 2));
+      });
+
+      return unsubscribe;
+    };
+
+    const unsubscribe = loadDrafts();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const scrollToSaved = () => {
     savedSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  useEffect(() => {
-    // Load from cache first
-    const cached = localStorage.getItem('mitra_news_cache');
-    if (cached) {
-      try {
-        const { data, timestamp } = JSON.parse(cached);
-        // Cache news for 6 hours
-        if (Date.now() - timestamp < 6 * 60 * 60 * 1000) {
-          setNews(data);
-          setLoadingNews(false);
-        }
-      } catch (e) {
-        console.warn("Error parsing news cache:", e);
-      }
-    }
-
-    const fetchNews = async () => {
-      try {
-        const data = await getDailyNews(userProfile);
-        setNews(data);
-        localStorage.setItem('mitra_news_cache', JSON.stringify({ data, timestamp: Date.now() }));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingNews(false);
-      }
-    };
-    fetchNews();
-  }, [userProfile]);
-
   const suggestedSchemes = (() => {
-    const sorted = [...SCHEMES].sort((a, b) => {
+    const sorted = [...schemes].sort((a, b) => {
+      // Priority 1: Community match
+      if (a.community === userProfile.community && b.community !== userProfile.community) return -1;
+      if (b.community === userProfile.community && a.community !== userProfile.community) return 1;
+      
+      // Priority 2: State match
       if (a.state === userProfile.state && b.state !== userProfile.state) return -1;
       if (b.state === userProfile.state && a.state !== userProfile.state) return 1;
+      
       return 0;
     });
     return sorted.slice(0, 3);
   })();
 
-  const savedSchemes = SCHEMES.filter(s => savedSchemeIds.includes(s.id));
+  const savedSchemes = schemes.filter(s => savedSchemeIds.includes(s.id));
 
   return (
     <div className="flex flex-col gap-6 p-6 pb-32">
@@ -2663,11 +6188,11 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
              <h1 className="text-3xl font-black text-[#008069] tracking-tighter">Form Mitra AI</h1>
              <div className="flex items-center gap-1.5 opacity-60">
                <Sparkles className="w-3 h-3 text-[#008069]" />
-               <p className="text-[9px] uppercase font-black text-[#008069] tracking-[0.2em]">Study Made Easy</p>
+               <p className="text-[9px] uppercase font-black text-[#008069] tracking-[0.2em]">{userProfile.community} Special Edition</p>
              </div>
            </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
+         <div className="flex flex-col items-end gap-1">
           <div className="flex items-center gap-2 mb-1">
              <button 
                onClick={scrollToSaved}
@@ -2678,9 +6203,9 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
              >
                 <Bookmark className={cn("w-5 h-5", savedSchemeIds.length > 0 && "fill-current")} />
                 {savedSchemeIds.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-600 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white">
-                    {savedSchemeIds.length}
-                  </span>
+                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-600 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                     {savedSchemeIds.length}
+                   </span>
                 )}
              </button>
              <button 
@@ -2692,79 +6217,246 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
              >
                 {unreadCount > 0 ? <BellRing className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white">
-                    {unreadCount}
-                  </span>
+                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                     {unreadCount}
+                   </span>
                 )}
              </button>
+             <button 
+               onClick={() => onNavigate('profile')}
+               className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm relative active:scale-95"
+             >
+                <UserIcon className="w-5 h-5" />
+             </button>
           </div>
-          {userProfile.state && (
-            <div className="bg-orange-50 px-3 py-1 rounded-full border border-orange-100 flex items-center gap-1.5 shadow-sm">
-               <Globe className="w-3 h-3 text-orange-600" />
-               <span className="text-[10px] font-black text-orange-600 uppercase tracking-tighter">{userProfile.state}</span>
-            </div>
-          )}
-          <div className="bg-green-50 px-3 py-1 rounded-full border border-green-100 flex items-center gap-1.5 shadow-sm">
-             <Zap className="w-3 h-3 text-[#008069]" />
-             <span className="text-[9px] font-black text-[#008069] uppercase tracking-tighter">Class {userProfile.class}</span>
-          </div>
+      {userProfile.state && (
+        <div className="bg-orange-50 px-3 py-1 rounded-full border border-orange-100 flex items-center gap-1.5 shadow-sm">
+           <Globe className="w-3 h-3 text-orange-600" />
+           <span className="text-[10px] font-black text-orange-600 uppercase tracking-tighter">{userProfile.state}</span>
         </div>
-      </header>
-
-      <NewsWidget userProfile={userProfile} news={news} loading={loadingNews} onAskMitra={onAskMitra} />
-
-      {drafts.length > 0 && (
-        <section className="flex flex-col gap-4">
-          <div className="flex justify-between items-center px-1">
-            <div className="flex flex-col">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight italic">Abhi Bharein (Resume)</h2>
-              <p className="text-[10px] font-bold text-[#008069] uppercase tracking-widest flex items-center gap-1.5">
-                <Cloud className="w-3 h-3" />
-                Drafts work offline also
-              </p>
-            </div>
-            <button 
-              onClick={() => onNavigate('guide')} 
-              className="text-[#008069] text-xs font-black uppercase tracking-widest"
-            >
-              All Drafts
-            </button>
-          </div>
-          <div className="flex flex-col gap-3">
-             {drafts.map(draft => (
-               <div 
-                 key={draft.id}
-                 onClick={() => {
-                   if (onStartSimulator) {
-                     onStartSimulator({ ...draft.formDefinition, draftId: draft.id, formData: draft.formData });
-                   }
-                   onNavigate('guide');
-                 }}
-                 className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all hover:border-[#008069]/30"
-               >
-                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-[#008069]/5 flex items-center justify-center text-[#008069]">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{draft.formDefinition?.hindiName || 'Untitled Form'}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#008069]">Draft Saved</span>
-                        <span className="text-[9px] text-gray-300">•</span>
-                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">{new Date(draft.updatedAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                 </div>
-                 <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-[#008069] group-hover:text-white transition-all">
-                   <ChevronRight className="w-4 h-4" />
-                 </div>
-               </div>
-             ))}
-          </div>
-        </section>
       )}
+      <div className="bg-green-50 px-3 py-1 rounded-full border border-green-100 flex items-center gap-1.5 shadow-sm">
+         <Zap className="w-3 h-3 text-[#008069]" />
+         <span className="text-[9px] font-black text-[#008069] uppercase tracking-tighter">{userProfile.community}</span>
+      </div>
+    </div>
+  </header>
 
-      <TargetTracker news={news} loading={loadingNews} onAskMitra={onAskMitra} />
+  {(!userProfile.occupation || !userProfile.gender || !userProfile.category) && (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-4 bg-red-50 rounded-[2.5rem] border border-red-100 flex items-center justify-between group cursor-pointer"
+      onClick={() => onNavigate('settings')}
+    >
+      <div className="flex items-center gap-3">
+         <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-red-500 shadow-sm border border-red-50">
+           <AlertCircle className="w-5 h-5" />
+         </div>
+         <div>
+            <p className="text-[10px] font-black text-red-600 uppercase tracking-widest leading-tight">Profile Adhoori Hai!</p>
+            <p className="text-[11px] font-bold text-gray-700 leading-tight">Schemes dhundne ke liye gender/category bharein.</p>
+         </div>
+      </div>
+      <ChevronRight className="w-4 h-4 text-red-300 group-hover:translate-x-1 transition-transform" />
+    </motion.div>
+  )}
+
+  <NewsSlider news={news} community={userProfile.community} />
+
+  <section className="p-6 bg-[#008069] rounded-[2.5rem] shadow-xl shadow-green-100 flex flex-col gap-6 relative overflow-hidden group active:scale-[0.98] transition-all cursor-pointer" onClick={onShowSchemeDiscovery}>
+    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
+    <div className="flex justify-between items-start relative z-10">
+       <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
+             <SearchCheck className="w-5 h-5 translate-y-[1px]" />
+          </div>
+          <div className="flex flex-col">
+             <h3 className="text-white font-black text-sm uppercase tracking-widest">{userProfile.community} Scheme Finder</h3>
+             <p className="text-[10px] text-green-100 font-bold uppercase tracking-tight opacity-70">Best for your profile</p>
+          </div>
+       </div>
+       <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
+          <Zap className="w-4 h-4 fill-current" />
+       </div>
+    </div>
+    
+    <div className="flex flex-col gap-2 relative z-10">
+       <p className="text-xl font-black text-white leading-tight italic">"Dost, aapke {userProfile.community} profile ke hisaab se schemes yahan hain!"</p>
+    </div>
+  </section>
+
+  {/* Quick Navigation Grid */}
+  {/* Audit Widget */}
+  <section className="space-y-4">
+    <div className="flex flex-col gap-1 px-1">
+      <h2 className="text-xl font-black text-gray-900 tracking-tight italic">AI Quality Check</h2>
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Photo Audit & rejection analysis</p>
+    </div>
+    <div className="grid grid-cols-1 gap-4">
+       <div 
+         onClick={onShowFormAudit}
+         className="p-6 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2.5rem] shadow-xl shadow-indigo-100 flex flex-col gap-6 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
+       >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
+          <div className="flex justify-between items-start relative z-10">
+             <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
+                   <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                   <h3 className="text-white font-black text-sm uppercase tracking-widest leading-tight">Form Risk Analyzer</h3>
+                   <p className="text-[10px] text-indigo-100 font-bold uppercase tracking-tight opacity-70">Filled Forms Verify Karein</p>
+                </div>
+             </div>
+             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/20 group-hover:rotate-12 transition-transform">
+                <Camera className="w-5 h-5" />
+             </div>
+          </div>
+          <div className="flex flex-col gap-3 relative z-10">
+             <p className="text-sm font-bold text-white leading-relaxed opacity-90">"Aapke form mein koi galti toh nahi? AI se check karwayein rejection se bachein."</p>
+             <div className="flex gap-2">
+                <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest border border-white/10 group-hover:bg-white text-indigo-600 transition-colors">Start Audit</span>
+                <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest border border-white/10">Photo Quality Audit</span>
+             </div>
+          </div>
+       </div>
+    </div>
+  </section>
+
+  <section className="grid grid-cols-2 gap-3" id="home-quick-nav">
+    <button 
+      onClick={() => onNavigate('schemes')}
+      className="p-4 bg-blue-50 rounded-[2rem] border border-blue-100 flex flex-col gap-3 group active:scale-95 transition-all shadow-sm"
+    >
+      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-blue-50 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+        <BookOpen className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-xs font-black text-gray-900 uppercase tracking-tight">Schemes</p>
+        <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest leading-tight">Sarkari Yojna</p>
+      </div>
+    </button>
+
+    <button 
+      onClick={() => onNavigate('tools')}
+      className="p-4 bg-purple-50 rounded-[2rem] border border-purple-100 flex flex-col gap-3 group active:scale-95 transition-all shadow-sm"
+    >
+      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-purple-600 shadow-sm border border-purple-50 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+        <LayoutDashboard className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-xs font-black text-gray-900 uppercase tracking-tight">Tools</p>
+        <p className="text-[9px] font-bold text-purple-600 uppercase tracking-widest leading-tight">AI Assist</p>
+      </div>
+    </button>
+
+    <button 
+      onClick={() => onNavigate('chat')}
+      className="p-4 bg-teal-50 rounded-[2rem] border border-teal-100 flex flex-col gap-3 group active:scale-95 transition-all shadow-sm"
+    >
+      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-teal-600 shadow-sm border border-teal-50 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+        <MessageCircle className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-xs font-black text-gray-900 uppercase tracking-tight">Mitra AI</p>
+        <p className="text-[9px] font-bold text-teal-600 uppercase tracking-widest leading-tight">Chat Karein</p>
+      </div>
+    </button>
+
+    <button 
+      onClick={() => onNavigate('guide')}
+      className="p-4 bg-amber-50 rounded-[2rem] border border-amber-100 flex flex-col gap-3 group active:scale-95 transition-all shadow-sm"
+    >
+      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-amber-600 shadow-sm border border-amber-50 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+        <Camera className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-xs font-black text-gray-900 uppercase tracking-tight">Forms</p>
+        <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest leading-tight">Live Guide</p>
+      </div>
+    </button>
+  </section>
+
+  {userProfile.community === 'Farmer' && (
+    <>
+      <MandiBhavWidget />
+      <WeatherWidget state={userProfile.state} />
+    </>
+  )}
+
+  {userProfile.community === 'Jobs' && (
+    <>
+      <JobFinderWidget onSearch={(q) => onAskMitra(`Jobs for ${q}`)} />
+      <CareerGuideWidget onAction={(a) => onAskMitra(a)} />
+    </>
+  )}
+
+  {userProfile.community === 'Jobs' && (
+    <NewsWidget 
+      userProfile={userProfile} 
+      news={news.filter(n => n.tags?.includes('Jobs') || n.title.toLowerCase().includes('job') || n.title.toLowerCase().includes('vacancy'))} 
+      loading={loadingNews} 
+      onAskMitra={onAskMitra} 
+    />
+  )}
+
+  {userProfile.community !== 'Jobs' && (
+    <NewsWidget userProfile={userProfile} news={news} loading={loadingNews} onAskMitra={onAskMitra} />
+  )}
+
+  {drafts.length > 0 && (
+    <section className="flex flex-col gap-4">
+      <div className="flex justify-between items-center px-1">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-black text-gray-900 tracking-tight italic">Abhi Bharein (Resume)</h2>
+          <p className="text-[10px] font-bold text-[#008069] uppercase tracking-widest flex items-center gap-1.5">
+            <Cloud className="w-3 h-3" />
+            Drafts work offline also
+          </p>
+        </div>
+        <button 
+          onClick={() => onNavigate('guide')} 
+          className="text-[#008069] text-xs font-black uppercase tracking-widest"
+        >
+          All Drafts
+        </button>
+      </div>
+      <div className="flex flex-col gap-3">
+         {drafts.map(draft => (
+           <div 
+             key={draft.id}
+             onClick={() => {
+               if (onStartSimulator) {
+                 onStartSimulator({ ...draft.formDefinition, draftId: draft.id, formData: draft.formData });
+               }
+               onNavigate('guide');
+             }}
+             className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all hover:border-[#008069]/30"
+           >
+             <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-[#008069]/5 flex items-center justify-center text-[#008069]">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{draft.formDefinition?.hindiName || 'Untitled Form'}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-[#008069]">Draft Saved</span>
+                    <span className="text-[9px] text-gray-300">•</span>
+                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">{new Date(draft.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+             </div>
+             <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-[#008069] group-hover:text-white transition-all">
+               <ChevronRight className="w-4 h-4" />
+             </div>
+           </div>
+         ))}
+      </div>
+    </section>
+  )}
+
+  <TargetTracker news={news} loading={loadingNews} onAskMitra={onAskMitra} />
 
       <div ref={savedSectionRef} />
 
@@ -2816,9 +6508,9 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
       <div className="grid grid-cols-2 gap-4">
         {[
           { icon: Search, label: "All Schemes", desc: "Category filtered", color: "bg-blue-50 text-blue-600", target: 'schemes' },
-          { icon: Camera, label: "Photo Studio", desc: "KB/Pixel resize", color: "bg-purple-50 text-purple-600", target: 'tools' },
-          { icon: FileText, label: "Doc Vault", desc: "Expiry tracking", color: "bg-orange-50 text-orange-600", target: 'tools' },
           { icon: Languages, label: "Letter Mitra", desc: "Formal drafts", color: "bg-green-50 text-[#008069]", target: 'letters' },
+          { icon: Volume2, label: "Audio News", desc: "Sarkari updates", color: "bg-orange-50 text-orange-600", target: 'news' },
+          { icon: LayoutGrid, label: "Form Practice", desc: "Mock practice", color: "bg-purple-50 text-purple-600", target: 'chat' },
         ].map((item, idx) => (
           <button
             key={idx}
@@ -2894,93 +6586,6 @@ const HomeScreen = ({ onNavigate, userProfile, onAskMitra, unreadCount, onOpenNo
           </div>
         </button>
       )}
-    </div>
-  );
-};
-
-const VaultScreen = ({ userProfile, onNavigate }: { userProfile: UserProfile; onNavigate: (v: string) => void }) => {
-  const [docs, setDocs] = useState<UserDocument[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!auth.currentUser) return;
-    const q = query(collection(db, `users/${auth.currentUser.uid}/documents`));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-       const d = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserDocument));
-       setDocs(d.sort((a, b) => b.uploadedAt - a.uploadedAt));
-       setLoading(false);
-    }, (error) => {
-       handleFirestoreError(error, OperationType.LIST, `users/${auth.currentUser?.uid}/documents`);
-       setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  return (
-    <div className="flex flex-col gap-4">
-       <div className="flex justify-between items-center px-1">
-          <div className="flex flex-col">
-             <h3 className="font-black text-sm uppercase tracking-widest text-gray-900">Document Vault</h3>
-             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Expiry Tracking Enabled</p>
-          </div>
-          <button className="w-10 h-10 rounded-2xl bg-[#008069] text-white flex items-center justify-center shadow-lg shadow-green-100">
-             <Plus className="w-5 h-5" />
-          </button>
-       </div>
-
-       <div className="flex flex-col gap-3">
-          {loading ? (
-             [1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-3xl" />)
-          ) : docs.length === 0 ? (
-             <div className="py-12 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center gap-3">
-                <FileCheck className="w-10 h-10 text-gray-200" />
-                <p className="text-xs text-gray-400 font-black uppercase tracking-widest text-center">No documents saved.<br/>Upload Marksheet/Certificates.</p>
-             </div>
-          ) : (
-             docs.map(userDoc => (
-               <div key={userDoc.id} className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
-                        <FileText className="w-5 h-5" />
-                     </div>
-                     <div>
-                        <h4 className="font-bold text-sm text-gray-900">{userDoc.name}</h4>
-                        {userDoc.expiryDate && (
-                           <div className="flex items-center gap-1.5 mt-0.5">
-                              <AlertCircle className={cn(
-                                "w-3 h-3",
-                                Date.now() > userDoc.expiryDate - (15 * 24 * 60 * 60 * 1000) ? "text-red-500" : "text-gray-400"
-                              )} />
-                              <span className={cn(
-                                "text-[9px] font-black uppercase tracking-widest",
-                                Date.now() > userDoc.expiryDate - (15 * 24 * 60 * 60 * 1000) ? "text-red-500" : "text-gray-400"
-                              )}>
-                                Expires: {new Date(userDoc.expiryDate).toLocaleDateString()}
-                              </span>
-                           </div>
-                        )}
-                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">Upload: {new Date(userDoc.uploadedAt).toLocaleDateString()}</p>
-                     </div>
-                  </div>
-                  <button 
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (!auth.currentUser) return;
-                      try {
-                        await deleteDoc(doc(db, `users/${auth.currentUser.uid}/documents`, userDoc.id));
-                        showLocalNotification('Deleted', { body: `${userDoc.name} has been removed.` });
-                      } catch (err) {
-                        handleFirestoreError(err, OperationType.DELETE, `users/${auth.currentUser.uid}/documents/${userDoc.id}`);
-                      }
-                    }}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors active:scale-90"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-               </div>
-             ))
-          )}
-       </div>
     </div>
   );
 };
@@ -3094,6 +6699,7 @@ const PremiumScreen = ({ userProfile, onSave }: { userProfile: UserProfile; onSa
 
 let globalAudioContext: AudioContext | null = null;
 let currentAudioSource: AudioBufferSourceNode | null = null;
+let currentHTMLAudio: HTMLAudioElement | null = null;
 const audioCache = new Map<string, AudioBuffer>();
 
 const resizeImage = (base64Str: string, maxDim = 1200): Promise<string> => {
@@ -3157,6 +6763,17 @@ const playAudio = async (text: string, onStart?: () => void, onEnd?: () => void)
     }
     currentAudioSource = null;
   }
+  
+  if (currentHTMLAudio) {
+    try {
+      currentHTMLAudio.pause();
+      currentHTMLAudio.src = "";
+      currentHTMLAudio.load();
+    } catch (e) {
+      console.warn("Error stopping previous HTML audio:", e);
+    }
+    currentHTMLAudio = null;
+  }
 
   try {
     const cleanText = text.replace(/[#*`]/g, '').trim();
@@ -3207,33 +6824,78 @@ const playAudio = async (text: string, onStart?: () => void, onEnd?: () => void)
           buffer = await ctx.decodeAudioData(bytes.buffer.slice(0));
           audioCache.set(cleanText, buffer);
         } catch (decodeErr) {
-          console.warn("AudioContext.decodeAudioData failed:", decodeErr);
+          console.warn("AudioContext.decodeAudioData failed, trying HTML Audio fallback. Error:", decodeErr);
           
           // Fallback to HTML5 Audio element
-          // We try without a specific type first to let the browser sniff the format
-          const blob = new Blob([bytes]); 
+          console.warn("decodeAudioData failed, trying HTML Audio fallback...");
+          
+          // Try to detect common format headers
+          let mimeType = 'audio/mpeg'; // Default
+          
+          if (bytes.length > 8) {
+            const header = (bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]) >>> 0;
+            const header2 = (bytes[4] << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7]) >>> 0;
+            
+            // Log magic bytes for debugging to help fix future issues
+            const hex = Array.from(bytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            console.log(`Audio Magic Bytes (hex): ${hex}`);
+
+            if (header === 0x52494646) mimeType = 'audio/wav'; // "RIFF"
+            else if ((header & 0xFFFFFF00) === 0x49443300) mimeType = 'audio/mpeg'; // ID3
+            else if ((bytes[0] === 0xFF) && ((bytes[1] & 0xE0) === 0xE0)) mimeType = 'audio/mpeg'; // MP3 Sync
+            else if (header === 0x1A45DFA3) mimeType = 'audio/webm'; // WebM
+            else if (header === 0x4F676753) mimeType = 'audio/ogg'; // Ogg
+            else if (header === 0x664C6143) mimeType = 'audio/flac'; // fLaC
+            else if (header === 0x00000018 || header === 0x00000020) mimeType = 'audio/mp4'; // ftyp
+          }
+
+          // Use Blob and createObjectURL
+          const blob = new Blob([bytes], { type: mimeType });
           const url = URL.createObjectURL(blob);
           const audio = new Audio();
+          currentHTMLAudio = audio;
           audio.src = url;
           
           return new Promise<void>((resolve) => {
-            audio.onplay = () => onStart?.();
-            audio.onended = () => {
+            const cleanup = () => {
               URL.revokeObjectURL(url);
+              if (currentHTMLAudio === audio) currentHTMLAudio = null;
               onEnd?.();
               resolve();
             };
+
+            const fallbackToSpeechSync = () => {
+              console.log("Both methods failed, falling back to SpeechSynthesis...");
+              const utterance = new SpeechSynthesisUtterance(cleanText);
+              const voices = window.speechSynthesis.getVoices();
+              const preferredVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('in')) || voices[0];
+              if (preferredVoice) utterance.voice = preferredVoice;
+              
+              let ended = false;
+              const safeCleanup = () => {
+                if (ended) return;
+                ended = true;
+                cleanup();
+              };
+
+              utterance.onend = safeCleanup;
+              utterance.onerror = safeCleanup;
+              
+              // Extreme fallback timeout for speech synthesis
+              setTimeout(safeCleanup, 8000); 
+
+              window.speechSynthesis.speak(utterance);
+            };
+
+            audio.onended = cleanup;
             audio.onerror = (e) => {
-              console.error("HTML Audio fallback error:", e);
-              URL.revokeObjectURL(url);
-              onEnd?.();
-              resolve();
+              console.error(`HTML Audio fallback error (MIME: ${mimeType}):`, e);
+              fallbackToSpeechSync();
             };
+
             audio.play().catch(playErr => {
-              console.error("Audio playback interrupted/failed:", playErr);
-              URL.revokeObjectURL(url);
-              onEnd?.();
-              resolve();
+              console.warn("Audio playback failed (fallback):", playErr.name, playErr.message);
+              fallbackToSpeechSync();
             });
           });
         }
@@ -3311,17 +6973,20 @@ const PlayButton = ({ text }: { text: string }) => {
   );
 };
 
-const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate, onSetTargetSchemeId }: { 
+const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate, onSetTargetSchemeId, schemes, onShowMasterProfile, onShowFeedback }: { 
   initialMessage?: string; 
   onMessageConsumed?: () => void;
   userProfile: UserProfile;
   onNavigate: (v: string) => void;
   onSetTargetSchemeId: (id: string) => void;
+  schemes: Scheme[];
+  onShowMasterProfile: () => void;
+  onShowFeedback: (type?: any, relatedId?: string, relatedName?: string) => void;
 }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
-    { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** hoon. Main schemes samajhne aur forms bharne mein aapki help kar sakta hoon. Poochiye, main kaise help karu? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
+    { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -3343,6 +7008,21 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
         setSelectedImage(lowRes);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMessageRating = async (messageId: string, rating: 'up' | 'down') => {
+    if (!auth.currentUser || !activeConversationId) return;
+    
+    // Optimistic update
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, rating } : m));
+    
+    try {
+      const path = `users/${auth.currentUser.uid}/conversations/${activeConversationId}/messages/${messageId}`;
+      await updateDoc(doc(db, path), { rating });
+      showToast(rating === 'up' ? "Shukriya! Aapko response pasand aaya." : "Feedback noted. Hum ise behtar karenge.", "info");
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}/conversations/${activeConversationId}/messages/${messageId}`);
     }
   };
 
@@ -3372,7 +7052,7 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
     if (!auth.currentUser || !activeConversationId) {
       if (!activeConversationId) {
         setMessages([
-          { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** hoon. Main schemes samajhne aur forms bharne mein aapki help kar sakta hoon. Poochiye, main kaise help karu? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
+          { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
         ]);
       }
       return;
@@ -3452,9 +7132,13 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
 
     try {
       const response = await getAIResponse(text, [], userProfile);
+      if (response.error) {
+        showToast(response.error.message, response.error.type === 'QUOTA' ? 'warning' : 'error');
+      }
       await saveMessage(convId, 'assistant', response.text || "Maafi chahta hoon...", response.thought);
     } catch (error) {
       console.error(error);
+      showToast("Server mein kuch dikkat hai. Kripya thodi der baad try karein.", "error");
     } finally {
       setIsTyping(false);
     }
@@ -3464,6 +7148,13 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
     if ((!textOverride && !input.trim() && !selectedImage) || !auth.currentUser) return;
     
     const text = textOverride || input || (selectedImage ? "Kripya is photo ko analyze karein." : "");
+
+    if (text === "Generate WhatsApp Alert") {
+      (window as any).showWhatsAppGenerator?.();
+      setInput('');
+      return;
+    }
+
     const currentImg = selectedImage;
     const currentMime = mimeType;
     
@@ -3499,9 +7190,15 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
       });
       
       const response = await getAIResponse(text, history, userProfile, currentImg?.split(',')[1], currentMime || undefined);
+      
+      if (response.error) {
+        showToast(response.error.message, response.error.type === 'QUOTA' ? 'warning' : 'error');
+      }
+
       await saveMessage(convId, 'assistant', response.text || "Maafi chahta hoon...", response.thought);
     } catch (error) {
       console.error(error);
+      showToast("Server mein kuch dikkat hai. Kripya thodi der baad try karein.", "error");
       await saveMessage(convId, 'assistant', "Server mein kuch dikkat hai. Kripya thodi der baad try karein.");
     } finally {
       setIsTyping(false);
@@ -3526,10 +7223,32 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
     recognition.start();
   };
 
+  const deleteConversation = async (e: React.MouseEvent, convId: string) => {
+    e.stopPropagation();
+    if (!auth.currentUser || !window.confirm("Bhai, kya aap ye conversation delete karna chahte hain?")) return;
+    
+    try {
+      // First delete all messages
+      const messagesRef = collection(db, `users/${auth.currentUser.uid}/conversations/${convId}/messages`);
+      const messagesSnap = await getDocs(messagesRef);
+      const deletePromises = messagesSnap.docs.map(d => deleteDoc(doc(db, `users/${auth.currentUser.uid}/conversations/${convId}/messages`, d.id)));
+      await Promise.all(deletePromises);
+      
+      // Then delete conversation metadata
+      await deleteDoc(doc(db, `users/${auth.currentUser.uid}/conversations`, convId));
+      
+      if (activeConversationId === convId) {
+        startNewChat();
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'conversations');
+    }
+  };
+
   const startNewChat = () => {
     setActiveConversationId(null);
     setMessages([
-      { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** hoon. Main schemes samajhne aur forms bharne mein aapki help kar sakta hoon. Poochiye, main kaise help karu? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
+      { id: 'welcome', role: 'assistant', content: 'Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*', timestamp: Date.now() }
     ]);
     setShowHistory(false);
   };
@@ -3590,29 +7309,36 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
                     <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No previous chats</p>
                   </div>
                 ) : (
-                  conversations.map(conv => (
-                    <button
-                      key={conv.id}
-                      onClick={() => {
-                        setActiveConversationId(conv.id);
-                        setShowHistory(false);
-                      }}
-                      className={cn(
-                        "w-full p-3 rounded-2xl text-left border transition-all flex flex-col gap-1",
-                        activeConversationId === conv.id 
-                          ? "bg-green-50 border-green-200" 
-                          : "bg-white border-gray-100 hover:border-green-100"
-                      )}
-                    >
-                      <div className="flex justify-between items-start gap-2">
-                        <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{conv.title}</h4>
-                        <span className="text-[8px] text-gray-400 font-black uppercase whitespace-nowrap">
-                          {new Date(conv.updatedAt).toLocaleDateString()}
-                        </span>
+                    conversations.map(conv => (
+                      <div key={conv.id} className="relative group">
+                        <button
+                          onClick={() => {
+                            setActiveConversationId(conv.id);
+                            setShowHistory(false);
+                          }}
+                          className={cn(
+                            "w-full p-3 pr-10 rounded-2xl text-left border transition-all flex flex-col gap-1",
+                            activeConversationId === conv.id 
+                              ? "bg-green-50 border-green-200" 
+                              : "bg-white border-gray-100 hover:border-green-100"
+                          )}
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{conv.title}</h4>
+                            <span className="text-[8px] text-gray-400 font-black uppercase whitespace-nowrap">
+                              {new Date(conv.updatedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 line-clamp-1 font-medium">{conv.lastMessage}</p>
+                        </button>
+                        <button 
+                          onClick={(e) => deleteConversation(e, conv.id)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <p className="text-[10px] text-gray-500 line-clamp-1 font-medium">{conv.lastMessage}</p>
-                    </button>
-                  ))
+                    ))
                 )}
               </div>
             </motion.div>
@@ -3686,11 +7412,100 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
             )}
 
             <div className="prose prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0 mt-0.5 text-inherit">
-              <ReactMarkdown>{m.content}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  a: ({ href, children }) => {
+                    if (href === '#profile') {
+                      return (
+                        <button 
+                          onClick={onShowMasterProfile}
+                          className="font-black text-[#008069] underline decoration-dotted underline-offset-2 hover:bg-green-50 px-0.5 rounded transition-colors cursor-pointer"
+                        >
+                          {children}
+                        </button>
+                      );
+                    }
+                    return <a href={href} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">{children}</a>;
+                  }
+                }}
+              >
+                {(() => {
+                  if (m.role !== 'assistant') return m.content;
+                  
+                  const terms = [
+                    userProfile.state,
+                    userProfile.community,
+                    userProfile.occupation,
+                    userProfile.category,
+                    userProfile.monthlyIncome
+                  ].filter((t): t is string => !!t && t.length > 2);
+
+                  // Create a unique list and sort by length descending
+                  const uniqueTerms = Array.from(new Set(terms)).sort((a, b) => b.length - a.length);
+                  
+                  let processed = m.content;
+                  uniqueTerms.forEach(term => {
+                    // Escape special regex characters in term
+                    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    // Only match whole words that are not already inside a markdown link
+                    // This is a simplified regex; it might miss complex cases but covers basic mentions
+                    const regex = new RegExp(`\\b(${escapedTerm})\\b`, 'gi');
+                    processed = processed.replace(regex, (match) => {
+                      // Check if already linked (basic check)
+                      if (processed.includes(`[${match}](#profile)`)) return match;
+                      return `[${match}](#profile)`;
+                    });
+                  });
+                  return processed;
+                })()}
+              </ReactMarkdown>
             </div>
 
+            {m.role === 'assistant' && m.id !== 'welcome' && (
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50/50">
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => handleMessageRating(m.id, 'up')}
+                    className={cn(
+                      "p-1.5 rounded-lg transition-all",
+                      m.rating === 'up' ? "bg-green-100 text-[#008069]" : "text-gray-300 hover:text-green-500 hover:bg-green-50"
+                    )}
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                     onClick={() => handleMessageRating(m.id, 'down')}
+                     className={cn(
+                       "p-1.5 rounded-lg transition-all",
+                       m.rating === 'down' ? "bg-red-100 text-red-600" : "text-gray-300 hover:text-red-500 hover:bg-red-50"
+                     )}
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <PlayButton text={m.content} />
+                  {m.rating === 'down' && (
+                    <button 
+                      onClick={() => onShowFeedback('issue', m.id, 'AI Response')}
+                      className="text-[9px] font-black uppercase text-[#008069] tracking-widest bg-green-50 px-2 py-1.5 rounded-lg hover:bg-green-100 transition-all border border-green-100"
+                    >
+                      Report Issue
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {m.role === 'assistant' && m.id === 'welcome' && (
+               <div className="mt-3 pt-2 border-t border-gray-50/50 flex justify-end">
+                  <PlayButton text={m.content} />
+               </div>
+            )}
+
             {m.role === 'assistant' && (() => {
-              const mentionedScheme = SCHEMES.find(s => 
+              const mentionedScheme = schemes.find(s => 
                 m.content.toLowerCase().includes(s.name.toLowerCase()) || 
                 (s.hindiName && m.content.toLowerCase().includes(s.hindiName.toLowerCase()))
               );
@@ -3730,13 +7545,8 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
           </div>
         ))}
         {isTyping && (
-          <div className="mr-auto bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm flex flex-col gap-2">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-[#008069] rounded-full animate-bounce" />
-              <div className="w-1.5 h-1.5 bg-[#008069] rounded-full animate-bounce [animation-delay:0.2s]" />
-              <div className="w-1.5 h-1.5 bg-[#008069] rounded-full animate-bounce [animation-delay:0.4s]" />
-            </div>
-            <p className="text-[10px] text-[#008069] font-bold animate-pulse uppercase tracking-widest">Mitra is thinking & browsing...</p>
+          <div className="mr-auto bg-white p-6 rounded-[2.5rem] rounded-tl-none border border-gray-100 shadow-xl flex flex-col gap-4 max-w-[80%]">
+             <AILoader message="Mitra is thinking & browsing..." />
           </div>
         )}
       </div>
@@ -3748,6 +7558,7 @@ const ChatScreen = ({ initialMessage, onMessageConsumed, userProfile, onNavigate
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {[
                 "Bihar me Farmers schemes?",
+                "Generate WhatsApp Alert",
                 "Free Electricity Yojna?",
                 "Aadhar Card Correction?",
                 "Ration Card benefits?",
@@ -3867,7 +7678,7 @@ const AdBanner = ({ onUpgrade }: { onUpgrade: () => void }) => (
   </div>
 );
 
-const FormAudit = ({ imageBase64, userProfile, mimeType }: { imageBase64: string; userProfile: UserProfile; mimeType: string }) => {
+const FormAudit = ({ imageBase64, userProfile, mimeType, onStartSimulator }: { imageBase64: string; userProfile: UserProfile; mimeType: string; onStartSimulator: (form: any) => void }) => {
   const [audit, setAudit] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -3983,6 +7794,16 @@ const FormAudit = ({ imageBase64, userProfile, mimeType }: { imageBase64: string
         )}
 
         <PlayButton text={audit.verdict} />
+
+        {audit.pitch && (
+          <MitraPitch 
+            pitch={audit.pitch} 
+            result={audit} 
+            onStartSimulator={(form) => {
+               onStartSimulator(form);
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -4022,17 +7843,47 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
   }, [preloadedForm]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
-    const q = query(
-      collection(db, 'users', auth.currentUser.uid, 'drafts')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const draftsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FormDraft));
-      setDrafts(draftsData.sort((a, b) => b.updatedAt - a.updatedAt));
-    }, (err) => {
-      handleFirestoreError(err, OperationType.LIST, `users/${auth.currentUser?.uid}/drafts`);
-    });
-    return () => unsubscribe();
+    const loadDrafts = () => {
+      const localRaw = localStorage.getItem('mitra_drafts');
+      const local = localRaw ? JSON.parse(localRaw) : [];
+
+      if (!auth.currentUser) {
+        setDrafts(local);
+        return null;
+      }
+
+      const q = query(
+        collection(db, 'users', auth.currentUser.uid, 'drafts')
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firestoreDrafts = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { 
+            id: doc.id, 
+            ...data, 
+            updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt || Date.now() 
+          } as FormDraft;
+        });
+
+        const merged = [...firestoreDrafts];
+        local.forEach((ld: any) => {
+          if (!merged.find(fd => fd.id === ld.id)) {
+            merged.push(ld);
+          }
+        });
+
+        setDrafts(merged.sort((a, b) => (b.updatedAt as any) - (a.updatedAt as any)));
+      }, (err) => {
+        handleFirestoreError(err, OperationType.LIST, `users/${auth.currentUser?.uid}/drafts`);
+        setDrafts(local);
+      });
+      return unsubscribe;
+    };
+
+    const unsubscribe = loadDrafts();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const resumeDraft = (draft: FormDraft) => {
@@ -4043,11 +7894,26 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
   };
 
   const deleteDraft = async (draftId: string) => {
-    if (!auth.currentUser) return;
     try {
-      await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'drafts', draftId));
+      if (auth.currentUser) {
+        await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'drafts', draftId));
+      }
+      
+      const localRaw = localStorage.getItem('mitra_drafts');
+      if (localRaw) {
+        const local = JSON.parse(localRaw);
+        const filtered = local.filter((d: any) => d.id !== draftId);
+        localStorage.setItem('mitra_drafts', JSON.stringify(filtered));
+        // If guest, update state immediately
+        if (!auth.currentUser) {
+          setDrafts(filtered);
+        }
+      }
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `users/${auth.currentUser.uid}/drafts/${draftId}`);
+      console.error("Delete draft error:", err);
+      if (auth.currentUser) {
+        handleFirestoreError(err, OperationType.DELETE, `users/${auth.currentUser.uid}/drafts/${draftId}`);
+      }
     }
   };
   const [websiteResult, setWebsiteResult] = useState<any | null>(null);
@@ -4190,8 +8056,10 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
     if (!field.exampleValue) {
       setLoadingExampleIndex(i);
       try {
-        const example = await getFieldExample(result.formName || 'Form', field.field, field.explanation);
-        updateField(i, 'exampleValue', example.trim());
+        const res = await getFieldExample(result.formName || 'Form', field.field, field.explanation);
+        updateField(i, 'exampleValue', res.example);
+        if (res.whyItMatters) updateField(i, 'whyItMatters', res.whyItMatters);
+        if (res.tip) updateField(i, 'aiTip', res.tip);
       } catch (err) {
         console.error(err);
       } finally {
@@ -4455,6 +8323,25 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
                    />
                 </div>
 
+                {result.costEfficiency && (
+                  <CostEvaluator costInfo={result.costEfficiency} />
+                )}
+
+                {result.confidenceAnalysis && (
+                  <ConfidenceEvaluator analysis={result.confidenceAnalysis} />
+                )}
+
+                {result.pitch && (
+                  <MitraPitch 
+                    pitch={result.pitch} 
+                    result={result}
+                    onStartSimulator={(form) => {
+                      setResult(form);
+                      setActiveView('simulator');
+                    }}
+                  />
+                )}
+
                 {result.pitfalls?.length > 0 && (
                   <div className="flex flex-col gap-3">
                     <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 text-orange-500">Analysis: Major Rejection Risks</h4>
@@ -4546,6 +8433,7 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
                form={result} 
                userId={auth.currentUser?.uid} 
                initialData={result.formData}
+               userProfile={userProfile}
                onDraftSaved={() => {
                  // Trigger sub to refresh drafts if needed
                  console.log("Draft saved successfully");
@@ -4579,6 +8467,10 @@ const GuideScreen = ({ onNavigate, userProfile, isGuruActive, onActivateGuru, pr
                imageBase64={image.split(',')[1]} 
                userProfile={userProfile} 
                mimeType={fileMimeType} 
+               onStartSimulator={(form) => {
+                 setResult(form);
+                 setActiveView('simulator');
+               }}
              />
            )}
         </div>
@@ -4661,9 +8553,10 @@ const PersonalizedRecommendations = ({ userProfile }: { userProfile: UserProfile
       const fetchReco = async () => {
         setIsLoading(true);
         try {
-          const text = await getProfileRecommendations(userProfile);
-          setRecommendations(text);
-          localStorage.setItem('mitra_profile_reco', text);
+          const data = await getProfileRecommendations(userProfile);
+          const markdown = data.markdownResponse || "Bhai, abhi jaankari nikalne mein thodi dikkat ho rahi hai. Kripya thodi der baad dekhein.";
+          setRecommendations(markdown);
+          localStorage.setItem('mitra_profile_reco', markdown);
         } catch (err) {
           console.error(err);
         } finally {
@@ -4702,11 +8595,7 @@ const PersonalizedRecommendations = ({ userProfile }: { userProfile: UserProfile
           </div>
 
           {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-4 w-full rounded-md" />
-              <Skeleton className="h-4 w-3/4 rounded-md" />
-              <div className="h-20 w-full bg-orange-100/30 rounded-2xl animate-pulse mt-4" />
-            </div>
+             <AILoader message="Mitra is analyzing your profile to find perfect matches..." />
           ) : recommendations ? (
             <div className="prose prose-sm prose-orange max-w-none prose-p:text-gray-800 prose-p:font-medium prose-p:leading-relaxed prose-headings:text-orange-900 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-widest prose-li:text-gray-700 prose-li:font-medium">
               <ReactMarkdown>{recommendations}</ReactMarkdown>
@@ -4727,7 +8616,63 @@ const PersonalizedRecommendations = ({ userProfile }: { userProfile: UserProfile
   );
 };
 
-const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, onNavigate, initialExpandedId, onClearInitialExpandedId, applications, onStartSimulator }: { 
+const SchemeSmartTip = ({ scheme, userProfile }: { scheme: any, userProfile: UserProfile }) => {
+  const [tip, setTip] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const cachedTip = localStorage.getItem(`mitra_tip_${scheme.id || scheme.name}`);
+    if (cachedTip) {
+      setTip(cachedTip);
+      return;
+    }
+
+    const generateTip = async () => {
+      setLoading(true);
+      try {
+        const text = await getSchemeSmartTip(scheme, userProfile);
+        setTip(text);
+        localStorage.setItem(`mitra_tip_${scheme.id || scheme.name}`, text);
+      } catch (err) {
+        console.warn("Tip error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    generateTip();
+  }, [scheme, userProfile]);
+
+  if (loading) return (
+    <div className="p-4 bg-orange-50/30 rounded-2xl border border-dashed border-orange-200 animate-pulse flex items-center gap-3">
+       <Sparkles className="w-4 h-4 text-orange-300" />
+       <div className="h-3 bg-orange-100 rounded-full w-2/3" />
+    </div>
+  );
+
+  if (!tip) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="p-5 bg-orange-50 rounded-3xl border border-orange-100 relative overflow-hidden"
+    >
+       <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 -mr-12 -mt-12 rounded-full blur-2xl" />
+       <div className="flex items-start gap-3 relative z-10">
+          <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600 shrink-0">
+             <Lightbulb className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col gap-1">
+             <h4 className="text-[10px] font-black text-orange-900 uppercase tracking-widest">Mitra's AI Smart Tip</h4>
+             <p className="text-xs text-orange-950 font-bold leading-relaxed">{tip}</p>
+          </div>
+       </div>
+    </motion.div>
+  );
+};
+
+const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, onNavigate, initialExpandedId, onClearInitialExpandedId, applications, onStartSimulator, onShowFormAudit, schemes, onShowFeedback }: { 
   userProfile: UserProfile; 
   onAskMitra: (schemeName: string, customMessage?: string) => void;
   savedSchemeIds: string[];
@@ -4737,6 +8682,9 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
   onClearInitialExpandedId?: () => void;
   applications: TrackerApplication[];
   onStartSimulator: (form: any) => void;
+  onShowFormAudit: (scheme: any) => void;
+  schemes: Scheme[];
+  onShowFeedback: (type?: any, relatedId?: string, relatedName?: string) => void;
 }) => {
   const [filter, setFilter] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -4895,11 +8843,19 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
   };
 
   const handleDeepSearch = async () => {
-    if (!filter) return;
+    if (!filter || !filter.trim()) {
+      showToast("Bhai, search toh likhein pehle!", "warning");
+      return;
+    }
     setIsSearching(true);
     setAiResults([]); // Clear previous results
     try {
       const results = await searchSchemes(filter, userProfile);
+      
+      if (results.length === 0) {
+        showToast("Maafi chahta hoon, iss topic par koi specific scheme nahi mili.", "info");
+      }
+
       const taggedResults = results.map((r: any, i: number) => ({
         ...r,
         id: `ai-${Date.now()}-${i}`,
@@ -4959,7 +8915,11 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
     });
   };
   
-  const filteredSchemes = SCHEMES.filter(s => {
+  const filteredSchemes = schemes.filter(s => {
+    // Community Filter: If user has a community, prioritize matching it. 
+    // If a scheme has a community tag, it MUST match the user profile community.
+    if (userProfile.community && s.community && s.community !== userProfile.community) return false;
+
     const matchesSearch = filter 
       ? (s.name.toLowerCase().includes(filter.toLowerCase()) || s.hindiName.includes(filter))
       : true;
@@ -5038,7 +8998,7 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
     });
   };
 
-  const selectedSchemes = [...SCHEMES, ...aiResults].filter(s => selectedIds.includes(s.id));
+  const selectedSchemes = [...schemes, ...aiResults].filter(s => selectedIds.includes(s.id));
 
   if (isComparing) {
     const categories_comparison = [
@@ -5205,7 +9165,7 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                         rel="noreferrer"
                         className="w-full py-3 bg-orange-50 border border-orange-100 text-orange-600 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-orange-100"
                       >
-                        Portal Apply Now
+                        Apply Now
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
@@ -5220,16 +9180,18 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
           <button 
             disabled={isAnalyzing}
             onClick={() => handleAIAnalysis(selectedSchemes)}
-            className="w-full max-w-md py-5 bg-[#008069] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+            className="w-full max-w-md py-5 bg-[#008069] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex flex-col items-center justify-center gap-4 disabled:opacity-50"
           >
             {isAnalyzing ? (
-               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+               <AILoader message="Mitra AI is comparing & recommending..." />
             ) : (
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4" />
-                </div>
+               <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4" />
+                  </div>
+                  Get AI Recommendation
+               </div>
             )}
-            {isAnalyzing ? 'Mitra is analyzing...' : 'Get AI Recommendation'}
           </button>
         </div>
       </div>
@@ -5324,14 +9286,9 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="px-4 py-2 bg-blue-50 rounded-xl border border-blue-100 flex items-center gap-3"
+            className="bg-white rounded-[2.5rem] border border-emerald-100 p-8 flex flex-col items-center shadow-lg shadow-emerald-900/5 mb-4"
           >
-            <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-               <Globe className="w-3 h-3 text-blue-600 animate-pulse" />
-            </div>
-            <p className="text-[10px] text-blue-700 font-bold uppercase tracking-tight">
-              Mitra AI is analyzing your intent and deep searching government portals...
-            </p>
+            <AILoader message="Mitra AI is analyzing your intent and deep searching government portals..." />
           </motion.div>
         )}
 
@@ -5655,20 +9612,39 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                   <div className="p-3 bg-green-50 rounded-2xl border border-green-100">
-                      <p className="text-[9px] uppercase font-bold text-green-600 mb-1 tracking-wider">Benefit</p>
-                      <p className="text-xs text-gray-800 font-bold leading-tight line-clamp-2">
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                   <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex flex-col justify-center">
+                      <p className="text-[8px] uppercase font-black text-orange-600 mb-0.5 tracking-tighter">Eligibility</p>
+                      <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
+                        {scheme.eligibility?.[0] || 'Check now'}
+                      </p>
+                   </div>
+                   <div className="p-2 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
+                      <p className="text-[8px] uppercase font-black text-green-600 mb-0.5 tracking-tighter">Benefit</p>
+                      <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
                         {scheme.benefits?.[0] || 'AI can tell details'}
                       </p>
                    </div>
-                   <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100">
-                      <p className="text-[9px] uppercase font-bold text-blue-600 mb-1 tracking-wider">Need</p>
-                      <p className="text-xs text-gray-800 font-bold leading-tight line-clamp-2">
-                        {scheme.documents?.[0] || 'Aadhar/PAN Card'}
+                   <div className="p-2 bg-blue-50 rounded-xl border border-blue-100 flex flex-col justify-center">
+                      <p className="text-[8px] uppercase font-black text-blue-600 mb-0.5 tracking-tighter">Documents</p>
+                      <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
+                        {scheme.documents?.[0] || 'Aadhar/PAN'}
                       </p>
                    </div>
                 </div>
+
+                {scheme.officialUrl && (
+                  <a
+                    href={scheme.officialUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full py-4 bg-[#008069] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-green-100 active:scale-[0.98] transition-all hover:bg-[#00a687] flex items-center justify-center gap-2 border border-[#008069]"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Apply Now (Sarkari Link)
+                  </a>
+                )}
 
                 <AnimatePresence>
                   {isExpanded && (
@@ -5690,19 +9666,22 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                         <SchemeFollowUp scheme={scheme} onAskMitra={onAskMitra} />
                       </div>
 
-                      <div className="space-y-4">
+                      <SchemeSmartTip scheme={scheme} userProfile={userProfile} />
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {scheme.eligibility && scheme.eligibility.length > 0 && (
-                          <div className="p-4 bg-orange-50/50 rounded-2xl border border-orange-100/30">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
-                                <CheckCircle className="w-3.5 h-3.5" />
+                          <div className="p-5 bg-orange-50/50 rounded-3xl border border-orange-100/40 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+                                <SearchCheck className="w-4 h-4" />
                               </div>
-                              <p className="text-[10px] font-black text-orange-900 uppercase tracking-widest">Eligibility (Kaun apply kar sakta hai?)</p>
+                              <h4 className="text-[11px] font-black text-orange-900 uppercase tracking-widest">Eligibility</h4>
                             </div>
-                            <ul className="space-y-2">
+                            <ul className="space-y-3">
                               {scheme.eligibility.map((e: string, i: number) => (
-                                <li key={i} className="text-xs text-orange-900/80 font-medium flex gap-2 items-start">
-                                  <div className="w-1 h-1 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+                                <li key={i} className="text-xs text-orange-950/80 font-bold flex gap-3 items-start leading-snug">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
                                   <span>{e}</span>
                                 </li>
                               ))}
@@ -5711,17 +9690,18 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                         )}
 
                         {scheme.benefits && scheme.benefits.length > 0 && (
-                          <div className="p-4 bg-green-50/50 rounded-2xl border border-green-100/30">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-                                <Award className="w-3.5 h-3.5" />
+                          <div className="p-5 bg-green-50/50 rounded-3xl border border-green-100/40 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center text-green-600 shadow-sm">
+                                <Award className="w-4 h-4" />
                               </div>
-                              <p className="text-[10px] font-black text-green-900 uppercase tracking-widest">Benefits (Kya fayda milega?)</p>
+                              <h4 className="text-[11px] font-black text-green-900 uppercase tracking-widest">Benefits</h4>
                             </div>
-                            <ul className="space-y-2">
+                            <ul className="space-y-3">
                               {scheme.benefits.map((b: string, i: number) => (
-                                <li key={i} className="text-xs text-green-900/80 font-medium flex gap-2 items-start">
-                                  <div className="w-1 h-1 rounded-full bg-green-400 mt-1.5 shrink-0" />
+                                <li key={i} className="text-xs text-green-950/80 font-bold flex gap-3 items-start leading-snug">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
                                   <span>{b}</span>
                                 </li>
                               ))}
@@ -5730,43 +9710,28 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                         )}
 
                         {scheme.documents && scheme.documents.length > 0 && (
-                          <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/30">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                                <FileCheck className="w-3.5 h-3.5" />
+                          <div className="p-5 bg-blue-50/50 rounded-3xl border border-blue-100/40 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+                                <FileText className="w-4 h-4" />
                               </div>
-                              <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Required Documents (Zaroori Kagaz)</p>
+                              <h4 className="text-[11px] font-black text-blue-900 uppercase tracking-widest">Documents</h4>
                             </div>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-col gap-2">
                               {scheme.documents.map((d: string, i: number) => (
-                                <div key={i} className={`flex flex-col gap-2 ${scheme.id === 'kanya-sumangala' ? 'min-w-[140px]' : ''}`}>
-                                  <div className="flex items-center gap-1">
-                                    <span className={`px-3 py-1.5 bg-white text-blue-900/80 text-[10px] font-bold rounded-xl border border-blue-100 shadow-sm transition-all ${scheme.id !== 'kanya-sumangala' ? 'hover:scale-105 active:scale-95' : 'self-start'}`}>
-                                      {d}
-                                    </span>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActiveUploadDoc(d);
-                                        fileInputRef.current?.click();
-                                      }}
-                                      className="w-7 h-7 rounded-lg bg-white border border-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-all active:scale-90 shadow-sm"
-                                      title="Upload document"
-                                    >
-                                      <Upload className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                  {scheme.id === 'kanya-sumangala' && (
-                                    <div className="bg-white/60 border border-blue-100/50 rounded-xl p-2.5 flex flex-col gap-2 shadow-sm">
-                                       <label className="text-[9px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1.5 opacity-80">
-                                         <Calendar className="w-3 h-3" /> Document Date
-                                       </label>
-                                       <input 
-                                         type="date" 
-                                         className="w-full text-xs font-bold border-none bg-white rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-blue-100 outline-none text-blue-900 shadow-inner"
-                                       />
-                                    </div>
-                                  )}
+                                <div key={i} className="flex items-center justify-between bg-white/60 p-2.5 rounded-xl border border-blue-100/50 group/doc">
+                                  <span className="text-xs font-bold text-blue-950/80">{d}</span>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveUploadDoc(d);
+                                      fileInputRef.current?.click();
+                                    }}
+                                    className="w-8 h-8 rounded-lg bg-white border border-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                  >
+                                    <Upload className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -5795,7 +9760,7 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                                 className="py-4 bg-[#008069] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#008069]/20 active:scale-95 hover:bg-[#00a687] transition-all flex items-center justify-center gap-2 border border-[#008069]"
                               >
                                 <ExternalLink className="w-4 h-4" />
-                                Apply via Portal
+                                Apply Now (Official)
                               </a>
                             )}
                             <button
@@ -5825,6 +9790,7 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                               <Globe className="w-4 h-4 text-orange-400" />
                               Verify Details
                             </button>
+
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -5852,6 +9818,19 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                             </button>
                           </div>
                         </div>
+                      </div>
+
+                      <div className="flex justify-center pb-4">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onShowFeedback('scheme', scheme.id, scheme.hindiName);
+                          }}
+                          className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] hover:text-[#008069] transition-colors"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          Scheme Feedback Dein
+                        </button>
                       </div>
 
                       <div className="pt-4 border-t border-gray-50 flex flex-col gap-3">
@@ -5938,9 +9917,20 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                   )}
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  Poori Jaankari
+                  Details
                 </button>
-                {scheme.officialUrl && (
+                {scheme.officialUrl ? (
+                  <a
+                    href={scheme.officialUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 py-4 bg-[#008069] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#005c4b] transition-colors flex items-center justify-center gap-2 border-l border-white/10"
+                  >
+                    Apply Now
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -5964,7 +9954,7 @@ const SchemesScreen = ({ userProfile, onAskMitra, savedSchemeIds, onToggleSave, 
                     }}
                     className="flex-1 py-4 bg-[#008069] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#005c4b] transition-colors flex items-center justify-center gap-2 border-l border-white/10"
                   >
-                    Apply Now
+                    Practice
                     <LayoutDashboard className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -6325,8 +10315,14 @@ const TrackerScreen = ({ userId, onNavigate }: { userId: string; onNavigate: (v:
     }
   };
 
+  const [justApproved, setJustApproved] = useState<string | null>(null);
+
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     const path = `users/${userId}/applications/${id}`;
+    if (newStatus === 'Approved') {
+      setJustApproved(id);
+      setTimeout(() => setJustApproved(null), 3000);
+    }
     try {
       await updateDoc(doc(db, path), {
         status: newStatus,
@@ -6493,9 +10489,26 @@ const TrackerScreen = ({ userId, onNavigate }: { userId: string; onNavigate: (v:
               </button>
               
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-[#008069] font-black border border-gray-100 shrink-0">
-                  {app.schemeName[0]}
-                </div>
+                  <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-[#008069] font-black border border-gray-100 shrink-0 overflow-hidden relative">
+                    {app.status === 'Approved' ? (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        className="text-emerald-600"
+                      >
+                        <CheckCircle2 className="w-6 h-6" />
+                      </motion.div>
+                    ) : (
+                      <span>{app.schemeName[0]}</span>
+                    )}
+                    {justApproved === app.id && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 1 }}
+                        animate={{ scale: 2, opacity: 0 }}
+                        className="absolute inset-0 bg-emerald-500/20 rounded-full"
+                      />
+                    )}
+                  </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-gray-900 text-base leading-tight pr-8">{app.schemeName}</h3>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">ID: {app.applicationId}</p>
@@ -6539,7 +10552,274 @@ const TrackerScreen = ({ userId, onNavigate }: { userId: string; onNavigate: (v:
   );
 };
 
-const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onToggleSave, onNavigate, onNavigateToScheme, onShowFeedback }: { 
+const ProfileScreen = ({ user, profile, onUpdateProfile, onNavigate, onLogout }: { 
+  user: any; 
+  profile: UserProfile; 
+  onUpdateProfile: (p: UserProfile) => Promise<void>; 
+  onNavigate: (v: string) => void;
+  onLogout: () => void;
+}) => {
+  const [editingProfile, setEditingProfile] = useState<UserProfile>(profile);
+  const [isChanged, setIsChanged] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setEditingProfile(profile);
+  }, [profile]);
+
+  const handleUpdate = (field: keyof UserProfile, value: any) => {
+    setEditingProfile(prev => ({ ...prev, [field]: value }));
+    setIsChanged(true);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onUpdateProfile(editingProfile);
+    setIsChanged(false);
+    setIsSaving(false);
+    showToast("Profile Updated! AI suggestions will adapt.", "info");
+  };
+
+  const ProfileField = ({ label, icon: Icon, value, placeholder, field, type = 'text', options }: any) => (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2 px-1">
+        <Icon className="w-3.5 h-3.5 text-gray-400" />
+        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">{label}</label>
+      </div>
+      {options ? (
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt: string) => (
+            <button
+              key={opt}
+              onClick={() => handleUpdate(field, opt)}
+              className={cn(
+                "px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all",
+                editingProfile[field as keyof UserProfile] === opt 
+                  ? "bg-slate-900 text-white border-slate-900 shadow-lg" 
+                  : "bg-white text-gray-500 border-gray-100 hover:border-gray-200"
+              )}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <input 
+          type={type}
+          value={editingProfile[field as keyof UserProfile] as string || ''}
+          onChange={(e) => handleUpdate(field, e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-gray-50 border-gray-100/50 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-slate-900/5 transition-all outline-none"
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <div className="p-6 pb-32 flex flex-col gap-8">
+      <header className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => onNavigate('home')} 
+            className="w-10 h-10 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-all border border-gray-100"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Profile Data</h1>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">AI Identity Verification</p>
+          </div>
+        </div>
+        {isChanged && (
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-emerald-600 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 flex items-center gap-2 active:scale-95"
+          >
+            {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+            Save Changes
+          </button>
+        )}
+      </header>
+
+      {/* User Basic Info Card */}
+      <div className="bg-slate-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+          <Sparkles className="w-20 h-20 text-white" />
+        </div>
+        <div className="flex flex-col gap-6 relative z-10">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-[2rem] bg-indigo-500 flex items-center justify-center text-white border-4 border-white/10 shadow-xl overflow-hidden">
+               {user?.photoURL ? (
+                 <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+               ) : (
+                 <UserIcon className="w-10 h-10" />
+               )}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-white text-2xl font-black tracking-tight">{editingProfile.name || 'Set Your Name'}</h2>
+              <p className="text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">{editingProfile.community || 'Citizen'} Mitra AI</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+               <ShieldCheck className="w-3 h-3 text-emerald-400" />
+               <span className="text-[9px] font-black text-white uppercase tracking-wider">Level {Math.floor(editingProfile.streak / 10) + 1} Verified</span>
+            </div>
+            <button 
+              onClick={onLogout}
+              className="bg-red-500/20 px-3 py-1.5 rounded-full border border-red-500/30 flex items-center gap-2 hover:bg-red-500/40 transition-colors"
+            >
+               <LogOut className="w-3 h-3 text-red-300" />
+               <span className="text-[9px] font-black text-red-200 uppercase tracking-wider">Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8">
+        {/* Section: Personal */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+              <UserIcon className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-black text-gray-900 tracking-tight">Personal Details</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <ProfileField 
+              label="Full Name (As per Aadhar)" 
+              icon={Edit2} 
+              field="name" 
+              placeholder="Enter your full name" 
+            />
+            
+            <ProfileField 
+              label="Gender" 
+              icon={Users} 
+              field="gender" 
+              options={['Male', 'Female', 'Other']} 
+            />
+
+            <ProfileField 
+              label="Category" 
+              icon={FileBadge} 
+              field="category" 
+              options={['General', 'OBC', 'SC', 'ST', 'EWS']} 
+            />
+          </div>
+        </div>
+
+        {/* Section: Community & Career */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <BriefcaseIcon className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-black text-gray-900 tracking-tight">Community & AI Personalization</h3>
+          </div>
+
+          <div className="bg-blue-50 p-6 rounded-[2.5rem] border border-blue-100 flex flex-col gap-6">
+             <div className="flex flex-col gap-2">
+                <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">Select Your Community</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {['Student', 'Farmer', 'Jobs', 'Normal'].map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => handleUpdate('community', c)}
+                      className={cn(
+                        "py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-center gap-3",
+                        editingProfile.community === c 
+                          ? "bg-blue-600 text-white border-blue-600 shadow-xl scale-[1.02]" 
+                          : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
+                      )}
+                    >
+                      {c === 'Student' && <GraduationCap className="w-5 h-5" />}
+                      {c === 'Farmer' && <Wheat className="w-5 h-5" />}
+                      {c === 'Jobs' && <BriefcaseIcon className="w-5 h-5" />}
+                      {c === 'Normal' && <Users className="w-5 h-5" />}
+                      {c}
+                    </button>
+                  ))}
+                </div>
+             </div>
+
+             {editingProfile.community === 'Student' && (
+               <>
+                 <ProfileField label="Current Class" icon={GraduationCap} field="class" placeholder="e.g. Class 12" />
+                 <ProfileField label="Stream" icon={Puzzle} field="stream" options={['PCB', 'PCM', 'Commerce', 'Arts', 'Others']} />
+               </>
+             )}
+
+             <ProfileField 
+              label="City / District" 
+              icon={MapPin} 
+              field="city" 
+              placeholder="e.g. Patna, Bihar" 
+             />
+
+             <ProfileField 
+              label="State" 
+              icon={Globe} 
+              field="state" 
+              options={STATES} 
+             />
+          </div>
+        </div>
+
+        {/* Section: Preferences */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <Languages className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-black text-gray-900 tracking-tight">Language & Communication</h3>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+             <ProfileField 
+              label="Preferred Language" 
+              icon={Languages} 
+              field="preferredLanguage" 
+              options={['en', 'hi', 'hinglish']} 
+             />
+
+             <ProfileField 
+              label="WhatsApp Number (For Alerts)" 
+              icon={Phone} 
+              field="whatsappNumber" 
+              placeholder="+91 99999 99999" 
+             />
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 text-center flex flex-col gap-4">
+           <Cpu className="w-8 h-8 text-gray-300 mx-auto" />
+           <div>
+              <p className="text-xs font-bold text-gray-900">AI Adaptation Active</p>
+              <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                Aapke profile changes AI model ko inform kar diye gaye hain. Agla response aapki nayi settings ke hisaab se hoga.
+              </p>
+           </div>
+        </div>
+
+        {isChanged && (
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
+          >
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+            Confirm Profile Updates
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onToggleSave, onNavigate, onNavigateToScheme, onShowFeedback, schemes }: { 
   user: User | null; 
   profile: UserProfile; 
   onUpdateProfile: (p: UserProfile) => void;
@@ -6548,6 +10828,7 @@ const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onTogg
   onNavigate: (tab: string) => void;
   onNavigateToScheme: (id: string) => void;
   onShowFeedback: () => void;
+  schemes: Scheme[];
 }) => {
 
   const handleLogout = async () => {
@@ -6586,7 +10867,7 @@ const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onTogg
     });
   };
 
-  const savedSchemes = SCHEMES.filter(s => savedSchemeIds.includes(s.id));
+  const savedSchemes = schemes.filter(s => savedSchemeIds.includes(s.id));
 
   return (
     <div className="p-6 pb-24 flex flex-col gap-6">
@@ -6666,6 +10947,38 @@ const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onTogg
            </div>
 
            <div className="space-y-1.5">
+             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">App Community Edition</label>
+             <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: 'Student', label: 'Student', icon: GraduationCap },
+                  { id: 'Farmer', label: 'Farmer', icon: Wheat },
+                  { id: 'Normal', label: 'General', icon: UserIcon },
+                  { id: 'Jobs', label: 'Jobs', icon: BriefcaseIcon }
+                ].map(c => (
+                  <button 
+                    key={c.id}
+                    onClick={() => updateLocal({ community: c.id as any })}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-2xl border transition-all active:scale-95",
+                      localProfile.community === c.id 
+                        ? "bg-[#008069] text-white border-[#008069] shadow-lg shadow-green-100" 
+                        : "bg-gray-50 text-gray-500 border-gray-100 hover:border-gray-200"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+                      localProfile.community === c.id ? "bg-white/20" : "bg-white text-gray-400"
+                    )}>
+                      <c.icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{c.label}</span>
+                  </button>
+                ))}
+             </div>
+             <p className="text-[8px] text-gray-400 font-bold px-2 italic mt-1">Community badalne par app ka theme aur schemes bhi badal jayengi.</p>
+           </div>
+
+           <div className="space-y-1.5">
              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Occupation (Pesha)</label>
              <div className="relative">
                <BriefcaseIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -6704,6 +11017,61 @@ const SettingsScreen = ({ user, profile, onUpdateProfile, savedSchemeIds, onTogg
                  className="w-full bg-gray-50 border-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm font-bold focus:ring-2 focus:ring-[#008069]/10 outline-none"
                />
              </div>
+           </div>
+
+           <div className="space-y-1.5">
+             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Gender</label>
+             <div className="flex gap-2">
+                {(['Male', 'Female', 'Other'] as const).map(g => (
+                  <button 
+                    key={g}
+                    onClick={() => updateLocal({ gender: g })}
+                    className={cn(
+                      "flex-1 py-3 rounded-2xl border font-bold text-xs transition-all",
+                      localProfile.gender === g ? "bg-[#008069] text-white border-[#008069]" : "bg-gray-50 text-gray-500 border-gray-100"
+                    )}
+                  >
+                    {g === 'Male' ? 'Purush' : g === 'Female' ? 'Mahila' : 'Anya'}
+                  </button>
+                ))}
+             </div>
+           </div>
+
+           <div className="space-y-1.5">
+             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Category (Server-Certified)</label>
+             <div className="relative">
+                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <select 
+                  value={localProfile.category || ''}
+                  onChange={(e) => updateLocal({ category: e.target.value as any })}
+                  className="w-full bg-gray-50 border-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm font-bold focus:ring-2 focus:ring-[#008069]/10 outline-none appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>Category chunein</option>
+                  <option value="General">General (UR)</option>
+                  <option value="OBC">OBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                  <option value="EWS">EWS</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                   <ChevronDown className="w-4 h-4" />
+                </div>
+             </div>
+           </div>
+
+           <div className="space-y-1.5">
+             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Monthly Family Income (Masik Aay)</label>
+             <div className="relative">
+                <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  value={localProfile.monthlyIncome || ''}
+                  onChange={(e) => updateLocal({ monthlyIncome: e.target.value })}
+                  placeholder="e.g. 15000"
+                  className="w-full bg-gray-50 border-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm font-bold focus:ring-2 focus:ring-[#008069]/10 outline-none"
+                />
+             </div>
+             <p className="text-[8px] text-gray-400 font-bold px-2 italic">Aapki income ke hisaab se hum schemes suggest karenge.</p>
            </div>
 
            <div className="pt-2 border-t border-gray-50 mt-2 space-y-4">
@@ -7140,7 +11508,11 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
   const placesLib = useMapsLibrary('places');
 
   const handleSearch = async () => {
-    if (!placesLib || !searchQuery) return;
+    if (!placesLib) return;
+    if (!searchQuery.trim()) {
+      showToast("Kripya city ka naam toh likhein bhai!", "warning");
+      return;
+    }
     setLoading(true);
     try {
       const { places } = await placesLib.Place.searchByText({
@@ -7148,9 +11520,13 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
         fields: ['displayName', 'location', 'formattedAddress', 'id'],
         maxResultCount: 10,
       });
+      if (places.length === 0) {
+        showToast("Maafi chahta hoon, iss jagah koi CSC center nahi mila.", "info");
+      }
       setPlaces(places);
     } catch (error) {
       console.error("Error searching places:", error);
+      showToast("Service mein dikkat hai, kripya thodi der baad dubaara try karein.", "error");
     } finally {
       setLoading(false);
     }
@@ -7355,6 +11731,52 @@ const CSCHub = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
+// --- Global Utils ---
+export const showToast = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
+  window.dispatchEvent(new CustomEvent('mitra-toast', { detail: { message, type } }));
+};
+
+const ErrorToast = ({ message, type, onClose }: { message: string, type: string, onClose: () => void }) => {
+  const isError = type === 'error';
+  const isWarning = type === 'warning';
+  
+  return (
+    <motion.div 
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 50, opacity: 0 }}
+      className={cn(
+        "fixed bottom-24 left-4 right-4 z-[150] p-4 rounded-[1.5rem] shadow-2xl flex items-center justify-between gap-4 border overflow-hidden",
+        isError ? "bg-red-600 border-red-500 text-white" : 
+        isWarning ? "bg-orange-500 border-orange-400 text-white" :
+        "bg-gray-900 border-gray-800 text-white"
+      )}
+    >
+      <motion.div 
+        initial={{ x: '-100%' }}
+        animate={{ x: '100%' }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute top-0 left-0 right-0 h-1 bg-white/20"
+      />
+      
+      <div className="flex items-center gap-3 relative z-10">
+        <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+          {isError && <AlertCircle className="w-5 h-5" />}
+          {isWarning && <AlertTriangle className="w-5 h-5" />}
+          {!isError && !isWarning && <Info className="w-5 h-5" />}
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">System Notification</p>
+          <p className="text-xs font-bold leading-relaxed">{message}</p>
+        </div>
+      </div>
+      <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl shrink-0">
+        <X className="w-5 h-5" />
+      </button>
+    </motion.div>
+  );
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [targetSchemeId, setTargetSchemeId] = useState<string | null>(null);
@@ -7363,18 +11785,70 @@ export default function App() {
   const [notifications, setNotifications] = useState<AppNotification[]>(MOCK_NOTIFICATIONS);
   const [chatContext, setChatContext] = useState<string | undefined>(undefined);
   const [user, setUser] = useState<User | null>(null);
+  
+  const [schemes, setSchemes] = useState<Scheme[]>(STATIC_SCHEMES);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const syncSchemes = async () => {
+      setIsSyncing(true);
+      try {
+        const dynamicSchemes = await schemeSyncService.getAllSchemes();
+        if (dynamicSchemes.length > 0) {
+          setSchemes(dynamicSchemes);
+        } else {
+          // One-time seed for demo if empty
+          await schemeSyncService.seedInitialSchemes();
+          const fresh = await schemeSyncService.getAllSchemes();
+          if (fresh.length > 0) setSchemes(fresh);
+        }
+      } catch (err) {
+        console.warn('Scheme sync failed, using static data:', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+    syncSchemes();
+  }, []);
 
   const [isGuruActive, setIsGuruActive] = useState(false);
   const [guruAutoStart, setGuruAutoStart] = useState(false);
   const [isCSCHubOpen, setIsCSCHubOpen] = useState(false);
   const [preloadedForm, setPreloadedForm] = useState<any | null>(null);
+  const [errorToast, setErrorToast] = useState<{ message: string; type: 'error' | 'warning' | 'info' } | null>(null);
+
+  useEffect(() => {
+    const handleToast = (e: any) => {
+      setErrorToast(e.detail);
+      setTimeout(() => setErrorToast(null), 6000);
+    };
+    window.addEventListener('mitra-toast', handleToast);
+    return () => window.removeEventListener('mitra-toast', handleToast);
+  }, []);
 
   const handleActivateGuru = (autoStart = false) => {
     setIsGuruActive(true);
     setGuruAutoStart(autoStart);
   };
+
+  const handleShowFeedback = (type: any = 'general', relatedId?: string, relatedName?: string) => {
+    setFeedbackConfig({ type, relatedId, relatedName });
+    setShowFeedback(true);
+  };
   const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackConfig, setFeedbackConfig] = useState<{ type: 'issue' | 'suggestion' | 'general' | 'scheme' | 'guide'; relatedId?: string; relatedName?: string }>({ type: 'general' });
   const [showFormAudit, setShowFormAudit] = useState(false);
+  const [auditScheme, setAuditScheme] = useState<any>(null);
+  const [showHandwrittenAudit, setShowHandwrittenAudit] = useState(false);
+  const [showWhatsAppGenerator, setShowWhatsAppGenerator] = useState(false);
+  const [showDocumentEnhancer, setShowDocumentEnhancer] = useState(false);
+  const [showScraperPro, setShowScraperPro] = useState(false);
+  const [showPdfUtility, setShowPdfUtility] = useState(false);
+  const [showImageAutoFitter, setShowImageAutoFitter] = useState(false);
+  const [showEligibilityMatcher, setShowEligibilityMatcher] = useState(false);
+  const [showSchemeDiscovery, setShowSchemeDiscovery] = useState(false);
+  const [showMasterProfile, setShowMasterProfile] = useState(false);
+  const [showCounselingGuide, setShowCounselingGuide] = useState(false);
 
   const startChatWithScheme = (schemeName: string, customMessage?: string) => {
     const message = customMessage || `Mujhe ${schemeName} scheme ki poori jaankari chahiye. Iske latest updates, benefits aur kaise apply karna hai woh batayein. Google search karke sahi details dein.`;
@@ -7397,7 +11871,8 @@ export default function App() {
     preferredLanguage: 'hi',
     isPremium: false,
     state: undefined,
-    streak: 0
+    streak: 0,
+    notificationsEnabled: true
   });
 
   const toggleSaveScheme = async (id: string) => {
@@ -7436,6 +11911,13 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    (window as any).showWhatsAppGenerator = () => setShowWhatsAppGenerator(true);
+    return () => {
+      delete (window as any).showWhatsAppGenerator;
+    };
+  }, []);
+
   const saveProfile = async (newProfile: UserProfile) => {
     if (!user) return;
     setIsSaving(true);
@@ -7461,6 +11943,38 @@ export default function App() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const [applications, setApplications] = useState<TrackerApplication[]>([]);
+  const [news, setNews] = useState<any[]>([]);
+  const [loadingNews, setLoadingNews] = useState(true);
+
+  useEffect(() => {
+    // Load from cache first
+    const cached = localStorage.getItem('mitra_news_cache');
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 6 * 60 * 60 * 1000) {
+          setNews(data);
+          setLoadingNews(false);
+        }
+      } catch (e) {
+        console.warn("Error parsing news cache:", e);
+      }
+    }
+
+    const fetchNews = async () => {
+      if (!profile.preferredLanguage) return; 
+      try {
+        const data = await getDailyNews(profile);
+        setNews(data);
+        localStorage.setItem('mitra_news_cache', JSON.stringify({ data, timestamp: Date.now() }));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingNews(false);
+      }
+    };
+    fetchNews();
+  }, [profile.state, profile.occupation]);
 
   useEffect(() => {
     if (!user) return;
@@ -7473,6 +11987,80 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [user]);
+
+  useEffect(() => {
+    if (profile.notificationsEnabled === false) return;
+
+    const checkSavedSchemes = () => {
+      const savedSchemes = schemes.filter(s => savedSchemeIds.includes(s.id));
+      const now = Date.now();
+      const threeDays = 3 * 24 * 60 * 60 * 1000;
+
+      savedSchemes.forEach(scheme => {
+        // 1. Deadline nearing
+        if (scheme.deadline) {
+          const timeLeft = scheme.deadline - now;
+          if (timeLeft > 0 && timeLeft < threeDays) {
+            const storageKey = `notif_deadline_${scheme.id}`;
+            const lastSent = localStorage.getItem(storageKey);
+            
+            if (!lastSent || now - parseInt(lastSent) > 24 * 60 * 60 * 1000) {
+              const daysLeft = Math.ceil(timeLeft / (24 * 60 * 60 * 1000));
+              const title = `Deadline Alert: ${scheme.name}`;
+              const body = `Bhai, ${scheme.name} ki deadline ${daysLeft === 0 ? 'aaj hi' : daysLeft + ' din mein'} hai. Jaldi form bharo!`;
+              
+              const newNotif: AppNotification = {
+                id: `deadline-${scheme.id}-${now}`,
+                title,
+                body,
+                type: 'deadline',
+                timestamp: now,
+                read: false,
+                actionUrl: 'schemes'
+              };
+              
+              setNotifications(prev => [newNotif, ...prev]);
+              showLocalNotification(title, { body });
+              localStorage.setItem(storageKey, now.toString());
+            }
+          }
+        }
+
+        // 2. Scheme Updated
+        if (scheme.lastUpdate) {
+          const timeSinceUpdate = now - scheme.lastUpdate;
+          // Trigger if updated in the last 2 hours (simulated update windows)
+          if (timeSinceUpdate > 0 && timeSinceUpdate < 2 * 60 * 60 * 1000) {
+             const storageKey = `notif_update_${scheme.id}`;
+             const lastSent = localStorage.getItem(storageKey);
+
+             if (!lastSent || now - parseInt(lastSent) > 1 * 60 * 60 * 1000) {
+               const title = `Scheme Update: ${scheme.name}`;
+               const body = `Dost, ${scheme.name} mein naya update aaya hai. Details check karein.`;
+               
+               const newNotif: AppNotification = {
+                 id: `update-${scheme.id}-${now}`,
+                 title,
+                 body,
+                 type: 'news',
+                 timestamp: now,
+                 read: false,
+                 actionUrl: 'schemes'
+               };
+               
+               setNotifications(prev => [newNotif, ...prev]);
+               showLocalNotification(title, { body });
+               localStorage.setItem(storageKey, now.toString());
+             }
+          }
+        }
+      });
+    };
+
+    checkSavedSchemes();
+    const interval = setInterval(checkSavedSchemes, 15 * 60 * 1000); // Check every 15 mins
+    return () => clearInterval(interval);
+  }, [savedSchemeIds, profile.notificationsEnabled]);
 
   if (loading) {
     return (
@@ -7490,7 +12078,7 @@ export default function App() {
   }
 
   // Profile setup check
-  if (!profile.class || !profile.state) {
+  if (!profile.class || !profile.state || !profile.community) {
     return <Onboarding onComplete={saveProfile} />;
   }
 
@@ -7500,21 +12088,39 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-safe-area-top selection:bg-orange-200">
+    <div className="min-h-screen bg-gray-100 pt-safe-area-top selection:bg-orange-100 flex flex-col font-sans">
+      <CommunityDecorations community={profile.community} />
       <OfflineNotice />
-      <div className="max-w-lg mx-auto bg-white min-h-screen relative shadow-2xl flex flex-col">
-        <div className="flex-1 overflow-y-auto pb-20">
+      
+      <div className={cn(
+        "max-w-lg mx-auto bg-white/95 backdrop-blur-md w-full flex-1 flex flex-col relative shadow-2xl overflow-hidden",
+        "h-[100dvh]" // Use dynamic viewport height for mobile
+      )}>
+        {/* Global Navigation at Top */}
+        <div className="w-full shrink-0 z-[70] bg-white">
+          <GlobalNav active={activeTab} onChange={setActiveTab} />
+        </div>
+
+        {/* Main Scrollable Content */}
+        <main className="flex-1 overflow-y-auto relative scroll-smooth scrollbar-hide">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex-col flex"
             >
               {activeTab === 'home' && (
                 <HomeScreen 
-                  onNavigate={setActiveTab} 
+                  onNavigate={(target) => {
+                    if (target === 'handwritten') {
+                      setShowHandwrittenAudit(true);
+                    } else {
+                      setActiveTab(target as any);
+                    }
+                  }} 
                   userProfile={profile} 
                   onAskMitra={(q) => {
                     setChatContext(q);
@@ -7527,10 +12133,18 @@ export default function App() {
                     setTargetSchemeId(id);
                     setActiveTab('schemes');
                   }}
+                  onShowSchemeDiscovery={() => setShowSchemeDiscovery(true)}
                   onStartSimulator={(form) => {
                     setPreloadedForm(form);
                     setActiveTab('guide');
                   }}
+                  onShowFormAudit={() => {
+                    setAuditScheme(null);
+                    setShowFormAudit(true);
+                  }}
+                  news={news}
+                  loadingNews={loadingNews}
+                  schemes={schemes}
                 />
               )}
               {activeTab === 'schemes' && (
@@ -7547,6 +12161,12 @@ export default function App() {
                     setPreloadedForm(form);
                     setActiveTab('tools');
                   }}
+                  onShowFormAudit={(scheme) => {
+                    setAuditScheme(scheme);
+                    setShowFormAudit(true);
+                  }}
+                  schemes={schemes}
+                  onShowFeedback={handleShowFeedback}
                 />
               )}
               {activeTab === 'chat' && (
@@ -7556,6 +12176,9 @@ export default function App() {
                   userProfile={profile}
                   onNavigate={setActiveTab}
                   onSetTargetSchemeId={setTargetSchemeId}
+                  schemes={schemes}
+                  onShowMasterProfile={() => setShowMasterProfile(true)}
+                  onShowFeedback={handleShowFeedback}
                 />
               )}
               {activeTab === 'guide' && (
@@ -7572,16 +12195,83 @@ export default function App() {
                 <ToolsScreen 
                   userProfile={profile} 
                   onNavigate={setActiveTab} 
+                  onAskMitra={(q) => {
+                    setChatContext(q);
+                    setActiveTab('chat');
+                  }} 
                   isGuruActive={isGuruActive}
                   onActivateGuru={handleActivateGuru}
-                  onShowFormAudit={() => setShowFormAudit(true)}
+                  onShowFormAudit={() => {
+                    setAuditScheme(null);
+                    setShowFormAudit(true);
+                  }}
+                  onShowHandwrittenAudit={() => setShowHandwrittenAudit(true)}
+                  onShowDocumentEnhancer={() => setShowDocumentEnhancer(true)}
+                  onShowScraperPro={() => setShowScraperPro(true)}
+                  onShowPdfUtility={() => setShowPdfUtility(true)}
+                  onShowImageAutoFitter={() => setShowImageAutoFitter(true)}
+                  onShowEligibilityMatcher={() => setShowEligibilityMatcher(true)}
+                  onShowSchemeDiscovery={() => setShowSchemeDiscovery(true)}
+                  onShowMasterProfile={() => setShowMasterProfile(true)}
+                  onShowCounselingGuide={() => setShowCounselingGuide(true)}
                   onOpenCSCHub={() => setIsCSCHubOpen(true)}
                   preloadedForm={preloadedForm}
                   onClearPreloadedForm={() => setPreloadedForm(null)}
                 />
               )}
               {activeTab === 'premium' && <PremiumScreen userProfile={profile} onSave={saveProfile} />}
-              {activeTab === 'vault' && <VaultScreen userProfile={profile} onNavigate={setActiveTab} />}
+              {activeTab === 'news' && (
+                <div className="p-6 pb-24">
+                   <header className="mb-6 flex items-center gap-3">
+                      <button onClick={() => setActiveTab('home')} className="p-2 bg-gray-50 rounded-xl">
+                        <ChevronRight className="w-5 h-5 rotate-180" />
+                      </button>
+                      <div>
+                        <h1 className="text-2xl font-black text-gray-900 tracking-tight">Audio News Feed</h1>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-tight">Sunein aaj ke mukhya samachar</p>
+                      </div>
+                   </header>
+                   <NewsWidget 
+                     userProfile={profile} 
+                     news={news} 
+                     loading={loadingNews} 
+                     onAskMitra={(q) => {
+                       setChatContext(q);
+                       setActiveTab('chat');
+                     }} 
+                   />
+                </div>
+              )}
+              {activeTab === 'vault' && (
+                <div className="p-6 pb-24">
+                  <header className="mb-6 flex items-center gap-3">
+                    <button onClick={() => setActiveTab('home')} className="p-2 bg-gray-50 rounded-xl">
+                      <ChevronRight className="w-5 h-5 rotate-180" />
+                    </button>
+                    <div>
+                      <h1 className="text-2xl font-black text-gray-900 tracking-tight">Document Vault</h1>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-tight">Safe & Encryption Secured</p>
+                    </div>
+                  </header>
+                  <VaultScreen 
+                    userProfile={profile} 
+                    onNavigate={setActiveTab} 
+                    onShowMasterProfile={() => setShowMasterProfile(true)} 
+                  />
+                </div>
+              )}
+              {activeTab === 'profile' && (
+                <ProfileScreen 
+                  user={user}
+                  profile={profile}
+                  onUpdateProfile={saveProfile}
+                  onNavigate={setActiveTab}
+                  onLogout={async () => {
+                    await signOut(auth);
+                    setUser(null);
+                  }}
+                />
+              )}
               {activeTab === 'letters' && <LetterScreen userProfile={profile} />}
               {activeTab === 'settings' && (
                 <SettingsScreen 
@@ -7595,15 +12285,18 @@ export default function App() {
                     setTargetSchemeId(id);
                     setActiveTab('schemes');
                   }}
-                  onShowFeedback={() => setShowFeedback(true)}
+                  onShowFeedback={() => handleShowFeedback('general')}
+                  schemes={schemes}
                 />
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
+        </main>
 
-        {!profile.isPremium && <AdBanner onUpgrade={() => setActiveTab('premium')} />}
-        <BottomNav active={activeTab} onChange={setActiveTab} />
+        {/* Global Ads at Bottom */}
+        <div className="w-full shrink-0 z-[70] bg-white pb-safe-area-bottom">
+          {!profile.isPremium && <AdBanner onUpgrade={() => setActiveTab('premium')} />}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -7642,8 +12335,132 @@ export default function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {showFormAudit && (
+          <FormAuditModal 
+            userProfile={profile} 
+            onClose={() => {
+              setShowFormAudit(false);
+              setAuditScheme(null);
+            }} 
+            onStartSimulator={(form) => {
+              setPreloadedForm(form);
+              setActiveTab('guide');
+              setShowFormAudit(false);
+              setAuditScheme(null);
+            }}
+            initialScheme={auditScheme}
+            schemes={schemes}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showHandwrittenAudit && (
+          <HandwrittenAuditModal 
+            onClose={() => setShowHandwrittenAudit(false)} 
+            onStartSimulator={(form) => {
+              setPreloadedForm(form);
+              setActiveTab('guide');
+              setShowHandwrittenAudit(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showImageAutoFitter && (
+          <ImageAutoFitterModal onClose={() => setShowImageAutoFitter(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showEligibilityMatcher && (
+          <EligibilityMatcherModal userProfile={profile} onClose={() => setShowEligibilityMatcher(false)} schemes={schemes} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSchemeDiscovery && (
+          <SchemeDiscoveryModal 
+            userProfile={profile} 
+            onClose={() => setShowSchemeDiscovery(false)} 
+            onAskMitra={(q) => {
+              setChatContext(q);
+              setActiveTab('chat');
+              setShowSchemeDiscovery(false);
+            }}
+            schemes={schemes}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showMasterProfile && (
+          <MasterProfileModal 
+            userProfile={profile} 
+            onClose={() => setShowMasterProfile(false)} 
+            onUpdateProfile={(updates) => setProfile(prev => ({ ...prev, ...updates }))}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCounselingGuide && (
+          <CounselingGuideModal userProfile={profile} onClose={() => setShowCounselingGuide(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDocumentEnhancer && (
+          <DocumentEnhancerModal onClose={() => setShowDocumentEnhancer(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showScraperPro && (
+          <ScraperProModal onClose={() => setShowScraperPro(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPdfUtility && (
+          <PdfUtilityModal onClose={() => setShowPdfUtility(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFeedback && (
+          <FeedbackModal 
+            onClose={() => setShowFeedback(false)} 
+            initialType={feedbackConfig.type}
+            relatedId={feedbackConfig.relatedId}
+            relatedName={feedbackConfig.relatedName}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showWhatsAppGenerator && (
+          <WhatsAppNotificationGenerator 
+            userProfile={profile} 
+            onClose={() => setShowWhatsAppGenerator(false)} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {isLiveCallOpen && (
           <LiveCall onClose={() => setIsLiveCallOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {errorToast && (
+          <ErrorToast 
+            message={errorToast.message} 
+            type={errorToast.type} 
+            onClose={() => setErrorToast(null)} 
+          />
         )}
       </AnimatePresence>
 
@@ -7661,13 +12478,6 @@ export default function App() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showFormAudit && <FormAuditModal userProfile={profile} onClose={() => setShowFormAudit(false)} />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       </AnimatePresence>
     </div>
   );

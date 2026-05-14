@@ -15,5 +15,8 @@ export default defineConfig(({mode}) => {
       host: '0.0.0.0',
       hmr: process.env.DISABLE_HMR !== 'true',
     },
+    optimizeDeps: {
+      include: ['jspdf'],
+    },
   };
 });

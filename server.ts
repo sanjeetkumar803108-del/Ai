@@ -85,6 +85,99 @@ async function startServer() {
     }
   });
 
+  // Scraper Pro API
+  app.post("/api/scrape", async (req, res) => {
+    const { url, filters, customSelector } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: "URL is required" });
+    }
+
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        timeout: 10000
+      });
+
+      const cheerio = await import('cheerio');
+      const $ = cheerio.load(response.data);
+      const results: any = {};
+
+      if (filters.text) {
+        // Extract main text content, excluding scripts and styles
+        $('script, style, nav, footer').remove();
+        results.text = $('body').text().replace(/\s\s+/g, ' ').trim();
+      }
+
+      if (filters.headings) {
+        results.headings = [];
+        $('h1, h2, h3').each((i, el) => {
+          results.headings.push({
+            tag: (el as any).name?.toUpperCase() || (el as any).tagName?.toUpperCase() || 'H',
+            text: $(el).text().trim()
+          });
+        });
+      }
+
+      if (filters.images) {
+        results.images = [];
+        $('img').each((i, el) => {
+          const src = $(el).attr('src');
+          if (src) {
+            try {
+              // Convert relative URLs to absolute
+              const absoluteUrl = new URL(src, url).href;
+              results.images.push({
+                src: absoluteUrl,
+                alt: $(el).attr('alt') || ''
+              });
+            } catch (e) {
+              results.images.push({ src, alt: $(el).attr('alt') || '' });
+            }
+          }
+        });
+      }
+
+      if (filters.links) {
+        results.links = [];
+        $('a').each((i, el) => {
+          const href = $(el).attr('href');
+          if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+            try {
+              const absoluteUrl = new URL(href, url).href;
+              results.links.push({
+                url: absoluteUrl,
+                text: $(el).text().trim()
+              });
+            } catch (e) {
+              results.links.push({ url: href, text: $(el).text().trim() });
+            }
+          }
+        });
+      }
+
+      if (filters.custom && customSelector) {
+        results.custom = [];
+        $(customSelector).each((i, el) => {
+          results.custom.push($(el).text().trim());
+        });
+      }
+
+      res.json({ status: "success", data: results, url });
+    } catch (error: any) {
+      console.error("Scraping Error:", error.message);
+      let errorMessage = "Failed to extract data from this website.";
+      
+      if (error.code === 'ECONNABORTED') errorMessage = "Request timed out. The website is too slow.";
+      if (error.response?.status === 403) errorMessage = "Access denied. Scraper was blocked by the website.";
+      if (error.response?.status === 404) errorMessage = "Website not found (404).";
+      
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -95,7 +188,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
