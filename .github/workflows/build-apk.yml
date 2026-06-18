@@ -25,10 +25,13 @@ jobs:
           java-version: '17'
 
       - name: Dependencies install karo
-        run: npm install
+        run: |
+          cd native
+          npm install
 
       - name: Real Local Release APK banao
         run: |
+          cd native
           npx expo prebuild --platform android
           cd android && ./gradlew assembleRelease
 
@@ -36,5 +39,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Form-Mitra-AI-Native-APK
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: native/android/app/build/outputs/apk/release/app-release.apk
           
