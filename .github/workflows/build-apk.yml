@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Code ko Checkout karo
@@ -16,20 +16,21 @@ jobs:
       - name: Node.js Setup karo
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
 
-      - name: Java Setup karo (Android ke liye zaroori hai)
+      - name: Java Setup karo (Strict Java 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Dependencies install karo
+      - name: Dependencies install aur AI Code Fix karo
         run: |
           cd native
           npm install
+          npx expo install --fix
 
-      - name: Bulletproof Base64 Logo Hack (No Internet needed)
+      - name: Bulletproof Base64 Logo Hack
         run: |
           cd native
           mkdir -p assets
@@ -38,11 +39,11 @@ jobs:
           cp assets/icon.png assets/splash.png
           cp assets/icon.png assets/favicon.png
 
-      - name: Real Local Release APK banao
+      - name: Real Local Release APK banao (Forced Java 17)
         run: |
           cd native
-          npx expo prebuild --platform android
-          cd android && ./gradlew assembleRelease
+          npx expo prebuild --platform android --clean
+          cd android && ./gradlew assembleRelease -Dorg.gradle.java.home=$JAVA_HOME
 
       - name: APK ko Download ke liye ready karo
         uses: actions/upload-artifact@v4
