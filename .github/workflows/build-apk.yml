@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Code ko Checkout karo
@@ -16,19 +16,20 @@ jobs:
       - name: Node.js Setup karo
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Java Setup karo (Strict Java 17)
+      - name: Java 17 Setup karo (Android ki Jaan)
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Dependencies install aur AI Code Fix karo
+      - name: AI ka Purana Code Naya Karo (The Master Fix)
         run: |
           cd native
-          npm install
+          npm install expo@latest react-native@latest --save
           npx expo install --fix
+          npm install
 
       - name: Bulletproof Base64 Logo Hack
         run: |
@@ -42,8 +43,11 @@ jobs:
       - name: Real Local Release APK banao (Forced Java 17)
         run: |
           cd native
+          rm -rf android
           npx expo prebuild --platform android --clean
-          cd android && ./gradlew assembleRelease -Dorg.gradle.java.home=$JAVA_HOME
+          cd android
+          echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+          ./gradlew assembleRelease
 
       - name: APK ko Download ke liye ready karo
         uses: actions/upload-artifact@v4
