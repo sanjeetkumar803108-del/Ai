@@ -20,58 +20,36 @@ interface NamaskarSplashProps {
 export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) => {
   const [isExiting, setIsExiting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const orbAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in and scale up content on mount
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1200,
+        duration: 1000,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 6,
-        tension: 30,
+        friction: 8,
+        tension: 40,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Constant rotation loop for the background mandala circle
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 30000,
+        duration: 25000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     ).start();
 
-    // Pulsing orbs loop
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orbAnim, {
-          toValue: 1,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(orbAnim, {
-          toValue: 0,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Automatic exit transition after 4.2 seconds
     const timer = setTimeout(() => {
       handleExit();
-    }, 4200);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -82,12 +60,12 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
-        toValue: 1.1,
-        duration: 500,
+        toValue: 1.05,
+        duration: 400,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -100,16 +78,6 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
     outputRange: ["0deg", "360deg"],
   });
 
-  const orbScale1 = orbAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.25],
-  });
-
-  const orbScale2 = orbAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1.2, 1],
-  });
-
   return (
     <Animated.View
       style={[
@@ -120,97 +88,60 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
         },
       ]}
     >
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      {/* Decorative Orbs resembling rich Indian saffron and emerald hues */}
-      <View style={styles.backgroundPatternsContainer} pointerEvents="none">
-        <Animated.View
-          style={[
-            styles.saffronOrb,
-            { transform: [{ scale: orbScale1 }] },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.emeraldOrb,
-            { transform: [{ scale: orbScale2 }] },
-          ]}
-        />
-      </View>
-
-      {/* Main Glassmorphic Card Container */}
-      <View style={styles.cardContainer}>
-        <View style={styles.headerBadgeContainer}>
-          {/* Animated decorative mandala */}
+      {/* Modern, light premium layout */}
+      <View style={styles.container}>
+        <View style={styles.logoAndBadgeContainer}>
           <Animated.View
             style={[
               styles.mandalaOutline,
               { transform: [{ rotate: spinMandala }] },
             ]}
           >
-            <View style={styles.mandalaDashRing} />
+            <View style={styles.mandalaRing} />
           </Animated.View>
 
-          {/* Saffron & Emerald glow rings */}
-          <View style={styles.glowRingSaffron} />
-          <View style={styles.glowRingEmerald} />
-
-          {/* Core Praying Hands Icon Badge */}
           <View style={styles.coreHandsBadge}>
-            <View style={styles.innerBadgeFrame}>
-              <Text style={styles.emojiHands}>🙏</Text>
-            </View>
-          </View>
-
-          {/* Sparkly details */}
-          <View style={styles.sparkleTop}>
-            <Ionicons name="sparkles" size={22} color="#f59e0b" />
-          </View>
-          <View style={styles.sparkleBottom}>
-            <Ionicons name="heart" size={18} color="#10b981" />
+            <Text style={styles.emojiHands}>🙏</Text>
           </View>
         </View>
 
-        {/* Greetings Section */}
-        <View style={styles.greetingsBlock}>
-          <Text style={styles.devanagariTitle}>नमस्ते</Text>
+        {/* Brand Text Section - Premium Light Typography */}
+        <View style={styles.textContainer}>
+          <Text style={styles.devanagariGreeting}>नमस्ते</Text>
+          <Text style={styles.welcomeSubtitle}>WELCOME TO FORM MITRA AI</Text>
+          <Text style={styles.bhaiHeading}>Aapka Bada Bhai, Form Mitra 🤝</Text>
           
-          <View style={styles.subTextWrap}>
-            <Text style={styles.welcomeSubtitle}>
-              SWAGAT HAI AAPKA FORM MITRA MEIN
-            </Text>
-            <Text style={styles.bhaiHeading}>
-              Aapka Bada Bhai, Form Mitra 🤝
-            </Text>
-          </View>
-
-          <View style={styles.dividerLine} />
+          <View style={styles.divider} />
 
           <Text style={styles.empatheticBhaiText}>
             Sarkari yojanaon aur scholarships ke safar mein koi bhi takleef ho, aapka bada bhai har mod par aapka sath dega!
           </Text>
 
-          <Text style={styles.featurePillsText}>
-            ✨ AI Form Assistant, Live Alerts & Smart Tools ✨
-          </Text>
+          <View style={styles.pillsContainer}>
+            <Text style={styles.pillText}>✨ AI Form Assistant</Text>
+            <Text style={styles.pillDivider}>•</Text>
+            <Text style={styles.pillText}>Live Alerts</Text>
+            <Text style={styles.pillDivider}>•</Text>
+            <Text style={styles.pillText}>Smart Tools</Text>
+          </View>
         </View>
 
-        {/* Proceed Action Button */}
-        <View style={styles.actionBlock}>
+        {/* Interactive Proceed Button */}
+        <View style={styles.actionContainer}>
           <TouchableOpacity
             onPress={handleExit}
             activeOpacity={0.8}
-            style={styles.ctaButton}
+            style={styles.primaryButton}
           >
-            <Text style={styles.ctaButtonText}>Shuru Karein, Bade Bhai!</Text>
-            <Ionicons name="chevron-forward" size={16} color="#ffffff" />
+            <Text style={styles.buttonText}>Aage Badhein, Bhai!</Text>
+            <Ionicons name="arrow-forward" size={18} color="#ffffff" />
           </TouchableOpacity>
 
-          <View style={styles.secureBadge}>
-            <Text style={styles.secureBadgeText}>
-              🔒 Secure & Encrypted by Form Mitra
-            </Text>
-          </View>
+          <Text style={styles.secureBadgeText}>
+            🔒 Secure & Encrypted by Form Mitra
+          </Text>
         </View>
       </View>
     </Animated.View>
@@ -220,213 +151,152 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#0b0f19",
+    backgroundColor: "#F3F4F6", // Premium Light grey background
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+    padding: 24,
   },
-  backgroundPatternsContainer: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: "hidden",
-    opacity: 0.25,
-  },
-  saffronOrb: {
-    position: "absolute",
-    top: "15%",
-    left: "10%",
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: "#ff9933",
-    opacity: 0.4,
-    // Note: react-native on Android does not natively support CSS filter blur.
-    // Instead we use overlay gradients/opacities to achieve smooth lighting cards.
-  },
-  emeraldOrb: {
-    position: "absolute",
-    bottom: "20%",
-    right: "10%",
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: "#138808",
-    opacity: 0.35,
-  },
-  cardContainer: {
+  container: {
     width: "100%",
-    maxWidth: 380,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderRadius: 36,
+    maxWidth: 360,
+    backgroundColor: "#ffffff", // Pure white card
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    paddingVertical: 36,
+    borderColor: "#E5E7EB",
+    paddingVertical: 40,
     paddingHorizontal: 24,
     alignItems: "center",
-    shadowColor: "#000000",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  headerBadgeContainer: {
+  logoAndBadgeContainer: {
     position: "relative",
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 28,
+    marginBottom: 24,
   },
   mandalaOutline: {
     position: "absolute",
-    width: 130,
-    height: 130,
+    width: 120,
+    height: 120,
     alignItems: "center",
     justifyContent: "center",
   },
-  mandalaDashRing: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 1,
-    borderColor: "rgba(245, 158, 11, 0.25)",
-    borderStyle: "dashed",
-  },
-  glowRingSaffron: {
-    position: "absolute",
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "rgba(255, 153, 51, 0.08)",
-  },
-  glowRingEmerald: {
-    position: "absolute",
+  mandalaRing: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: "rgba(19, 136, 8, 0.05)",
+    borderWidth: 2,
+    borderColor: "rgba(0, 128, 105, 0.2)", // Teal border
+    borderStyle: "dashed",
   },
   coreHandsBadge: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    padding: 2,
-    backgroundColor: "#ff9933", // simplified elegant saffron border
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  innerBadgeFrame: {
-    flex: 1,
-    borderRadius: 41,
-    backgroundColor: "#0d1321",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#E6F3F0", // Soft light teal bg
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#008069", // Premium Teal accent
+    shadowColor: "#008069",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   emojiHands: {
-    fontSize: 34,
+    fontSize: 32,
   },
-  sparkleTop: {
-    position: "absolute",
-    top: 6,
-    right: 12,
-  },
-  sparkleBottom: {
-    position: "absolute",
-    bottom: 6,
-    left: 12,
-  },
-  greetingsBlock: {
+  textContainer: {
     alignItems: "center",
-    marginBottom: 32,
     width: "100%",
+    marginBottom: 32,
   },
-  devanagariTitle: {
-    fontSize: 42,
+  devanagariGreeting: {
+    fontSize: 36,
     fontWeight: "900",
-    color: "#ff9933",
-    letterSpacing: 1,
-    marginBottom: 10,
+    color: "#008069", // Teal
+    marginBottom: 8,
     textAlign: "center",
-  },
-  subTextWrap: {
-    alignItems: "center",
-    marginBottom: 16,
+    letterSpacing: 0.5,
   },
   welcomeSubtitle: {
     fontSize: 10,
-    fontWeight: "900",
-    color: "#ffaa44",
-    letterSpacing: 1.5,
+    fontWeight: "800",
+    color: "#9CA3AF",
+    letterSpacing: 2,
     textAlign: "center",
     marginBottom: 4,
   },
   bhaiHeading: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#ffffff",
+    fontWeight: "800",
+    color: "#1F2937", // Dark gray
     textAlign: "center",
+    marginBottom: 16,
   },
-  dividerLine: {
-    height: 1,
-    width: 110,
-    backgroundColor: "rgba(245, 158, 11, 0.3)",
+  divider: {
+    height: 2,
+    width: 60,
+    backgroundColor: "rgba(0, 128, 105, 0.15)", // Subtle teal divider
     marginBottom: 16,
   },
   empatheticBhaiText: {
     fontSize: 13,
-    color: "#cbd5e1",
+    color: "#4B5563",
     textAlign: "center",
-    lineHeight: 19,
-    paddingHorizontal: 8,
-    marginBottom: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+    fontWeight: "500",
   },
-  featurePillsText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#10b981",
-    textAlign: "center",
-    letterSpacing: 0.5,
+  pillsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  actionBlock: {
+  pillText: {
+    fontSize: 11,
+    fontWeight: "750",
+    color: "#008069",
+  },
+  pillDivider: {
+    fontSize: 11,
+    color: "#D1D5DB",
+  },
+  actionContainer: {
     width: "100%",
     alignItems: "center",
   },
-  ctaButton: {
+  primaryButton: {
     width: "100%",
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: "#008069",
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: "#008069", // Teal Green accent
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    shadowColor: "#10b981",
+    shadowColor: "#008069",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 6,
-    elevation: 5,
+    elevation: 3,
   },
-  ctaButtonText: {
+  buttonText: {
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#ffffff",
-    letterSpacing: 0.5,
-  },
-  secureBadge: {
-    marginTop: 14,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
   },
   secureBadgeText: {
-    fontSize: 9,
-    fontWeight: "700",
-    color: "#ef4444",
-    letterSpacing: 0.5,
+    fontSize: 10,
+    color: "#6B7280",
+    fontWeight: "600",
+    marginTop: 14,
   },
 });

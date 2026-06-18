@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface AntiScamWarningProps {
   onDismiss?: () => void;
-  scamType?: string; // "fees", "otp", "broker", etc.
+  scamType?: string;
 }
 
 export const AntiScamWarning: React.FC<AntiScamWarningProps> = ({
@@ -15,44 +15,44 @@ export const AntiScamWarning: React.FC<AntiScamWarningProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.alertIconBg}>
-          <Ionicons name="warning" size={24} color="#ef4444" />
+          <Ionicons name="shield-half-outline" size={18} color="#D97706" />
         </View>
-        <Text style={styles.alertTitle}>🚨 FRAUD ALERT / SCAM CHEAT SHEET!</Text>
+        <Text style={styles.alertTitle}>🚨 SAMAY KA BACHAV AUR CYBER SURAKSHA</Text>
       </View>
 
       <Text style={styles.alertSubtitle}>
-        Sanjeet bhaiya, dhyan se padhein! Ye bahut zaroori hai!
+        Sanjeet bhaiya, dhyan se padhein! Ye bade bhai ki behtarin salah hai:
       </Text>
 
       <View style={styles.cardInfo}>
         <View style={styles.infoRow}>
-          <View style={styles.dotRed} />
+          <View style={styles.dotGolden} />
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>No Upfront Fees: </Text>
-            Legitimate government schemes, state scholarships (UGC, NSP), and genuine jobs <Text style={styles.boldText}>NEVER</Text> demand registration fees, security deposits, or device charging costs.
+            <Text style={styles.boldText}>No Upfront Fee: </Text>
+            Govt scholarships ya jobs ke liye kabhi koi extra broker charges nahi dene hote. Direct apply karein!
           </Text>
         </View>
 
         <View style={styles.infoRow}>
-          <View style={styles.dotRed} />
+          <View style={styles.dotGolden} />
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Never Share Secrets: </Text>
-            Form Mitra or any bank representative will <Text style={styles.boldText}>NEVER</Text> ask for your OTP, Aadhaar PIN, ATM code, or Netbanking passwords.
+            <Text style={styles.boldText}>Never Share OTPs: </Text>
+            Aapna Aadhaar password, Bank PIN ya mobile OTP kabhi kisi ke sath share mat karein.
           </Text>
         </View>
 
         <View style={styles.infoRow}>
-          <View style={styles.dotRed} />
+          <View style={styles.dotGolden} />
           <Text style={styles.infoText}>
-            <Text style={styles.boldText}>Beware Of Brokers: </Text>
-            Avoid paying any third-party cyber cafe agent or online broker. Form Mitra's automated application tool handles forms directly and securely.
+            <Text style={styles.boldText}>Direct Form Helper: </Text>
+            Browser me hamesha official domain <Text style={styles.highlightText}>.gov.in</Text> hi open karein.
           </Text>
         </View>
       </View>
 
       <View style={styles.footerRow}>
         <View style={styles.badgeSecure}>
-          <Ionicons name="shield-checkmark" size={14} color="#10b981" />
+          <Ionicons name="shield-checkmark" size={12} color="#008069" />
           <Text style={styles.badgeSecureText}>Form Mitra Verified</Text>
         </View>
 
@@ -62,7 +62,7 @@ export const AntiScamWarning: React.FC<AntiScamWarningProps> = ({
             onPress={onDismiss}
             activeOpacity={0.7}
           >
-            <Text style={styles.dismissText}>Main Samajh Gaya, Bhai!</Text>
+            <Text style={styles.dismissText}>Samajh Gaya, Bhai!</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -72,105 +72,112 @@ export const AntiScamWarning: React.FC<AntiScamWarningProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#1e1b1b",
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: "#ef4444",
-    padding: 18,
+    backgroundColor: "#FFFBEB", // Premium light yellow cream warning card (warm/cyber-conscious)
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FCD34D",
+    padding: 16,
     marginVertical: 12,
-    shadowColor: "#ef4444",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     marginBottom: 8,
   },
   alertIconBg: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(217, 119, 6, 0.1)",
     alignItems: "center",
     justifyContent: "center",
   },
   alertTitle: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "900",
-    color: "#ff3b30",
+    color: "#B45309",
     letterSpacing: 0.5,
   },
   alertSubtitle: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#fca5a5",
-    marginBottom: 12,
+    color: "#78350F",
+    marginBottom: 10,
   },
   cardInfo: {
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.65)",
+    borderRadius: 12,
     padding: 12,
     gap: 10,
-    marginBottom: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(217, 119, 6, 0.08)",
   },
   infoRow: {
     flexDirection: "row",
     gap: 8,
     alignItems: "flex-start",
   },
-  dotRed: {
+  dotGolden: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#ef4444",
+    backgroundColor: "#D97706",
     marginTop: 6,
   },
   infoText: {
     fontSize: 12,
-    color: "#e2e8f0",
-    lineHeight: 17,
+    color: "#4B5563",
+    lineHeight: 18,
     flex: 1,
+    fontWeight: "500",
   },
   boldText: {
-    fontWeight: "bold",
-    color: "#ffffff",
+    fontWeight: "800",
+    color: "#1F2937",
+  },
+  highlightText: {
+    color: "#008069",
+    fontWeight: "850",
   },
   footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: 10,
   },
   badgeSecure: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(16, 185, 129, 0.12)",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    backgroundColor: "rgba(0, 128, 105, 0.08)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.2)",
+    borderColor: "rgba(0, 128, 105, 0.15)",
   },
   badgeSecureText: {
     fontSize: 10,
-    fontWeight: "700",
-    color: "#10b981",
+    fontWeight: "800",
+    color: "#008069",
   },
   dismissButton: {
-    backgroundColor: "#ef4444",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: "#008069",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    minHeight: 32,
+    justifyContent: "center",
   },
   dismissText: {
     fontSize: 11,
-    fontWeight: "900",
+    fontWeight: "800",
     color: "#ffffff",
   },
 });
