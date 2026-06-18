@@ -16,7 +16,7 @@ jobs:
       - name: Node.js Setup karo
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Java Setup karo (Android ke liye zaroori hai)
         uses: actions/setup-java@v4
@@ -29,14 +29,14 @@ jobs:
           cd native
           npm install
 
-      - name: Dummy Logo ki Ninja Jugad
+      - name: Bulletproof Base64 Logo Hack (No Internet needed)
         run: |
           cd native
-          # Ek dummy app banakar uski asli photos chura lenge
-          npx create-expo-app dummy-app -t blank --yes
           mkdir -p assets
-          cp -r dummy-app/assets/* assets/
-          rm -rf dummy-app
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==" | base64 --decode > assets/icon.png
+          cp assets/icon.png assets/adaptive-icon.png
+          cp assets/icon.png assets/splash.png
+          cp assets/icon.png assets/favicon.png
 
       - name: Real Local Release APK banao
         run: |
