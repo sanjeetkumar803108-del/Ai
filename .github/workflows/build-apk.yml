@@ -29,14 +29,14 @@ jobs:
           cd native
           npm install
 
-      - name: Dummy Logo aur Splash Screen ki Jugad
+      - name: Dummy Logo ki Ninja Jugad
         run: |
           cd native
+          # Ek dummy app banakar uski asli photos chura lenge
+          npx create-expo-app dummy-app -t blank --yes
           mkdir -p assets
-          wget -O assets/icon.png https://raw.githubusercontent.com/expo/expo/main/templates/expo-template-blank/assets/icon.png || true
-          wget -O assets/adaptive-icon.png https://raw.githubusercontent.com/expo/expo/main/templates/expo-template-blank/assets/adaptive-icon.png || true
-          wget -O assets/splash.png https://raw.githubusercontent.com/expo/expo/main/templates/expo-template-blank/assets/splash.png || true
-          wget -O assets/favicon.png https://raw.githubusercontent.com/expo/expo/main/templates/expo-template-blank/assets/favicon.png || true
+          cp -r dummy-app/assets/* assets/
+          rm -rf dummy-app
 
       - name: Real Local Release APK banao
         run: |
