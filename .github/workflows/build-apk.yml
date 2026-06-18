@@ -1,9 +1,9 @@
-name: Form Mitra APK Auto Builder
+name: Form Mitra Expo APK Auto Builder
 
 on:
   push:
     branches:
-      - main  # Agar tumhari branch ka naam 'master' hai, toh yahan master likh dena
+      - main
 
 jobs:
   build:
@@ -13,26 +13,28 @@ jobs:
       - name: Code ko Checkout karo
         uses: actions/checkout@v3
 
-      - name: Java Setup (Android ke liye zaroori hai)
+      - name: Node.js Setup karo
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Java Setup karo (Android ke liye zaroori hai)
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Flutter Setup karo
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
+      - name: Dependencies install karo
+        run: npm install
 
-      - name: Packages install karo
-        run: flutter pub get
-
-      - name: Real Release APK banao
-        run: flutter build apk --release --no-tree-shake-icons
+      - name: Real Local Release APK banao
+        run: |
+          npx expo prebuild --platform android
+          cd android && ./gradlew assembleRelease
 
       - name: APK ko Download ke liye ready karo
         uses: actions/upload-artifact@v3
         with:
-          name: Form-Mitra-AI-Release-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Form-Mitra-AI-Native-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
           
