@@ -12,12 +12,14 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NamaskarSplash } from "./src/components/NamaskarSplash";
 import { AntiScamWarning } from "./src/components/AntiScamWarning";
 
 const { width } = Dimensions.get("window");
+const systemFont = Platform.OS === "ios" ? "System" : "sans-serif";
 
 // Mock Indian State Scholarships & Sarkari Yojana Data
 const SCHEME_DATA = [
@@ -84,6 +86,7 @@ const CAROUSEL_NEWS = [
     summary: "Health insurance benefit limit upgraded up to ₹5 Lakh per year for active cardholders. Click to check state credentials.",
     benefit: "₹5,00,000 Free Treatment List",
     tag: "Active",
+    image: "https://picsum.photos/seed/ayushman/400/225",
     link: "https://dashboard.pmjay.gov.in"
   },
   {
@@ -93,6 +96,7 @@ const CAROUSEL_NEWS = [
     summary: "Registration forms for college students are officially active. Link Aadhaar cards directly next to avoid verification hold-ups.",
     benefit: "Direct Benefit Transfer (DBT)",
     tag: "Updated Today",
+    image: "https://picsum.photos/seed/scholarship/400/225",
     link: "https://scholarships.gov.in"
   },
   {
@@ -102,6 +106,7 @@ const CAROUSEL_NEWS = [
     summary: "Double-check your DBT link status in our Digi-cabinet immediately to prevent clearance delay checks.",
     benefit: "Double Income Support Verification",
     tag: "Urgent Check",
+    image: "https://picsum.photos/seed/kisan/400/225",
     link: "https://pmkisan.gov.in"
   }
 ];
@@ -167,12 +172,16 @@ export default function App() {
     setAiLoading(true);
 
     try {
-      const response = await fetch("/api/bade-bhai-advice", {
+      const backendUrl = "https://ais-dev-tk4okibt4lij5wxepsulso-3794214422.asia-southeast1.run.app";
+      const response = await fetch(`${backendUrl}/api/bade-bhai-advice`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: userMsgText }),
+        body: JSON.stringify({ 
+          prompt: userMsgText, 
+          history: chatHistory 
+        }),
       }).catch(() => null);
 
       if (response && response.ok) {
@@ -223,20 +232,20 @@ export default function App() {
 
         <View style={styles.headerRightActions}>
           <TouchableOpacity 
-            style={styles.streakBadge}
-            onPress={() => Alert.alert("Abhyaas Streak", `Bahut badhiya! Aap rozana ${streakDays} dino se cyber alerts and yojana guidelines check kar rahe hain. Har roz seekhna jari rakhein!`)}
+            style={styles.bellIconBtn}
+            onPress={() => Alert.alert("Mitra Updates", "Sanjeet bhaiya, Bihar Post-Matric and Ayushman modules ke registration live updates are verified safe!")}
             activeOpacity={0.8}
           >
-            <Ionicons name="flame" size={14} color="#D97706" />
-            <Text style={styles.streakText}>{streakDays} Days</Text>
+            <View style={styles.bellUnreadDot} />
+            <Ionicons name="notifications-outline" size={20} color="#6B7280" />
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.bellIconBtn}
-            onPress={() => Alert.alert("Mitra Updates", "Sanjeet bhaiya, Bihar Post-Matric and Ayushman modules ke registration live updates are verified safe!")}
+            onPress={() => Alert.alert("My Profile", "Sanjeet Kumar\nIncome: ₹1,80,000\nState: Bihar • Community: Student")}
+            activeOpacity={0.8}
           >
-            <View style={styles.bellUnreadDot} />
-            <Ionicons name="notifications-outline" size={20} color="#1F2937" />
+            <Ionicons name="person-outline" size={20} color="#6B7280" />
           </TouchableOpacity>
         </View>
       </View>
@@ -289,34 +298,73 @@ export default function App() {
                 </View>
               </View>
 
-              <TouchableOpacity 
-                style={styles.carouselCard}
-                activeOpacity={0.9}
-                onPress={() => {
-                  Alert.alert(CAROUSEL_NEWS[carouselIndex].category, CAROUSEL_NEWS[carouselIndex].summary);
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselScrollWrapper}
+                snapToInterval={296} // Card width 280 + gap 16
+                decelerationRate="fast"
+                snapToAlignment="start"
+                onScroll={(event) => {
+                  const contentOffset = event.nativeEvent.contentOffset.x;
+                  const index = Math.min(
+                    CAROUSEL_NEWS.length - 1,
+                    Math.max(0, Math.round(contentOffset / 296))
+                  );
+                  setCarouselIndex(index);
                 }}
+                scrollEventThrottle={16}
               >
-                <View style={styles.carouselRowHeader}>
-                  <View style={styles.carouselCategoryBadge}>
-                    <Text style={styles.carouselCategoryText}>{currentNews.category}</Text>
-                  </View>
-                  <View style={styles.carouselActiveTag}>
-                    <View style={styles.greenPulseDot} />
-                    <Text style={styles.carouselTagText}>{currentNews.tag}</Text>
-                  </View>
-                </View>
+                {CAROUSEL_NEWS.map((item, i) => (
+                  <TouchableOpacity 
+                    key={item.id}
+                    style={[
+                      styles.carouselCardHorizontal,
+                      carouselIndex === i ? styles.carouselCardHorizontalActive : null
+                    ]}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      Alert.alert(item.category, item.summary);
+                    }}
+                  >
+                    <View style={styles.carouselCardImageContainer}>
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.carouselCardImage}
+                        resizeMode="cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      <View style={styles.carouselCardImageBadge}>
+                        <Text style={styles.carouselCardImageBadgeText}>{item.category}</Text>
+                      </View>
+                    </View>
 
-                <Text style={styles.carouselTitleText}>{currentNews.title}</Text>
-                <Text style={styles.carouselContentText}>{currentNews.summary}</Text>
+                    <View style={styles.carouselCardInfo}>
+                      <View style={styles.carouselRowHeaderHorizontal}>
+                        <View style={styles.carouselActiveTag}>
+                          <View style={styles.greenPulseDot} />
+                          <Text style={styles.carouselTagText}>{item.tag}</Text>
+                        </View>
+                      </View>
 
-                <View style={styles.carouselCardFooter}>
-                  <View style={styles.benefitContainer}>
-                    <Ionicons name="gift-outline" size={14} color="#008069" />
-                    <Text style={styles.benefitValueText}>{currentNews.benefit}</Text>
-                  </View>
-                  <Ionicons name="arrow-forward-circle" size={22} color="#008069" />
-                </View>
-              </TouchableOpacity>
+                      <Text style={styles.carouselTitleTextHorizontal} numberOfLines={2}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.carouselContentTextHorizontal} numberOfLines={2}>
+                        {item.summary}
+                      </Text>
+
+                      <View style={styles.carouselCardFooterHorizontal}>
+                        <View style={styles.benefitContainerHorizontal}>
+                          <Ionicons name="gift-outline" size={14} color="#008069" />
+                          <Text style={styles.benefitValueTextHorizontal}>{item.benefit}</Text>
+                        </View>
+                        <Ionicons name="arrow-forward-circle" size={22} color="#008069" />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
             {/* Elder Brother Chat Advisor Desk Promo */}
@@ -951,37 +999,62 @@ const styles = StyleSheet.create({
     width: 14,
     backgroundColor: "#008069",
   },
-  carouselCard: {
+  carouselScrollWrapper: {
+    paddingHorizontal: 16,
+    gap: 16,
+    paddingBottom: 8,
+  },
+  carouselCardHorizontal: {
+    width: 280,
     backgroundColor: "#ffffff",
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    padding: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.03,
     shadowRadius: 10,
     elevation: 2,
+    overflow: "hidden",
   },
-  carouselRowHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
+  carouselCardHorizontalActive: {
+    borderColor: "#008069",
+    borderWidth: 1.5,
   },
-  carouselCategoryBadge: {
-    backgroundColor: "rgba(0, 128, 105, 0.06)",
+  carouselCardImageContainer: {
+    width: "100%",
+    height: 120,
+    position: "relative",
+    backgroundColor: "#F3F4F6",
+  },
+  carouselCardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  carouselCardImageBadge: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "rgba(0, 128, 105, 0.12)",
   },
-  carouselCategoryText: {
+  carouselCardImageBadgeText: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#008069",
+    color: "#ffffff",
     textTransform: "uppercase",
+    fontFamily: systemFont,
+  },
+  carouselCardInfo: {
+    padding: 12,
+  },
+  carouselRowHeaderHorizontal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
   },
   carouselActiveTag: {
     flexDirection: "row",
@@ -1000,39 +1073,45 @@ const styles = StyleSheet.create({
   },
   carouselTagText: {
     fontSize: 9,
-    fontWeight: "750",
+    fontWeight: "700",
     color: "#4B5563",
+    fontFamily: systemFont,
   },
-  carouselTitleText: {
-    fontSize: 14,
+  carouselTitleTextHorizontal: {
+    fontSize: 12,
     fontWeight: "900",
     color: "#111827",
-    marginBottom: 6,
+    marginBottom: 4,
+    fontFamily: systemFont,
+    lineHeight: 16,
   },
-  carouselContentText: {
-    fontSize: 12,
+  carouselContentTextHorizontal: {
+    fontSize: 10.5,
     color: "#4B5563",
-    lineHeight: 18,
-    marginBottom: 12,
+    lineHeight: 15,
+    marginBottom: 10,
     fontWeight: "500",
+    fontFamily: systemFont,
   },
-  carouselCardFooter: {
+  carouselCardFooterHorizontal: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
     borderColor: "#F3F4F6",
-    paddingTop: 10,
+    paddingTop: 8,
+    marginTop: 4,
   },
-  benefitContainer: {
+  benefitContainerHorizontal: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
-  benefitValueText: {
-    fontSize: 11,
+  benefitValueTextHorizontal: {
+    fontSize: 10,
     fontWeight: "800",
     color: "#008069",
+    fontFamily: systemFont,
   },
   bhaiQuickPromoCard: {
     backgroundColor: "#EEFaf6", // Sweet teal soft tinted block
@@ -1056,7 +1135,7 @@ const styles = StyleSheet.create({
   },
   bhaiPromoTitle: {
     fontSize: 13,
-    fontWeight: "850",
+    fontWeight: "800",
     color: "#0F5132",
   },
   bhaiPromoBody: {
@@ -1163,7 +1242,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: "#1F2937",
-    fontWeight: "650",
+    fontWeight: "600",
   },
   premiumSchemeCard: {
     backgroundColor: "#ffffff",
@@ -1490,7 +1569,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     color: "#1F2937",
     fontSize: 13,
-    fontWeight: "650",
+    fontWeight: "600",
   },
   compressorContainer: {
     marginTop: 6,
@@ -1530,7 +1609,7 @@ const styles = StyleSheet.create({
   },
   compressionBtnText: {
     fontSize: 12,
-    fontWeight: "850",
+    fontWeight: "800",
     color: "#008069",
   },
   statusToast: {

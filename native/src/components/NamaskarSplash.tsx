@@ -8,8 +8,11 @@ import {
   Easing,
   StatusBar,
   Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+const systemFont = Platform.OS === "ios" ? "System" : "sans-serif";
 
 const { width } = Dimensions.get("window");
 
@@ -225,6 +228,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: "center",
     letterSpacing: 0.5,
+    fontFamily: systemFont,
   },
   welcomeSubtitle: {
     fontSize: 10,
@@ -233,6 +237,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textAlign: "center",
     marginBottom: 4,
+    fontFamily: systemFont,
   },
   bhaiHeading: {
     fontSize: 18,
@@ -240,6 +245,7 @@ const styles = StyleSheet.create({
     color: "#1F2937", // Dark gray
     textAlign: "center",
     marginBottom: 16,
+    fontFamily: systemFont,
   },
   divider: {
     height: 2,
@@ -254,6 +260,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
     fontWeight: "500",
+    fontFamily: systemFont,
   },
   pillsContainer: {
     flexDirection: "row",
@@ -262,8 +269,9 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 11,
-    fontWeight: "750",
+    fontWeight: "700",
     color: "#008069",
+    fontFamily: systemFont,
   },
   pillDivider: {
     fontSize: 11,

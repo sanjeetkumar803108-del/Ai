@@ -258,6 +258,49 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Simple direct chat endpoint for native mobile client APK and other lightweight clients
+  app.post("/api/bade-bhai-advice", async (req, res) => {
+    try {
+      const { prompt, history } = req.body;
+      const userMsg = prompt || "";
+      
+      const formattedHistory = (history || []).map((h: any) => ({
+        role: h.sender === "user" ? "user" : "model",
+        parts: [{ text: h.text }]
+      }));
+
+      // Add the latest user message
+      formattedHistory.push({
+        role: "user",
+        parts: [{ text: userMsg }]
+      });
+
+      const response = await callGeminiWithRetry({
+        model: "gemini-2.5-flash",
+        contents: formattedHistory,
+        config: {
+          systemInstruction: `
+            You are "Form Mitra", an advanced, highly intelligent virtual assistant inside the 'Form Mitra AI' super-app.
+            You act as a supportive, knowledgeable older brother ("Bade Bhai") named Sanjeet Kumar's guide.
+            
+            Speak in a warm, polite, and encouraging tone.
+            Always edit/adapt your language style (Hinglish/Hindi/English) matching the entry text style.
+            If the prompt is sad, board exam nervous, or jobs details chinta, console them with immense warmth first. Keep it human.
+            If any scam, jobs requiring upfront money, Security Deposit, Bank PIN is queried, immediately issue a bold 🚨 FRAUD WARNING.
+            
+            MANDATORY Concluding Phrase: "आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।"
+          `
+        }
+      });
+
+      const reply = response.text || "Kya thik se sun nahi paya mere bhai, kripya ek baar aur bolenge?";
+      res.json({ reply });
+    } catch (e: any) {
+      console.error("[bade-bhai-advice] Error:", e);
+      res.status(500).json({ reply: "Sanjeet bhai, lagta hai internet server thoda dheema hai. Lekin chinta mat karo, tumhara bada bhai hamesha tumhare sath hai! " });
+    }
+  });
+
   // Background AI Chat processing endpoint: processes Gemini response in full background 
   // so if the user closes the app, the server still finishes & writes response to Firestore.
   app.post("/api/chat/process", async (req, res) => {

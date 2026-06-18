@@ -1,6 +1,8 @@
 import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+const systemFont = Platform.OS === "ios" ? "System" : "sans-serif";
 
 interface AntiScamWarningProps {
   onDismiss?: () => void;
@@ -137,14 +139,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     flex: 1,
     fontWeight: "500",
+    fontFamily: systemFont,
   },
   boldText: {
     fontWeight: "800",
     color: "#1F2937",
+    fontFamily: systemFont,
   },
   highlightText: {
     color: "#008069",
-    fontWeight: "850",
+    fontWeight: "800",
+    fontFamily: systemFont,
   },
   footerRow: {
     flexDirection: "row",
@@ -166,6 +171,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     color: "#008069",
+    fontFamily: systemFont,
   },
   dismissButton: {
     backgroundColor: "#008069",
@@ -179,5 +185,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: "#ffffff",
+    fontFamily: systemFont,
   },
 });
