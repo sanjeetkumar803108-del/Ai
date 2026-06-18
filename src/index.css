@@ -76,3 +76,220 @@ body {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
+
+/* ==========================================
+   GLOBAL DARK MODE THEME SYSTEM OVERRIDES
+   ========================================== */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b0f19 !important; /* Soothing dark slate background */
+  color: #f1f5f9 !important;
+}
+
+/* Card Elements & Main White Panels */
+html.dark .bg-white,
+html.dark [class*="bg-white/"],
+html.dark .bg-slate-50,
+html.dark .bg-slate-[initial],
+html.dark .bg-slate-100 {
+  background-color: #111827 !important; /* Dark Slate Gray */
+}
+
+html.dark .bg-slate-50\/85 {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+}
+
+/* Inner block wrapper panels and lists */
+html.dark .bg-slate-100\/50,
+html.dark .bg-slate-100\/80 {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50 {
+  background-color: #0b0f19 !important;
+}
+
+/* Border and divider lines */
+html.dark .border-gray-100,
+html.dark .border-slate-100,
+html.dark .border-gray-200,
+html.dark .border-slate-200,
+html.dark [class*="border-slate-100/"],
+html.dark [class*="border-gray-100/"] {
+  border-color: #1f2937 !important;
+}
+
+/* Deep text elements - headings, titles */
+html.dark .text-gray-900,
+html.dark .text-slate-900,
+html.dark .text-black,
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f8fafc !important;
+}
+
+/* Secondary body paragraph texts */
+html.dark .text-gray-700,
+html.dark .text-slate-700,
+html.dark .text-gray-600,
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+/* Dim muted tertiary text styles */
+html.dark .text-gray-500,
+html.dark .text-slate-500,
+html.dark .text-gray-400,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-gray-300,
+html.dark .text-slate-300 {
+  color: #64748b !important;
+}
+
+/* Inputs, drop-downs, select boxes */
+html.dark select,
+html.dark input,
+html.dark textarea {
+  background-color: #1f2937 !important;
+  color: #f8fafc !important;
+  border-color: #374151 !important;
+}
+
+html.dark select option {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+}
+
+/* Gradient overrides on main layout blocks */
+html.dark .bg-gradient-to-b.from-slate-50.to-white,
+html.dark .bg-gradient-to-br.from-slate-50.to-slate-100 {
+  background-image: none !important;
+  background-color: #0b0f19 !important;
+}
+
+/* Header/Header bottom bars blur overlays */
+html.dark .bg-white\/80 {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+}
+
+html.dark .bg-white\/90 {
+  background-color: rgba(17, 24, 39, 0.92) !important;
+}
+
+/* Navigation items hover states and backgrounds */
+html.dark .text-gray-400.hover\:text-\[\#008069\] {
+  color: #64748b !important;
+}
+
+html.dark .text-slate-600.hover\:bg-slate-50 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .hover\:bg-slate-50:hover {
+  background-color: #1f2937 !important;
+}
+
+/* Action button icons/tabs wrappers */
+html.dark .bg-green-50,
+html.dark .bg-teal-50,
+html.dark .bg-blue-50,
+html.dark .bg-purple-50,
+html.dark .bg-orange-50,
+html.dark .bg-indigo-50,
+html.dark .bg-red-50 {
+  background-color: #1f2937 !important;
+  opacity: 0.95;
+}
+
+/* WhatsApp notification center bubbles and logs */
+html.dark .bg-green-50\/30 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+/* Prose block specific heading resets */
+html.dark .prose h3 {
+  color: #f8fafc !important;
+}
+
+/* ==========================================
+   FORM MITRA PREMIUM LUXURY STYLE OVERLAYS
+   ========================================== */
+
+/* Modern fluid container transitions */
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Premium micro-elevated card containers */
+.bg-white, [class*="bg-white/"] {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Luxury container borders & ambient glowing shadows */
+.shadow-sm, .shadow-md, .shadow-xl {
+  box-shadow: 0 4px 20px -2px rgba(100, 116, 139, 0.05), 0 2px 6px -1px rgba(100, 116, 139, 0.03) !important;
+}
+
+.shadow-2xl {
+  box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -3px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Interactive elements hover scale with smooth cubic-bezier */
+button, [role="button"], .cursor-pointer {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Custom premium hover enhancements */
+.hover\:shadow-md:hover {
+  box-shadow: 0 10px 25px -4px rgba(0, 128, 105, 0.08), 0 4px 10px -2px rgba(0, 128, 105, 0.04) !important;
+  border-color: rgba(0, 128, 105, 0.2) !important;
+}
+
+/* Customized thin premium scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 128, 105, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 128, 105, 0.4);
+}
+
+/* Clean glassmorphism header overlay */
+.sticky {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+

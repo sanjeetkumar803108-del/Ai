@@ -12,10 +12,11 @@ export const SCHEMES: Scheme[] = [
     benefits: ['₹2,000 every 4 months', 'Direct Benefit Transfer (DBT)'],
     documents: ['Aadhar Card', 'Land Records', 'Bank Account Details'],
     category: 'Agriculture',
-    community: 'Farmer',
+    community: 'Normal',
     officialUrl: 'https://pmkisan.gov.in/',
     image: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop',
-    aiVersion: 'Mitra Core v1.0'
+    aiVersion: 'Mitra Core v1.0',
+    deadline: Date.now() + 5 * 24 * 60 * 60 * 1000
   },
   {
     id: 'ayushman-bharat',
@@ -31,7 +32,8 @@ export const SCHEMES: Scheme[] = [
     community: 'Normal',
     officialUrl: 'https://pmjay.gov.in/',
     image: 'https://images.unsplash.com/photo-1576091160550-217359f42f8c?q=80&w=800&auto=format&fit=crop',
-    aiVersion: 'Mitra Core v1.0'
+    aiVersion: 'Mitra Core v1.0',
+    deadline: Date.now() + 8 * 24 * 60 * 60 * 1000
   },
   {
     id: 'ration-card',
@@ -117,7 +119,8 @@ export const SCHEMES: Scheme[] = [
     community: 'Normal',
     officialUrl: 'https://pmsuryaghar.gov.in/',
     image: 'https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop',
-    aiVersion: 'Mitra Core v1.0'
+    aiVersion: 'Mitra Core v1.0',
+    deadline: Date.now() + 3 * 24 * 60 * 60 * 1000
   },
   {
     id: 'ujjwala-yojana',
@@ -148,7 +151,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Finance',
     community: 'Jobs',
     officialUrl: 'https://pmsvanidhi.mohua.gov.in/',
-    image: 'https://images.unsplash.com/photo-1532622724791-782f06bfe861?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1601058268499-e52658bdf926?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
   {
@@ -194,7 +197,7 @@ export const SCHEMES: Scheme[] = [
     benefits: ['Guaranteed employment', 'Unemployment allowance if work not provided'],
     documents: ['Job Card', 'Aadhar Card', 'Bank Passbook'],
     category: 'Employment',
-    community: 'Farmer',
+    community: 'Normal',
     officialUrl: 'https://nrega.nic.in/',
     image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'

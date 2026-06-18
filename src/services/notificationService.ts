@@ -41,7 +41,9 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
     type: 'deadline',
     timestamp: Date.now() - 3600000,
     read: false,
-    actionUrl: 'scholarships'
+    actionUrl: 'scholarships',
+    boardId: 'UPMSP',
+    important: true
   },
   {
     id: 'n2',
@@ -49,7 +51,9 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
     body: 'Bihar Student Credit Card application "Under Review" status par move ho gayi hai.',
     type: 'status',
     timestamp: Date.now() - 86400000,
-    read: true
+    read: false,
+    boardId: 'BSEB',
+    important: true
   },
   {
     id: 'n3',
@@ -58,6 +62,27 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
     type: 'news',
     timestamp: Date.now() - 172800000,
     read: true,
-    actionUrl: 'schemes'
+    actionUrl: 'schemes',
+    important: false
+  },
+  {
+    id: 'n4',
+    title: 'CBSE Board Sample Papers Live!',
+    body: 'CBSE Board Session 2026 ke liye latest math and science sample booklets official portal par scan and download ke liye live ho chuki hain.',
+    type: 'news',
+    timestamp: Date.now() - 36000000,
+    read: false,
+    boardId: 'CBSE',
+    important: true
+  },
+  {
+    id: 'n5',
+    title: 'CISCE Marksheet DigiLocker Integration',
+    body: 'ICSE (Class 10th) passing migration system ab DigiLocker authentication credentials ke saath fully sync ho gaya hai. Download credentials fast.',
+    type: 'status',
+    timestamp: Date.now() - 72000000,
+    read: true,
+    boardId: 'CISCE',
+    important: false
   }
 ];

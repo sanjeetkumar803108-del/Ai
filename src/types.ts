@@ -26,7 +26,7 @@ export type Scheme = {
   benefits: string[];
   documents: string[];
   category: 'Education' | 'Agriculture' | 'Health' | 'Social' | 'Finance' | 'Employment';
-  community?: 'Student' | 'Farmer' | 'Normal' | 'Jobs';
+  community?: 'Student' | 'Normal' | 'Jobs';
   officialUrl?: string;
   state?: string;
   image?: string;
@@ -45,6 +45,7 @@ export type UserProfile = {
   aadharDocUrl?: string;
   phoneNumber?: string;
   address?: string;
+  dob?: string;
   class?: string;
   stream?: 'PCB' | 'PCM' | 'Commerce' | 'Arts' | 'Others';
   needs?: string;
@@ -53,14 +54,23 @@ export type UserProfile = {
   streak: number;
   lastLogin?: number;
   notificationsEnabled?: boolean;
+  dailyRemindersEnabled?: boolean;
+  dailyReminderTime?: string;
   whatsappNumber?: string;
-  occupation?: 'Farmer' | 'Student' | 'Naukri' | 'Normal' | 'Worker' | 'Unemployed' | 'Other';
-  community?: 'Student' | 'Farmer' | 'Normal' | 'Jobs';
+  schoolBoard?: string;
+  followedBoards?: string[];
+  occupation?: 'Student' | 'Naukri' | 'Normal' | 'Worker' | 'Unemployed' | 'Other';
+  community?: 'Student' | 'Normal' | 'Jobs';
   gender?: 'Male' | 'Female' | 'Other';
   monthlyIncome?: string;
   category?: 'General' | 'OBC' | 'SC' | 'ST' | 'EWS';
   hasCompletedTutorial?: boolean;
   savedSchemeIds?: string[];
+  desiredJob?: string;
+  vaultPinSecured?: boolean;
+  vaultPinCode?: string;
+  vaultAccessLogs?: string[];
+  darkModeEnabled?: boolean;
 };
 
 export type AppNotification = {
@@ -71,6 +81,8 @@ export type AppNotification = {
   timestamp: number;
   read: boolean;
   actionUrl?: string;
+  important?: boolean;
+  boardId?: string;
 };
 
 export type NewsItem = {
@@ -107,6 +119,7 @@ export type UserDocument = {
   url: string;
   expiryDate?: number;
   uploadedAt: number;
+  category?: string;
 };
 
 export type UserFeedback = {
@@ -128,4 +141,5 @@ export type FormDraft = {
   formData: Record<string, string>;
   formDefinition: any;
   updatedAt: number;
+  isOfflineDraft?: boolean;
 };

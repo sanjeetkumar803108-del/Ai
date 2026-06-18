@@ -28,7 +28,10 @@
         "monthlyIncome": { "type": "string" },
         "category": { "type": "string", "enum": ["General", "OBC", "SC", "ST", "EWS"] },
         "notificationsEnabled": { "type": "boolean" },
-        "needs": { "type": "string" }
+        "needs": { "type": "string" },
+        "vaultPinSecured": { "type": "boolean" },
+        "vaultPinCode": { "type": "string" },
+        "vaultAccessLogs": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["uid", "preferredLanguage"]
     },
@@ -117,9 +120,32 @@
         "cachedAt": { "type": "integer" }
       },
       "required": ["name", "description", "category", "cachedAt"]
+    },
+    "SavedFile": {
+      "title": "Saved Document File",
+      "description": "Document information with download/display payload",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileSize": { "type": "integer" },
+        "fileType": { "type": "string" },
+        "fileData": { "type": "string" },
+        "createdAt": { "type": "integer" },
+        "qrCodeUrl": { "type": "string" },
+        "userId": { "type": "string" },
+        "targetUrl": { "type": "string" },
+        "ttl": { "type": "integer" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "fileName", "fileData", "createdAt", "userId"]
     }
   },
   "firestore": {
+    "/savedFiles/{fileId}": {
+      "schema": "SavedFile",
+      "description": "Saved files for QR scanning and verification"
+    },
     "/users/{userId}": {
       "schema": "User",
       "description": "User profile data"

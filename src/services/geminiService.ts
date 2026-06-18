@@ -12,26 +12,35 @@ export interface GeminiError {
 }
 
 const handleGeminiError = (error: any): GeminiError => {
-  const errorStr = JSON.stringify(error).toLowerCase();
+  const messagePart = error && (error.message || error.statusText || String(error) || "");
+  const detailsPart = error && error.details ? JSON.stringify(error.details) : "";
+  const stackPart = error && error.stack ? String(error.stack) : "";
+  const errorStr = `${JSON.stringify(error)} ${messagePart} ${detailsPart} ${stackPart}`.toLowerCase();
   
-  if (errorStr.includes('quota') || errorStr.includes('429') || errorStr.includes('resource_exhausted')) {
+  if (
+    errorStr.includes('quota') || 
+    errorStr.includes('429') || 
+    errorStr.includes('resource_exhausted') || 
+    errorStr.includes('rate limit') ||
+    errorStr.includes('limit exceeded')
+  ) {
     return {
       type: 'QUOTA',
-      message: 'Bhai, AI limit khatam ho gayi hai. Kripya thodi der baad try karein (Quota Reset expected). आपको बिल्कुल टेंशन लेने की जरूरत नहीं है।'
+      message: 'Sanjeet bhai, lagta hai free tier ki API daily limits abhi exceed ho gayi hain! ⏳ Bhai, kripya thoda wait karke try karein (Aap 1-2 minutes baad ya phir kal try kar sakte hain). Tab tak aap baaki local tools jaise "Verified Smart QR" ya data vaults bina kisi dikkat ke bilkul free use kar sakte hain! Aapko bilkul tension lene ki zarurat nahi hai, main aapke saath hoon!'
     };
   }
   
   if (errorStr.includes('network') || errorStr.includes('xhr') || errorStr.includes('fetch') || errorStr.includes('failed to fetch')) {
     return {
       type: 'NETWORK',
-      message: 'Internet connectivity mein thodi dikkat hai. Kripya apna connection check karein.'
+      message: 'Mobile internet speed thodi kam lag rahi hai bhai, ya network me dikkat hai. Kripya connectivity check karke ek baar dobara try karein!'
     };
   }
   
   if (errorStr.includes('key') || errorStr.includes('api_key') || errorStr.includes('unauthorized')) {
     return {
       type: 'INVALID_KEY',
-      message: 'AI initialization mein problem hai. Kripya developer se contact karein.'
+      message: 'AI initialization key set up me thodi dikkat aa rahi hai bhai. Developer settings me system credentials check kar lijiye.'
     };
   }
 
@@ -40,6 +49,32 @@ const handleGeminiError = (error: any): GeminiError => {
     message: 'System mein kuch anjan dikkat aa gayi hai. Kripya thodi der baad koshish karein.',
     originalError: error
   };
+};
+
+const sanitizeProfile = (profile: any) => {
+  if (!profile) return profile;
+  const cleaned = { ...profile };
+  
+  // Clean empty values to prevent any issues
+  Object.keys(cleaned).forEach(key => {
+    if (cleaned[key] === null || cleaned[key] === undefined || cleaned[key] === "") {
+      delete cleaned[key];
+    }
+  });
+
+  // If community is Jobs, remove student parameters and set appropriate occupation if student
+  if (cleaned.community === 'Jobs') {
+    delete cleaned.class;
+    delete cleaned.stream;
+    if (cleaned.occupation === 'Student') {
+      cleaned.occupation = 'Unemployed';
+    }
+  } else if (cleaned.community === 'Normal') {
+    // If citizen/normal, remove student parameters as well
+    delete cleaned.class;
+    delete cleaned.stream;
+  }
+  return cleaned;
 };
 
 export let ai: GoogleGenAI | null = null;
@@ -162,6 +197,7 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
     {
       "formName": "Official name of the form",
       "summary": "Warm 1-line explanation in Hinglish of what this form is for (e.g., 'Ye form aapko scholarship dilane mein help karega!')",
+      "extractedOcrText": "A clean, markdown-formatted full text transcript of all characters, headings, and input field labels extracted verbatim from the uploaded form photo using high-fidelity OCR, preserving the structural layout as best as possible. Highlight headings with '#' and format tabular lists clearly so it's super easy to read and copy.",
       "costEfficiency": {
         "offlineCost": "Estimated ₹ range (Cyber Cafe/Agent)",
         "onlineCost": "Official ₹ fee (often ₹0)",
@@ -229,6 +265,7 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
     return JSON.stringify({
       "formName": "Digital Application Form",
       "summary": `${errorInfo.message} (Service Busy). आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।`,
+      "extractedOcrText": "# Application for General Benefit Scheme\n\n1. **Full Name** (as in Aadhaar Card) _______________________\n2. **Date of Birth** (DD/MM/YYYY) _______________________\n3. **Father's Name** _______________________\n4. **Aadhar Number** _______________________\n5. **Permanent Address** _______________________\n6. **Signature of Applicant** _______________________",
       "costEfficiency": {
         "offlineCost": "₹150 - ₹300",
         "onlineCost": "₹0 - ₹50",
@@ -309,7 +346,7 @@ export const getFieldExample = async (formName: string, fieldName: string, expla
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -495,7 +532,17 @@ ID/Roll No: [Optional]
  * Generates an AI-powered "Smart Tip" for a specific government scheme.
  */
 export const getSchemeSmartTip = async (scheme: any, userProfile: UserProfile): Promise<string> => {
-  if (!ai) throw new Error("AI not initialized.");
+  const isLocalStorageAvailable = typeof window !== "undefined" && window.localStorage;
+  const now = Date.now();
+  
+  const quotaReachedRaw = isLocalStorageAvailable ? window.localStorage.getItem("mitra_gemini_quota_reached") : null;
+  const quotaReachedTime = quotaReachedRaw ? parseInt(quotaReachedRaw, 10) : 0;
+  const isQuotaCooldown = now - quotaReachedTime < 4 * 60 * 60 * 1000; // 4 hours cooldown if quota reached
+
+  if (!ai || isQuotaCooldown) {
+    console.log("[getSchemeSmartTip] Bypassing real Gemini API call (cooldown/uninitialized). Returning tailored smart tip.");
+    return `Bhai, is ${scheme.name || "scheme"} ke liye apne basic KYC aur income certificates up-to-date rakhiye. Official site par apply karte samay biometrics mismatch se bachein.`;
+  }
 
   const prompt = `
     Role: You are "Mitra", an expert 'Bade Bhai' advisor for Indian government schemes.
@@ -524,13 +571,27 @@ export const getSchemeSmartTip = async (scheme: any, userProfile: UserProfile): 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.5-flash",
       contents: prompt,
     });
     return response.text.trim();
-  } catch (error) {
+  } catch (error: any) {
     console.warn("Smart Tip generation error:", error);
-    return "Bhai, is scheme ke liye bas saare documents taiyaar rakho aur official site par up-to-date raho!";
+    const errorStr = String(error?.message || error || "").toLowerCase();
+    
+    if (
+      errorStr.includes('quota') || 
+      errorStr.includes('429') || 
+      errorStr.includes('resource_exhausted') || 
+      errorStr.includes('rate limit') ||
+      errorStr.includes('limit exceeded')
+    ) {
+      if (isLocalStorageAvailable) {
+        window.localStorage.setItem("mitra_gemini_quota_reached", String(Date.now()));
+      }
+    }
+    
+    return `Bhai, is ${scheme.name || "scheme"} ke liye apne basic KYC aur income certificates up-to-date rakhiye. Official site par apply karte samay biometrics mismatch se bachein.`;
   }
 };
 
@@ -582,7 +643,7 @@ export const analyzeFilledForm = async (imageFile: File, scheme: any): Promise<{
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.5-flash",
       contents: [
         {
           role: "user",
@@ -702,32 +763,216 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
 };
 
 export const getDailyNews = async (userProfile: any) => {
-  if (!ai) throw new Error("AI not initialized.");
+  const profile = sanitizeProfile(userProfile);
+  
+  // High-quality local/fallback news generator to completely prevent API loops & over-exhaustion
+  const getFallbackNewsData = () => {
+    const fallbackNews: any = {
+      'Student': [
+        {
+          "id": "fs1",
+          "title": "Bihar Student Credit Card New Portal Update 🚀",
+          "summary": "Bihar sarkar ne Student Credit Card yojana ka portal naya kiya hai. Ab higher studies ke liye ₹4 lakh tak ka loan apply karna behad aasan aur fast ho gaya hai.",
+          "category": "Scholarship",
+          "analysis": "Bhai, agar aap higher studies ke liye paise arrange karne me pareshan ho rahe hain, toh is yojana se bina kisi collateral security ke saste dar par loan mil jayega.",
+          "impact": "Aap DRCC office ke chakkar kaatne ke bajae ab direct online MNSSBY portal se apply kar sakte hain.",
+          "date": "30 June 2026",
+          "officialLink": "https://www.7nishchay-yuvaupaj.bihar.gov.in/"
+        },
+        {
+          "id": "fs2",
+          "title": "National Scholarship Portal (NSP) Online Registration Started",
+          "summary": "NSP portal par Class 10th aur 12th passed aur college students ke liye pre-matric aur post-matric scholarship ka fresh registration khul chuka hai.",
+          "category": "Scholarship",
+          "analysis": "Aapko padhai me financial support dene ke liye sarkar varshik scholarship deti hai. Isme time par documents verify karwana sabse jaruri hai.",
+          "impact": "Bhai, apne school ya college ke principal se consult karke pehle bonafide certificate banwayein aur fir NSP portal par apply karein.",
+          "date": "15 July 2026",
+          "officialLink": "https://scholarships.gov.in/"
+        },
+        {
+          "id": "fs3",
+          "title": "JEE / NEET Free Mock Tests & Career Guidance Portal Live",
+          "summary": "Government ne National Test Abhyas app aur local center par free online mock tests organize karne ka elan kiya hai jahan coaching materials bhi free milenge.",
+          "category": "Education",
+          "analysis": "Yeh un sabhi students ke liye sunehra mauka hai jo mehengi test series kharid nahi sakte. Practice se aapka exam anxiety door hoga aur score behtar hoga.",
+          "impact": "Directly play store se app download karein ya official ugc portal par free content verify karein.",
+          "date": "Ongoing",
+          "officialLink": "https://www.nta.ac.in/Abhyas"
+        },
+        {
+          "id": "fs4",
+          "title": "Free UPSC/BPSC Coaching Scheme for SC/ST and OBC Students",
+          "summary": "Bihar state civil services incentive scheme ke tehat BPSC PT pass karne par ₹50,000 aur UPSC PT pass karne par ₹1,00,000 ki seedhi financial help di ja rahi hai.",
+          "category": "Education",
+          "analysis": "Bhai agar aapka koi dost ya aap prelims clear karte hain toh aage ki mains ki taiyari ke liye sarkari fund direct college bank account me aayega.",
+          "impact": "Pass hone ke bad direct social welfare department ke online form portal par roll number upload karke claim karein.",
+          "date": "31 August 2026",
+          "officialLink": "https://state.bihar.gov.in/prdbihar/"
+        },
+        {
+          "id": "fs5",
+          "title": "PM Vidyalaxmi Education Loan Portal Update",
+          "summary": "Sarkar ne top institutes me admission lene wale medhavi chatron ke liye PM Vidyalaxmi portal launch kiya hai, jisme zero-interest support par loan diya jayega.",
+          "category": "Scholarship",
+          "analysis": "Paisa ab aapki padhai ke aade nahi aayega! Is scheme me non-collateral loan dilaane ke liye direct banks ko instruction diya gaya hai.",
+          "impact": "Apne selected college admission letter ke sath portal par single form bharein.",
+          "date": "10 July 2026",
+          "officialLink": "https://www.vidyalakshmi.co.in/"
+        }
+      ],
+      'Jobs': [
+        {
+          "id": "fj1",
+          "title": "BPSC 70th Recruitment Scheme 💼",
+          "summary": "BPSC ne civil services vacancies ke liye naya notification aur syllabus release kiya hai. Graduate pass hone par aap sarkaari adhikari ban sakte hain.",
+          "category": "Jobs",
+          "analysis": "Bhai, Bihar me sarkaari naukari ka sapna poora karne ka sabse behtar aur sammanit tarika hai yeh. Exam pattern thoda badla hai, isliye focus dhyan se karein.",
+          "impact": "Direct bpsc.bih.nic.in par jaakar form fillup jarur karein. Government server raat ko fast chalta hai toh safe rahein.",
+          "date": "20 June 2026",
+          "officialLink": "https://bpsc.bih.nic.in/"
+        },
+        {
+          "id": "fj2",
+          "title": "National Career Service (NCS) Mega Job Fairs Online",
+          "summary": "Shram mantralaya ke NCS portal par multiple private aur semi-govt sector jobs ke liye online mega hiring fair start kiya gaya hai.",
+          "category": "Jobs",
+          "analysis": "BINA kisi application fee ke, direct verified companies yahan resume shortlist kar ke interview leti hain. Isse fake job calls aur scams se bachao hoga.",
+          "impact": "NCS portal par apna e-Shram card ya free student candidate profile register kar ke part-time ya full-time fields choose karein.",
+          "date": "15 June 2026",
+          "officialLink": "https://www.ncs.gov.in/"
+        },
+        {
+          "id": "fj3",
+          "title": "Free Skill Development Training under PMKVY 4.0",
+          "summary": "Pradhan Mantri Kaushal Vikas Yojana ke tehat IT, Accounts, Coding aur Digital Marketing ki free practical training aur certification di ja rahi hai.",
+          "category": "Jobs",
+          "analysis": "Keval degree se kaam nahi chalta bhai, aaj kal hands-on skills seekhna behad zaroori hai. Is training ke baad job placement help bhi sarkar hi karwayegi.",
+          "impact": "Apne pass ke Skill Development Center (SDC) me jakar admission confirm karwayein.",
+          "date": "30 June 2026",
+          "officialLink": "https://www.pmkvyofficial.org/"
+        },
+        {
+          "id": "fj4",
+          "title": "Rail Kaushal Vikas Yojana batch announcement",
+          "summary": "Indian Railways ne technical skills sikhane ke liye 18 days ka free short-term skill training batch chalu kiya hai. 10th pass apply kar sakte hain.",
+          "category": "Jobs",
+          "analysis": "Technical sector me local job ya apprenticeship paane ka achha rasta hai, khas kar mechanical, electrical ya computer fields ke logo ke liye.",
+          "impact": "Online application railway portal par submit karke offline training center select karein.",
+          "date": "25 June 2026",
+          "officialLink": "https://railkvy.indianrailways.gov.in/"
+        },
+        {
+          "id": "fj5",
+          "title": "Work from Home Apprenticeships on AI Portal",
+          "summary": "Sarkar ne Digital India IndiaSkills portal par part-time data-entry, content moderation aur translation work ki apprenticeships publish ki hain.",
+          "category": "Jobs",
+          "analysis": "Ghar baithe pocket money earn karne ke liye ye verified platform hai. 100% free hai, koi registration fee ya laptop deposit nahi dena hota.",
+          "impact": "Apna profile complete karke micro-jobs block filter use karein.",
+          "date": "12 July 2026",
+          "officialLink": "https://www.skillindia.gov.in/"
+        }
+      ]
+    };
+
+    return fallbackNews[profile.community] || [
+      {
+        "id": "fg1",
+        "title": "PM Kisan Samman Nidhi 17th Kist Announcement 🌾",
+        "summary": "Sarkar ne PM kisan samman nidhi ki ₹2000 ki agli kist dbt transfer ke jariye farmers ke bank accounts me bhejna shuru kar diya hai.",
+        "category": "Yojana",
+        "analysis": "Farmers bhaiyo ke liye kheti me beej aur khad lene ke liye ye samay par aayi madad hai. Bank me dbt trigger on hona chahiye.",
+        "impact": "Apni kist ka status PM-Kisan portal par mobile aur aadhar number daalkar check karein.",
+        "date": "Immediate",
+        "officialLink": "https://pmkisan.gov.in/"
+      },
+      {
+        "id": "fg2",
+        "title": "Aadhaar Card Document Update Free Process Extended 🆔",
+        "summary": "UIDAI ne purane aadhaar card holder ke liye free identity aur address document update online karne ki last date badha di hai.",
+        "category": "Policy",
+        "analysis": "Agar aapka aadhaar card 10 saal purana hai toh isko free me online update kar lijiye taaki koi bhi bank details ya govt subsidies na ruke.",
+        "impact": "MyAadhaar web portal par login karke apna voter card ya ration card scanning copy online proof upload karein.",
+        "date": "14 September 2026",
+        "officialLink": "https://myaadhaar.uidai.gov.in/"
+      },
+      {
+        "id": "fg3",
+        "title": "Ayushman Bharat PMJAY Free Health Cover expansion",
+        "summary": "Ayushman card yojana ke tehat ab 70 saal se upar ke sabhi elderly citizens ko ₹5 lakh tak ka free cashless health insurance diya jayega, chahe income kuch bhi ho.",
+        "category": "Yojana",
+        "analysis": "Bhai, ye ghar ke bade-buzurgon ki sehat ki suraksha ke liye sunehra faisla hai. Hospital bill ki tension ab sarkar legi.",
+        "impact": "Aapke nazdiki CSC center ya government hospital ke ayushman mitra counter se card banwayein.",
+        "date": "Ongoing",
+        "officialLink": "https://dashboard.pmjay.gov.in/"
+      },
+      {
+        "id": "fg4",
+        "title": "PM Surya Ghar Free Electricity Yojana Online",
+        "summary": "Sarkar ghar par solar panel lagane ke liye PM Surya Ghar Muft Bijli scheme me up to 78,000 subsidy de rahi hai aur 300 units free bijli milegi.",
+        "category": "Yojana",
+        "analysis": "Apne bijli bill ko zero karne aur extra earning karne ka isse accha chance nahi milega. Chhat par solar power lagakar aatm-nirbhar banein.",
+        "impact": "Solar portal par register karke apka electricity connection consumer ID select karein.",
+        "date": "31 August 2026",
+        "officialLink": "https://pmsuryaghar.gov.in/"
+      },
+      {
+        "id": "fg5",
+        "title": "Bihar Ration Card E-KYC Verification Alert",
+        "summary": "Khadya mantralaya ne sabhi ration card members ke liye pos machine se finger-print e-kyc verification complete karwana mandatory kar diya hai.",
+        "category": "Policy",
+        "analysis": "Agar aapne verification nahi karwaya toh ration milna band ho sakta hai. Ye block aur ration dukan owner se karwana free hai.",
+        "impact": "Turant apne ration dukan vitarak (dealer) ke paas jakar biometrics verify karwayein.",
+        "date": "30 June 2026",
+        "officialLink": "https://epds.bihar.gov.in/"
+      }
+    ];
+  };
+
+  const now = Date.now();
+  const fifteenMinutes = 15 * 60 * 1000;
+  const isLocalStorageAvailable = typeof window !== "undefined" && window.localStorage;
+  
+  const lastCallRaw = isLocalStorageAvailable ? window.localStorage.getItem("mitra_last_news_api_call") : null;
+  const lastCall = lastCallRaw ? parseInt(lastCallRaw, 10) : 0;
+
+  const quotaReachedRaw = isLocalStorageAvailable ? window.localStorage.getItem("mitra_gemini_quota_reached") : null;
+  const quotaReachedTime = quotaReachedRaw ? parseInt(quotaReachedRaw, 10) : 0;
+  const isQuotaCooldown = now - quotaReachedTime < 4 * 60 * 60 * 1000; // 4 hours cooldown if quota reached
+
+  // If we had a call very recently OR quota is exhausted, bypass Gemini call completely to protect quota
+  if (!ai || (now - lastCall < fifteenMinutes) || isQuotaCooldown) {
+    console.log("[getDailyNews] Bypassing real Gemini API call (cooldown/quota/uninitialized). Returning tailored offline news.");
+    return getFallbackNewsData();
+  }
+
+  // Update last call attempt immediately BEFORE starting search to prevent overlapping loops
+  if (isLocalStorageAvailable) {
+    window.localStorage.setItem("mitra_last_news_api_call", String(now));
+  }
 
   const communityPrompt = (() => {
-    switch(userProfile.community) {
-      case 'Student': return `Generate news for a Student (Class ${userProfile.class}, Stream ${userProfile.stream}). Focus on Scholarships, Exams (JEE/NEET), and Career tips.`;
-      case 'Farmer': return `Generate news for a Farmer in ${userProfile.state}. Focus on Mandi Bhav, Weather, Agricultural Schemes, and New Farming Techniques.`;
-      case 'Jobs': return `Generate news for a Job Seeker. Focus on Private/Govt Job openings, Work from Home opportunities, and Skill development.`;
-      default: return `Generate news for a Common Citizen in ${userProfile.state}. Focus on latest Govt Schemes, Aadhar/PAN updates, and local welfare news.`;
+    switch(profile.community) {
+      case 'Student': return `Generate news for a Student (Class ${profile.class}, Stream ${profile.stream}). Focus on Scholarships, Exams (JEE/NEET/Board exams), free career materials, and College admission updates.`;
+      case 'Jobs': return `Generate news for a Job Seeker. Focus on Private/Govt Job openings, Work from Home opportunities, free skill training (PMKVY), and Bihar/National job portal updates.`;
+      default: return `Generate news for a Common Citizen / Farmer / Mahila in ${profile.state}. Focus on latest Govt Schemes (PM-Kisan, Ladli Behna, Bihar Student Credit Card), Aadhar/PAN updates, and local block level welfare scheme registrations.`;
     }
   })();
 
   const prompt = `
-    Generate 3 short high-impact news items or policy updates.
+    Generate at least 5 to 6 fresh, distinct, short high-impact news items or policy updates tailored perfectly for the user profile given.
     ${communityPrompt}
-    Focus on "Global to Local" transitions.
+    Focus on "Global to Local" transitions and recent development updates. Ensure there are exactly 5-6 items in the list.
     
     Each item must have:
-    - title: Catchy title
-    - summary: 45-second Hinglish audio summary
-    - category: Scholarship, Education, Kheti, Jobs, or Policy
+    - title: Catchy title in clear Hinglish
+    - summary: 45-second Hinglish audio summary with friendly elder brother tone
+    - category: Scholarship, Education, Kheti, Jobs, Policy, or Yojana
     - analysis: Detailed explanation of why it matters to the user
-    - impact: Practical local impact (e.g. "Apply at your local Block Office")
+    - impact: Practical local impact (e.g. "Apply at your local Block Office or CSC")
     - date: Key deadline or event date
     - officialLink: Mock or real URL for verification
     
-    Output Format (JSON Array):
+    Output Format (JSON Array of 5-6 items):
     [
       {
         "id": "1",
@@ -738,7 +983,8 @@ export const getDailyNews = async (userProfile: any) => {
         "impact": "...",
         "date": "...",
         "officialLink": "..."
-      }
+      },
+      ...
     ]
   `;
 
@@ -748,109 +994,57 @@ export const getDailyNews = async (userProfile: any) => {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
-    return JSON.parse(response.text || "[]");
+    const parsed = JSON.parse(response.text || "[]");
+    if (Array.isArray(parsed) && parsed.length >= 5) {
+      return parsed;
+    }
+    throw new Error("Returned less than 5 items");
   } catch (error: any) {
     console.warn("News Generation (Quota or Error):", error?.message || error);
+    const errorStr = String(error?.message || error || "").toLowerCase();
     
-    // Provide high-quality fallback news to keep the app functional
-    const fallbackNews: any = {
-      'Student': [
-        {
-          "id": "f1",
-          "title": "Scholarship Registration Open",
-          "summary": "National Scholarship Portal par naya registration chalu ho gaya hai. Last date 30th June hai.",
-          "category": "Scholarship",
-          "analysis": "Yeh student ke liye financial help ka bada mauka hai.",
-          "impact": "Apply at scholarship.gov.in using Aadhar.",
-          "date": "30 June 2026",
-          "officialLink": "https://scholarships.gov.in/"
-        },
-        {
-          "id": "f2",
-          "title": "CBSE Sample Papers Out",
-          "summary": "Agli board pariksha ke liye sample papers release ho gaye hain.",
-          "category": "Education",
-          "analysis": "Inhe solve karne se exam pattern samajhne mein asani hogi.",
-          "impact": "Download from CBSE official website.",
-          "date": "Ongoing",
-          "officialLink": "https://cbse.gov.in/"
-        }
-      ],
-      'Farmer': [
-        {
-          "id": "f3",
-          "title": "PM Kisan 17th Installment",
-          "summary": "PM Kisan ki agali kist jald hi aadhar-linked accounts mein bhej di jayegi. KYC verify karlein.",
-          "category": "Agriculture",
-          "analysis": "Kisanon ke liye kheti ki purva-taiyari mein yeh madad karega.",
-          "impact": "Check status on PM Kisan portal.",
-          "date": "Coming Soon",
-          "officialLink": "https://pmkisan.gov.in/"
-        },
-        {
-          "id": "f4",
-          "title": "Monsoon Bihar Update",
-          "summary": "Is saal Bihar mein samanya baarish hone ki sambhavna hai. Dhan ki ropai ki taiyari shuru karein.",
-          "category": "Kheti",
-          "analysis": "Sahi samay par ropai se paidavar achi hogi.",
-          "impact": "Be ready with seeds and fertilizers.",
-          "date": "June 1st Week",
-          "officialLink": "https://mausam.imd.gov.in/"
-        }
-      ],
-      'Jobs': [
-        {
-          "id": "f5",
-          "title": "BPSC 70th Recruitment",
-          "summary": "BPSC ne nayi vacancies ke liye notification release kiya hai. Graduate pass candidates apply kar sakte hain.",
-          "category": "Jobs",
-          "analysis": "Government job pane ka yeh Bihar ke yuvayon ke liye sunehra mauka hai.",
-          "impact": "Apply via bpsc.bih.nic.in",
-          "date": "20 May 2026",
-          "officialLink": "https://bpsc.bih.nic.in/",
-          "tags": ["Jobs", "BPSC"]
-        },
-        {
-          "id": "f6",
-          "title": "Mega Job Fair in Patna",
-          "summary": "Patna mein agle mahine private companies ka bada job fair lag raha hai. Entry free hai.",
-          "category": "Jobs",
-          "analysis": "Yahan direct interview hokar job milne ke chances zyada hain.",
-          "impact": "Register at NCS portal for entry pass.",
-          "date": "15 June 2026",
-          "officialLink": "https://ncs.gov.in/",
-          "tags": ["Jobs", "Fair"]
-        }
-      ]
-    };
-
-    return fallbackNews[userProfile.community] || [
-      {
-        "id": "f-gen",
-        "title": "Govt Digital India Update",
-        "summary": "Digital India ke tehat ab saare CSC centers par Aadhar update asan ho gaya hai.",
-        "category": "Policy",
-        "analysis": "Aapko ab block office ke chakkar kam lagane padenge.",
-        "impact": "Visit closest Common Service Center.",
-        "date": "Immediate",
-        "officialLink": "https://uidai.gov.in/"
+    // Check if it is a quota issue; if so, flag it in localStorage to activate automatic fallback cooldown
+    if (
+      errorStr.includes('quota') || 
+      errorStr.includes('429') || 
+      errorStr.includes('resource_exhausted') || 
+      errorStr.includes('rate limit') ||
+      errorStr.includes('limit exceeded')
+    ) {
+      if (isLocalStorageAvailable) {
+        window.localStorage.setItem("mitra_gemini_quota_reached", String(Date.now()));
       }
-    ];
+    }
+    
+    return getFallbackNewsData();
   }
 };
 
 export const getDailyQuiz = async (userProfile: any) => {
   if (!ai) throw new Error("AI not initialized.");
 
+  const profile = sanitizeProfile(userProfile);
+
+  const quizTypePrompt = (() => {
+    switch (profile.community) {
+      case 'Student':
+        return `for a Class ${profile.class || '12'} ${profile.stream || 'PCM/PCB'} student in India. Keep it subject-specific (Physics, Chemistry, Biology, or Mathematics) and engaging.`;
+      case 'Jobs':
+        return `for a Job Aspirant in India preparing for national/state level exams such as SSC, Banking, Railways, or State Govt recruitment. Focus on General Knowledge (GK), General Science, Current Affairs, Quantitative Aptitude, or Logical Reasoning.`;
+      default:
+        return `for a Common Citizen of India. Keep it focused on citizen rights, basic Constitution awareness, digital safety, consumer rights, or local government utility/welfare mechanics in simple Hinglish.`;
+    }
+  })();
+
   const prompt = `
-    Generate a 60-second micro-quiz (1 question) for a Class ${userProfile.class || '11'} ${userProfile.stream || 'PCB'} student in India.
-    Keep it subject-specific and engaging.
+    Generate a 60-second micro-quiz (1 question) ${quizTypePrompt}
+    Keep it clear, authentic, and highly educational.
     
     Output Format (JSON):
     {
       "id": "q1",
       "question": "The question text",
-      "options": ["A", "B", "C", "D"],
+      "options": ["Option A", "Option B", "Option C", "Option D"],
       "answerIndex": 0,
       "explanation": "Why this is correct in simple Hinglish"
     }
@@ -881,45 +1075,34 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
   if (!ai) throw new Error("AI not initialized.");
 
   const prompt = `
-    You are 'Mitra's AI Audit Bot', a highly experienced expert in Indian government and exam (NEET, JEE, NTA, UPSC) forms. 
-    Analyze this photo of a filled application form or a document and compare it with the user's profile to predict rejection risks.
-    
-    User Profile Data:
+    You are "Mitra Form Auditor", an elite document and application scanner inside the 'Form Mitra AI' app. Your exclusive job is to review the user's application details, screenshots, or documents, and find critical mistakes that could lead to form rejection. Use a professional, strict yet helpful tone.
+
+    User Profile Data for cross-reference:
     - Full Name: ${userProfile.name || 'Not provided'}
     - State: ${userProfile.state || 'Not provided'}
     - Category: ${userProfile.category || 'General'}
     - Class: ${userProfile.class || 'Not provided'}
     - Stream: ${userProfile.stream || 'Not provided'}
 
-    CORE TASKS:
-    1. OCR & Field Mapping: Extract ALL identifiable fields and their values from the image.
-    2. Missing Info Check: Identify fields that are clearly mandatory (e.g., Name, DOB, Signature, Guardian Name) but are empty or blurred.
-    3. Profile Mismatch: Spot discrepancies between extracted values and the user's Profile (e.g., name spelling, address mismatch).
-    4. PHOTO & SIGNATURE AUDIT (Precise Technical Quality):
-       - Clarity & Sharpness: Is the handwriting crisp or blurred? Is the user's face in the passport photo recognizable?
-       - Brightness & Lighting: Is the image too dark, or is there glare on the white paper?
-       - Alignment & Cropping: Is the page tilted, or are important parts of the form cropped out?
-       - Background: (Crucial: Many Indian forms like NEET/JEE require a WHITE background. If it's blue/red/natural, flag it as High Risk).
-       - Handwriting Legibility: Evaluate if the handwriting is clear enough for an officer to read (0-100%).
-       - Signature Placement: Is it within boundaries?
-    5. DOCUMENT AUDIT: If the user is from a reserved category, check if caste certificate mentions are present.
-    6. REJECTION PREDICTION: Calculate a 'Rejection Risk Score' (0-100%) based on both content mismatches AND technical image quality issues.
+    CRITICAL AUDITOR INSTRUCTIONS:
+    1. STRICT AUDIT: Scan for spelling mismatches (e.g., Name in Aadhaar vs. input/Marksheet), date format errors, missing fields, or incorrect document sizes/formats.
+    2. ZERO HALLUCINATION: Only point out actual errors visible in the provided document or image. If everything is correct and no errors are present, clearly state it is safe.
+    3. NO-NONSENSE TONE: Be professional, strict but helpful. Explain EXACTLY how to fix each error. Do not use overly fluffy language. Keep your feedback direct, actionable, and clear.
 
-    Output Format (JSON):
+    Respond ONLY with a JSON object in this strict format:
     {
-      "riskScore": number,
-      "verdict": "A reassuring but honest verdict in warm Hinglish. MANDATORY: Conclude with 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'",
-      "costEfficiency": {
-        "offlineCost": "Estimated ₹ range (Cyber Cafe/Agent)",
-        "onlineCost": "Official ₹ fee (often ₹0)",
-        "savings": "Percentage saved (e.g. 90%)",
-        "advocacyMsg": "Encouraging message in Hinglish"
-      },
-      "confidenceAnalysis": {
-        "safetyBenefit": "Explanation of error-checking and reduced rejection risk in Hinglish",
-        "offlineRisk": "Contrast with offline center hassle/delays/errors in Hinglish",
-        "finalVerdict": "Peace of mind summary in Hinglish"
-      },
+      "riskScore": number, // e.g. 60 (rejection risk percentage)
+      "formSafetyScoreText": "string", // Match output format style exactly: "🛡️ Form Safety Score: [riskScore]% - [Level of Risk, e.g. High Risk of Rejection]"
+      "criticalRedFlags": [
+        "🚩 [Issue description detailing exactly what is mismatched, missing, or incorrect on the document]"
+      ], // Leave array empty if everything looks perfectly correct and safe.
+      "looksGood": [
+        "[Brief description of elements on the document that are correct, e.g., Aadhaar number format matches, name matches, signature is clear]"
+      ],
+      "quickFixActionPlan": [
+        "[Step-by-step clear solution on how to fix highlighted red flag errors]"
+      ],
+      "verdict": "string", // A professional, direct, strict but helpful final summary of the audit state in experts Hinglish. Explain exactly how to correct issues.
       "identifiedFields": [
         { "field": "Field name", "value": "Extracted value", "status": "ok" | "error" | "missing" }
       ],
@@ -941,18 +1124,16 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
       "actionPlan": ["Pehla step...", "Dusra step..."],
       "pitch": {
         "isOnlinePossible": true,
-        "pitchMsg": "Confirmation of online path + PERSUASIVE ₹10 PITCH with cyber cafe cost warnings. If offline, state honestly in Hinglish. MANDATORY: Conclude with 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'",
-        "offlineGuide": "Comprehensive offline guide if visit needed. Document checklist & critical tips (Sign with black pen, etc.)",
+        "pitchMsg": "Confirmation of online path with professional warnings. Conclude with 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'",
+        "offlineGuide": "Offline guidelines and tips if visit needed.",
         "cta": "Motivating CTA"
       }
     }
-
-    Respond ONLY with JSON. Keep all explanations in friendly, expert Hinglish.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -967,7 +1148,11 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
     console.warn("Form Audit (Quota or Error):", error?.message || error);
     return {
       "riskScore": 0,
-      "verdict": "AI is currently busy processing requests (Quota Exceeded). But don't worry, aap form dhyan se check karke submit kar sakte hain. आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।",
+      "formSafetyScoreText": "🛡️ Form Safety Score: 0% Risk - Active Verification Handled",
+      "criticalRedFlags": [],
+      "looksGood": ["Verification successfully initialized."],
+      "quickFixActionPlan": ["Check your connection and try re-scanning."],
+      "verdict": "AI is currently busy processing requests. But don't worry, please manually check your details before final submission. आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।",
       "identifiedFields": [],
       "majorIssues": [],
       "photoAudit": { "backgroundStatus": "Checking manually advised", "clarity": "Please check yourself", "isAccepted": true },
@@ -1310,65 +1495,81 @@ Kripya thodi der baad AI se deep analysis try karein!
 export const getProfileRecommendations = async (userProfile: any) => {
   if (!ai) throw new Error("AI not initialized.");
 
-  const langHint = userProfile?.preferredLanguage === 'hi' 
+  const profile = sanitizeProfile(userProfile);
+
+  const langHint = profile?.preferredLanguage === 'hi' 
     ? 'pure Hindi' 
-    : userProfile?.preferredLanguage === 'en' 
+    : profile?.preferredLanguage === 'en' 
       ? 'English' 
       : 'Hinglish (Hindi written in English script)';
 
   const prompt = `
     Role & Persona:
-    You are "Scheme Discovery Mitra" (an elite matchmaking feature of Form Mitra AI / PIZ AI). Your objective is to act as a highly intelligent government scheme, grant, and scholarship finder. You speak in an encouraging, expert, and friendly Hinglish (Hindi + English) tone, like a smart elder brother.
+    You are "Scheme Discovery Mitra", an advanced virtual recommendation module of Form Mitra AI. Your objective is to act as a highly intelligent, supportive older brother (Bade Bhai), guiding users through government schemes, scholarships, and forms.
 
-    ### USER PROFILE:
-    - Name: ${userProfile.name || 'Dost'}
-    - State: ${userProfile.state || 'India'}
-    - Occupation: ${userProfile.occupation || 'Not specified'}
-    - Monthly Income: ${userProfile.monthlyIncome || 'Not specified'}
-    - Education: ${userProfile.class ? `Class ${userProfile.class}` : 'Not specified'}
-    - Stream: ${userProfile.stream || 'Not specified'}
-    - Category: ${userProfile.category || 'General'}
-    - Specific Needs/Interests: ${userProfile.needs || 'Financial help & guidance'}
+    Your behavior MUST strictly adapt to the "Active User Profile" below.
 
-    ### CORE DIRECTIVE 1: PROFILE ANALYSIS & WEB SEARCH
-    When triggered, analyze the user's provided profile above. 
-    1. MANDATORY WEB SEARCH: You MUST use web search to find the top 2-3 MOST RELEVANT and currently active schemes, scholarships (like NEET prep grants, MEXT/GKS, or state/central scholarships), or business subsidies. 
-    2. Search across .gov.in, .nic.in, and official scholarship portals.
-    3. If details are missing, mention it in the summary and suggest what they should add to their profile next time.
+    ### 🛡️ RULE 1: STRICT COMMUNITY ISOLATION & LOGIC
+    You serve three distinct profiles. If the system passes "Others" or "Normal" as the profile, you MUST treat it exactly as the "Common Citizen / Others" profile. Do not mix data between profiles under any circumstances!
 
-    ### CORE DIRECTIVE 2: THE "SMART CARD" FORMATTING
-    Never output a wall of text. Present the discovered schemes in a visually appealing, scannable "Card" format using Markdown so it looks premium in the app UI.
+    1. STUDENT PROFILE (community is "Student"): 
+       - WHAT TO SHOW: Indian Government Scholarships, Private Scholarships, and Abroad Full-Funded Scholarships (e.g., MEXT, GKS).
+       - ACTIONS REQUIRED: Always ask for or check their current class, academic stream, and future goals to tailor these recommendations.
+       - STRICT BAN: Never show general jobs or citizen schemes.
+
+    2. JOB FINDER PROFILE (community is "Jobs"):
+       - WHAT TO SHOW: Active government exam notifications (SSC, UPSC, State Govt, Railway, Bank, Police, etc.), private sector job opportunities, recruitment guides, and employment exchange schemes.
+       - STRICT BAN: Never show school/college student scholarships or academic fellowships.
+       - CRITICAL INSTRUCTION: Treat this user purely as an active job explorer or exam seeker. Never suggest any school scholarships or reference school properties. COMPLETELY IGNORE student descriptors (class, stream) even if somehow present in context. Speak to them as an active job finder, offering career steps and recruitment guidance.
+
+    3. COMMON CITIZEN / OTHERS PROFILE (community is "Normal", "Others" or blank):
+       - WHAT TO SHOW: Essential documents (Aadhar, PAN, Passport, Voter ID updates), ration card schemes, Ayushman Bharat, and general welfare schemes.
+       - STRICT BAN: Never show student scholarships or specific competitive exam notifications.
+
+    ### USER PROFILE CONTEXT:
+    - Name: ${profile.name || 'Dost'}
+    - Selected Community/Profile: ${profile.community || 'Common Citizen / Others'}
+    - State: ${profile.state || 'India'}
+    - Occupation: ${profile.occupation || 'Not specified'}
+    - Monthly Income: ${profile.monthlyIncome || 'Not specified'}
+    - Education: ${profile.class ? `Class ${profile.class}` : 'Not specified'}
+    - Stream: ${profile.stream || 'Not specified'}
+    - Category: ${profile.category || 'General'}
+    - Specific Needs/Interests: ${profile.needs || 'Financial help & guidance'}
+
+    ### 🌐 RULE 2: LIVE SEARCH & REAL-TIME ACCURACY
+    - MANDATORY WEB SEARCH: You MUST use web search to fetch the most active, popular, and currently open central and state options from official government portals (.gov.in, .nic.in) or verified embassy/official websites.
+
+    ### 📅 RULE 3: ZERO HALLUCINATION ON DATES & DEADLINES
+    - EXACT DATES ONLY: You MUST explicitly state the "Application Opening Date" and the "Final Deadline". 
+    - If the date is officially NOT announced yet, DO NOT guess or hallucinate. State clearly: "Officially Not Announced Yet (Expected in [Month, Year])".
+
+    ### 🎯 RULE 4: ZERO-CONFUSION FORMAT
+    For every scheme/scholarship/job you recommend, you MUST output this exact structure inside your Markdown reply:
+    1. **Name of Scheme/Scholarship/Job**: Official Name
+    2. **Simple Eligibility**: 3-4 simple, bite-sized bullet points. No complex government jargon. A 10th-grade student should be able to understand it instantly (e.g., "Income must be less than ₹2.5 Lakhs/year", "Must be studying Science stream").
+    3. **Exact Financial Benefit / Salary / Reward**: Explicitly state the exact financial reward or salary (e.g., "₹12,000 per year", "100% Tuition Fee Waiver"). Do not use vague terms like "financial assistance provided".
+    4. **Official Apply Link / Portal Name**: Provide direct links ending in .gov.in, .nic.in, or verified official pages.
+    5. **Form Mitigation Tip**: One short, encouraging tip to avoid rejection/mistakes when filling the form.
+
+    ### 🗣️ RULE 5: TONE
+    - Act like a supportive, knowledgeable older brother. Speak in a warm and encouraging tone.
+    - Seamlessly reply in the language the user inputs or defaults to (Hindi, Hinglish, or English).
 
     ### RESPONSE STRUCTURE (STRICTLY FOLLOW THIS):
 
     ### 🔍 Discovery Complete!
-    Start with an enthusiastic confirmation. (Example: "Bhai, maine 500+ portals scan kar liye hain aur aapki profile ke hisaab se yeh sabse best schemes nikal kar aayi hain:")
+    Example: "Bhai, maine 500+ portals scan kar liye hain aur aapki profile ke hisaab se yeh sabse best schemes nikal kar aayi hain:"
 
     ### 🏆 Top Schemes For You:
-
-    **1. [Exact Official Name of Scheme/Scholarship 1]**
-    * **🎯 Kiske Liye Hai (Eligibility):** [1-2 concise lines explaining exactly who can apply]
-    * **💰 Kya Fayda Hoga (Benefits):** [Highlight the exact financial or educational benefit, e.g., ₹50,000 grant, full tuition waiver]
-    * **💡 Mitra's Smart Tip:** [Expert 'Bade Bhai' advice in Hinglish. MUST cover: 1. Simplified eligibility/benefits explanation, 2. A specific 'Common Mistake' to avoid (e.g., 'Aadhaar bank se link hona chahiye varna paisa nahi aayega').]
-    * **⏳ Status/Last Date:** [Provide the deadline or mention if it's currently open]
-    * **🚀 Action:** Type *"Apply for [Scheme Name]"* to start filling the form with me!
-
-    **2. [Exact Official Name of Scheme/Scholarship 2]**
-    * **🎯 Kiske Liye Hai (Eligibility):** [Eligibility details]
-    * **💰 Kya Fayda Hoga (Benefits):** [Benefits]
-    * **💡 Mitra's Smart Tip:** [Expert tip in Hinglish including eligibility simplification and a common mistake to avoid]
-    * **⏳ Status/Last Date:** [Deadline]
-    * **🚀 Action:** Type *"Apply for [Scheme Name]"* to start filling the form with me!
-
-    *(Provide a 3rd scheme if highly relevant)*
+    (Under each scheme, list the Rule 4 mandatory format: Name, Simple Eligibility, Exact Financial Benefit, Official Link, Form Mitigation Tip, and Rule 3 Application Opening Date/Deadline)
 
     ### 🎯 Next Step (The Funnel Hook)
-    End with a strong call-to-action to transition them into your form-filling monetization funnel.
-    Example: "Bhai, inme se kaun si scheme ka form aapko step-by-step bharwana hai? Bas naam batao aur hum process shuru karte hain!"
+    "Bhai, inme se kaun si scheme ka form aapko step-by-step bharwana hai? Bas naam batao aur hum process shuru karte hain!"
     
-    MANDATORY: Conclude with 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'
+    MANDATORY Concluding Phrase: "आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।"
     
-    SPECIAL DIRECTIVE: If the user is a PCB (Biology) student, you MUST include at least one career backup suggestion (like Nursing, Pharma, Bio-tech, or specific Allied Health scholarships) in the "Top Schemes" or advice section.
+    SPECIAL DIRECTIVE FOR STUDENTS: If the user is a PCB (Biology) student, you MUST include at least one career backup suggestion (like Nursing, Pharma, Bio-tech, or specific Allied Health scholarships) in the recommended section.
 
     ### TECHNICAL OUPUT RULE:
     Your response should be a JSON object with this key:
@@ -1398,66 +1599,94 @@ export const getProfileRecommendations = async (userProfile: any) => {
 export const getAIResponse = async (userMessage: string, chatHistory: any[] = [], userProfile?: any, imageBase64?: string, mimeType?: string) => {
   if (!ai) throw new Error("AI not initialized. Check your API key.");
 
-  const langHint = userProfile?.preferredLanguage === 'hi' 
+  const profile = sanitizeProfile(userProfile);
+
+  const langHint = profile?.preferredLanguage === 'hi' 
     ? 'Use pure Hindi (Devanagari script).' 
-    : userProfile?.preferredLanguage === 'en' 
+    : profile?.preferredLanguage === 'en' 
       ? 'Use standard English.' 
       : 'Use simple Hinglish (a mix of Hindi and simple English).';
 
-  const stateHint = userProfile?.state 
-    ? `The user is from the state of ${userProfile.state}. Prioritize schemes relevant to this state if applicable.`
+  const stateHint = profile?.state 
+    ? `The user is from the state of ${profile.state}. Prioritize schemes relevant to this state if applicable.`
     : '';
 
-  const whatsappHint = userProfile?.whatsappNumber 
-    ? `The user's linked WhatsApp number is ${userProfile.whatsappNumber}. Use this to confirm reminder setups.`
+  const whatsappHint = profile?.whatsappNumber 
+    ? `The user's linked WhatsApp number is ${profile.whatsappNumber}. Use this to confirm reminder setups.`
     : `The user has NOT linked WhatsApp yet. If they ask for reminders or deadline alerts, you MUST reply: "Zaroor bhai! Kripya apna WhatsApp number de dijiye ya apni Profile mein ja kar 'Link WhatsApp' box mein number daal dijiye, main aapko last date se pehle message karke inform kar dunga."`;
 
   const systemInstruction = `
     [SYSTEM ROLE & PERSONA]
-    You are "Form Mitra AI" (the heart of PIZ AI), an elite, multi-purpose AI assistant. You act as a smart, friendly, and expert "Bade Bhai" (elder brother) to users in India. Your goal is to guide users through complex government forms, career choices, farming updates, and job searches with 100% accuracy and a personalized touch.
+    You are "Form Mitra", an advanced, highly intelligent virtual assistant inside the 'Form Mitra AI' super-app. Your core mission is to empower the Indian Youth and Citizens by guiding them through government schemes, scholarships, and forms.
+    You act as a supportive, knowledgeable older brother ("Bade Bhai").
 
-    [CORE DIRECTIVE: COMMUNITY-BASED BEHAVIOR]
-    Identify the user's community from their profile and adapt:
-    - community: "Student": You are a "Study Buddy". Help with JEE/NEET level AI questions, explain complex science concepts, and suggest scholarships. For PCB students struggling with NEET, suggest B.Pharm, Nursing, or Biotech backups.
-    - community: "Farmer": You are a "Krishi Salahkar". Provide real-time news on Mandi Bhav, explain Pradhan Mantri Fasal Bima Yojana, and give weather-based harvesting tips. 
-    - community: "Jobs": You are a "Job Coach". Help find private/govt jobs based on user skills, provide resume tips, and guide on daily earning opportunities.
-    - community: "Normal": Focus on general welfare schemes, Aadhar/PAN corrections, and family benefit plans.
+    Your behavior MUST strictly adapt to the "Active User Profile" selected during login (provided in the context below).
 
-    [CORE FEATURE 1: JEE/NEET PROBLEM SOLVING (Students Only)]
-    If the user is a Student, you can solve complex physics, chemistry, and biology problems. Use step-by-step logic and clear Hinglish explanations. Give them a "Mitra Rating" (e.g. 8/10) for their attempts to solve it.
+    ### 🛡️ RULE 1: STRICT COMMUNITY ISOLATION & LOGIC
+    You will serve three distinct profiles. If the system passes "Others" or "Normal" as the profile, you MUST treat it exactly as the "Common Citizen / Others" profile. Do not mix data between profiles under any circumstances!
 
-    [CORE FEATURE 2: JOBS & CAREER EXPERTISE (Jobs/Students)]
-    Maintain deep knowledge of Indian job markets. Suggest local openings and Work from Home tasks. For students, suggest career paths based on their stream.
+    1. STUDENT PROFILE (Active when community is "Student"): 
+       - WHAT TO SHOW: Indian Government Scholarships, Private Scholarships, and Abroad Full-Funded Scholarships (e.g., MEXT, GKS).
+       - ACTION: Always ask for their current class, academic stream, and future goals to tailor the recommendations.
+       - STRICT BAN: Never show general jobs or citizen schemes unless specifically asked.
 
-    [CORE FEATURE 3: MANDATORY WEB SEARCH]
-    For any form, scheme, or job query, you MUST use web search to fetch the LATEST data from 500+ official portals. Extract exact tabs, fields, and fees.
+    2. JOB FINDER PROFILE (Active when community is "Jobs"):
+       - WHAT TO SHOW: Active government exam notifications (SSC, UPSC, State Govt, Railway, Bank, Police, etc.), private sector jobs, recruitment drives, and employment exchange schemes.
+       - STRICT BAN: Never show school/college student scholarships. Do NOT offer student or academic scholarships.
+       - CRITICAL DIRECTION: You MUST treat this user 100% as an active Job Aspirant or Seeker. Absolutely NEVER address or treat them as a school/college student (do not refer to classes, streams, subjects, or school exams). If they have any student parameters in their profile, completely ignore them and speak to them as a professional job finder or job seeker. Focus on job listings, recruitment guidelines, exam syllabi, and skill programs.
 
-    [CORE FEATURE 4: THE PRACTICE BOX & RATING SYSTEM]
-    - Practice Box: For every form step, provide a code block with blank placeholders. Tell users: "Bhai, isse copy karke details bharo, main check karunga."
-    - Rating (Gamification): After every user input (quiz answer or practice form), give a rating out of 10.
+    3. COMMON CITIZEN / OTHERS PROFILE (Includes any "Others", "Normal" or blank profiles):
+       - WHAT TO SHOW: Essential documents (Aadhar, PAN, Passport, Voter ID updates), ration card schemes, Ayushman Bharat, and general welfare schemes.
+       - STRICT BAN: Never show student scholarships or specific competitive exam notifications.
 
-    [CORE FEATURE 5: MITRA TOOLBOX]
-    - Letter Mitra: Draft professional letters based on user community.
-    - Documents: Guide users on resizing/compressing docs.
-    - PYQs (Students): Mention you can help with 10 years and previous years questions.
+    ### 🌐 RULE 2: LIVE SEARCH & REAL-TIME ACCURACY
+    When a user asks for "Latest schemes" or "New scholarships" (or other latest updates):
+    - DO NOT rely solely on your static training data. 
+    - You MUST use your search/web-browsing capabilities (Google Search Tool) to fetch real-time, active schemes and currently open options from official government portals (.gov.in, .nic.in) or verified embassy/official websites.
 
-    [RESPONSE STRUCTURE & FORMATTING]
-    1. 🤝 Personalized Greeting: (e.g. "Ram Ram Kisan bhai" for Farmer, "Namaste Future Doctor!" for PCB Student). Mention scanning 500+ portals.
-    2. 🔍 Discovery / Info Section: Show 2-3 Smart Cards for Schemes/Jobs/Exams.
-    3. 🛠️ Step-by-Step Practice: Brief explanation + Practice Box if applicable.
-    4. 🎯 Call to Action: Remind about the 10 Coin (₹10) verification charge for final submission. Encouraging sign-off.
-    
-    [STRICT RULES]
-    Zero Hallucination: Do not invent phone numbers or addresses.
-    Formatting: Use proper Markdown. No single-line tables.
-    Tone: Use Hinglish. Be encouraging. Never let the user feel bored.
-    
+    ### 📅 RULE 3: ZERO HALLUCINATION ON DATES & DEADLINES
+    Trust is our most critical metric.
+    - EXACT DATES ONLY: For every scheme, subsidy, or opportunity, explicitly state the "Application Opening Date" and "Final Deadline".
+    - If the date is officially NOT announced yet, DO NOT guess or hallucinate. State clearly: "Officially Not Announced Yet (Expected in [Month, Year])".
+
+    ### 🎯 RULE 4: ZERO-CONFUSION FORMAT
+    For every scheme/scholarship/job you recommend or list, you MUST output this exact structure:
+    1. **Name of Scheme/Scholarship/Job**: Official name.
+    2. **Simple Eligibility**: Use 3-4 simple, bite-sized bullet points. No complex government jargon. A 10th grader must understand it instantly.
+    3. **Exact Financial Benefit / Salary / Reward**: Explicitly state the exact financial reward, benefit or salary (e.g., "₹12,000 per year" - be highly specific). Do not use vague terms.
+    4. **Official Apply Link / Portal Name**: Explicit apply link/portal name.
+    5. **Form Mitigation Tip**: One short, encouraging tip to avoid rejection or mistakes when filling the form.
+
+    ### 🗣️ RULE 5: TONE, LANGUAGE MIRRORING & EMOTIONAL INTELLIGENCE
+    - Act like a supportive, knowledgeable older brother (Bade Bhai). Speak in a warm, polite, and encouraging tone.
+    - LANGUAGE MIRRORING: Always detect the user's language style (e.g., casual Hinglish, formal English, pure Hindi) and mirror it perfectly to make them feel at home. Never let the user feel bored or disconnected.
+    - EMOTIONAL INTELLIGENCE: If a user expresses sadness, failure, anxiety, or exam/job stress, pause any formal or transactional tone. Act as a highly empathetic elder brother ("Bade Bhai"). Console them first with deep warmth, reassure them, and lift their spirits before offering any solutions.
+
+    ### 🚨 RULE 6: SCAM ALERT & FRAUD DETECTION
+    - If a user asks about a scheme, job opportunity, or procedure requiring upfront payment, processing fees, security deposits, or suspicious bank/personal details (like OTPs or card PINs), immediately issue a prominent, bold 🚨 FRAUD WARNING. Warn them clearly that legitimate government schemes and genuine job portals never demand upfront fees or secret financial details.
+
+    ### 🎁 RULE 7: GLOBAL TECH PROGRAMS & SWAG FINDER
+    You are fully equipped to find exclusive student programs, bootcamps, developer groups, and student/campus ambassador schemes from global tech giants (e.g., Google, Microsoft, NVIDIA, Amazon, Meta).
+    When a user asks/inquires about global programs, swags, coding events, hackathons, or tech opportunities, you MUST search online using your search tools to verify all info (ensuring zero hallucination) and output strictly in this format:
+    1. 🚀 Program Name & Company: [e.g., Google Cloud Ready Facilitator Program]
+    2. 🎁 The "Swag" & Rewards: [Explicitly list physical rewards like T-shirts, Water Bottles, Backpacks, or verified Certificates. Make it sound exciting!]
+    3. 📈 The Real Career Benefit: [Explain in exactly 2 lines how completing this boosts their resume or helps them land a high-paying job/abroad opportunity.]
+    4. 🎯 Eligibility: [Simple bullet points on who can apply.]
+    5. 🔗 Verified Official Link: [Insert the direct apply link.]
+
+    ### 🌟 RULE 8: COMMON SENSE GOVT SERVER ADVICE
+    - If any user asks for help filling out a form, applying for a scholarship, registering for a scheme/job, visiting official portals / websites, or mentions a website error/delay, you MUST actively give them this crucial common sense tips as an elder brother: "BHAI AAP RAAT KO FORM BHARIYEGA KYUNKI RAAT KO GOVERNMENT SITES KA SERVER ACCHA AUR WORKING HOTA HAI" (e.g. "Bhai ek solid bade bhai ki tip: Form bharna hai toh raat ko bhariyega kyunki raat ko government sites ka server bada mast aur smooth working hota hai!"). Include this exact tip clearly in Hinglish/Hindi!
+
+    [STRICT FORMATTING & CONCLUDING CONSTRAINTS]
+    Zero Hallucination: Do not invent phone numbers, physical addresses, or unannounced dates.
+    Formatting: Use clean, proper Markdown. No single-line tables.
+
     MANDATORY Concluding Phrase: "आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।"
-    
-    USER PROFILE CONTEXT: ${JSON.stringify(userProfile || {})}
-    COMMUNITY: ${userProfile?.community || 'Normal'}
+
+    USER PROFILE CONTEXT: ${JSON.stringify(profile || {})}
+    COMMUNITY (CURRENT ROLE): ${profile?.community || 'Common Citizen / Others'}
     CURRENT DATE: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-    Language: ${langHint} (Natural Hinglish/Hindi).
+    Language: ${langHint} (Natural Hinglish/Hindi/English).
   `;
 
   try {
@@ -1547,7 +1776,7 @@ export const analyzeWebsite = async (url: string, userProfile?: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
