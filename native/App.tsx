@@ -1,31 +1,22 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, StatusBar } from 'react-native';
+import { View, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
-  // Yeh tumhara asli Vercel link hai jo us app mein khulega
+  // Yeh tumhara asli Vercel link hai
   const webAppUrl = "https://ai-one-rust-97.vercel.app";
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1, width: '100%', height: '100%', backgroundColor: '#ffffff' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <WebView 
         source={{ uri: webAppUrl }} 
-        style={styles.webview} 
+        style={{ flex: 1, width: '100%', height: '100%' }} 
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1, // Yeh app ko poori screen lene ka order deta hai
-    backgroundColor: '#ffffff',
-  },
-  webview: {
-    flex: 1, // Yeh website ko poori screen par failata hai
-  }
-});
