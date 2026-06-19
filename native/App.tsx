@@ -1,82 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  BackHandler,
-  ActivityIndicator,
-  View,
-} from "react-native";
-import { WebView } from "react-native-webview";
+import React from 'react';
+import { SafeAreaView, StyleSheet, StatusBar } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 export default function App() {
-  const webViewRef = useRef<WebView>(null);
-  const [canGoBack, setCanGoBack] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Handle hardware back button on Android to navigate back inside the WebView
-  useEffect(() => {
-    const handleBackPress = () => {
-      if (canGoBack && webViewRef.current) {
-        webViewRef.current.goBack();
-        return true;
-      }
-      return false;
-    };
-
-    BackHandler.addEventListener("hardwareBackPress", handleBackPress);
-    return () => {
-      BackHandler.removeEventListener("hardwareBackPress", handleBackPress);
-    };
-  }, [canGoBack]);
-
-  // LIVE Web URL for Form Mitra Suite (Loads the beautiful web-app preview directly)
-  // Aap is URL ko apni live production/Vercel link se change kar sakte hain!
+  // Yeh tumhara asli Vercel link hai jo us app mein khulega
   const webAppUrl = "https://ai-one-rust-97.vercel.app";
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#008069" />
-      <View style={styles.webWrapper}>
-        <WebView
-          ref={webViewRef}
-          source={{ uri: webAppUrl }}
-          style={styles.webview}
-          onNavigationStateChange={(navState) => {
-            setCanGoBack(navState.canGoBack);
-          }}
-          onLoadStart={() => setIsLoading(true)}
-          onLoadEnd={() => setIsLoading(false)}
-          domStorageEnabled={true}
-          javaScriptEnabled={true}
-          allowsBackForwardNavigationGestures={true}
-        />
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#008069" />
-          </View>
-        )}
-      </View>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <WebView 
+        source={{ uri: webAppUrl }} 
+        style={styles.webview} 
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={true}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#008069", // Matches Form Mitra primary theme color
-  },
-  webWrapper: {
-    flex: 1,
-    backgroundColor: "#ffffff",
+    flex: 1, // Yeh app ko poori screen lene ka order deta hai
+    backgroundColor: '#ffffff',
   },
   webview: {
-    flex: 1,
-  },
-  loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.95)", // Clean off-white background while loading
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    flex: 1, // Yeh website ko poori screen par failata hai
+  }
 });
