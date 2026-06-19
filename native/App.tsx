@@ -1,27 +1,29 @@
 import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { View, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
-  // Yeh tumhara asli Vercel link hai
   const webAppUrl = "https://ai-one-rust-97.vercel.app";
 
+  // The "Fake Mustache" - Website ko lagega ki wo asli Chrome browser hai!
+  const chromeUserAgent = "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36";
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <WebView 
         source={{ uri: webAppUrl }} 
         style={{ flex: 1 }} 
-        
-        /* THE MAGIC VIP PASSES (White Screen Fix) */
+        userAgent={chromeUserAgent}
         originWhitelist={['*']} 
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
         mixedContentMode="always"
         allowsInlineMediaPlayback={true}
-        thirdPartyCookiesEnabled={true}
+        cacheEnabled={false} 
+        bounces={false}
       />
-    </SafeAreaView>
+    </View>
   );
 }
