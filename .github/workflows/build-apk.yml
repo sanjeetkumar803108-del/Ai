@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # YEH HACK TUMHE EK MANUAL 'RUN' BUTTON DEGA!
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,10 +25,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Zabardasti Install (ERESOLVE Bypass)
+      - name: WebView Engine aur Dependencies Install
         run: |
           cd native
           npm install --legacy-peer-deps
+          npx expo install react-native-webview --fix
           npx expo install --fix
 
       - name: Bulletproof Base64 Logo Hack
