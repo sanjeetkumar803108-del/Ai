@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
@@ -7,16 +7,21 @@ export default function App() {
   const webAppUrl = "https://ai-one-rust-97.vercel.app";
 
   return (
-    <View style={{ flex: 1, width: '100%', height: '100%', backgroundColor: '#ffffff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <WebView 
         source={{ uri: webAppUrl }} 
-        style={{ flex: 1, width: '100%', height: '100%' }} 
+        style={{ flex: 1 }} 
+        
+        /* THE MAGIC VIP PASSES (White Screen Fix) */
+        originWhitelist={['*']} 
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={true}
+        mixedContentMode="always"
+        allowsInlineMediaPlayback={true}
+        thirdPartyCookiesEnabled={true}
       />
-    </View>
+    </SafeAreaView>
   );
 }
-
