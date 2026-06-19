@@ -25,11 +25,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: WebView Engine aur Dependencies Install
+      - name: Claude Fix 3 (Perfect WebView Version Install)
         run: |
           cd native
           npm install --legacy-peer-deps
-          npx expo install react-native-webview --fix
+          npx expo install react-native-webview
           npx expo install --fix
 
       - name: Bulletproof Base64 Logo Hack
