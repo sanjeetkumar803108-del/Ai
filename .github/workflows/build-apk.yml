@@ -25,12 +25,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Claude Fix 3 (Perfect WebView Version Install)
+      - name: Clean Install (Corrupted Module Fix)
         run: |
           cd native
+          rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps
           npx expo install react-native-webview
-          npx expo install --fix
 
       - name: Bulletproof Base64 Logo Hack
         run: |
