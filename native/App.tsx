@@ -1,19 +1,19 @@
 import React from 'react';
-import { View, StatusBar } from 'react-native';
+import { View, StatusBar, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
   const webAppUrl = "https://ai-one-rust-97.vercel.app";
 
-  // The "Fake Mustache" - Website ko lagega ki wo asli Chrome browser hai!
-  const chromeUserAgent = "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36";
+  // Super-Chrome User Agent
+  const chromeUserAgent = "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36";
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <WebView 
         source={{ uri: webAppUrl }} 
-        style={{ flex: 1 }} 
+        style={styles.webview} 
         userAgent={chromeUserAgent}
         originWhitelist={['*']} 
         javaScriptEnabled={true}
@@ -21,9 +21,23 @@ export default function App() {
         startInLoadingState={true}
         mixedContentMode="always"
         allowsInlineMediaPlayback={true}
+        
+        /* 🔥 YEH DO LINES CACHE AUR WHITE SCREEN KO JAD SE KHATAM KARENGI 🔥 */
         cacheEnabled={false} 
-        bounces={false}
+        incognito={true} 
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1, 
+    backgroundColor: '#ffffff',
+  },
+  webview: {
+    flex: 1, 
+    backgroundColor: 'transparent', // Website ko apne asli colors dikhane dega
+  }
+});
+
