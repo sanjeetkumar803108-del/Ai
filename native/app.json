@@ -20,10 +20,27 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F9FAFB"
       },
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE"
+      ],
+      "usesCleartextTraffic": false,
+      "blockedPermissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "react-native-webview",
+        {
+          "android": {
+            "domStorageEnabled": true,
+            "javaScriptEnabled": true
+          }
+        }
+      ]
+    ]
   }
 }
