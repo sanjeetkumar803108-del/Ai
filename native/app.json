@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "com.formmitra.ai",
+      "minSdkVersion": 26,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F9FAFB"
@@ -31,16 +32,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "react-native-webview",
-        {
-          "android": {
-            "domStorageEnabled": true,
-            "javaScriptEnabled": true
-          }
-        }
-      ]
-    ]
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "4c946158-a7cd-4f2a-8b33-26d50db3cb09"
+      }
+    }
   }
 }
