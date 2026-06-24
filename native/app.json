@@ -4,7 +4,6 @@
     "slug": "form-mitra-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -16,7 +15,6 @@
     },
     "android": {
       "package": "com.formmitra.ai",
-      "minSdkVersion": 26,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F9FAFB"
@@ -26,7 +24,6 @@
         "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.ACCESS_WIFI_STATE"
       ],
-      "usesCleartextTraffic": false,
       "blockedPermissions": []
     },
     "web": {

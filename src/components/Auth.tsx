@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInWithPopup 
+  signInWithRedirect,
+  getRedirectResult,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
-import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
-import { LogIn, UserPlus, Globe } from 'lucide-react';
 
 export const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,19 +15,116 @@ export const AuthScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
+
+  // Check for redirect result on mount
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    let mounted = true;
+
+    const checkRedirectResult = async () => {
+      try {
+        console.log('🔍 Checking Firebase redirect result...');
+        
+        // Set max 3 second timeout for redirect check
+        timeoutId = setTimeout(() => {
+          console.warn('⏱️ Redirect check timeout');
+          if (mounted) setIsCheckingRedirect(false);
+        }, 3000);
+
+        const result = await getRedirectResult(auth);
+        clearTimeout(timeoutId);
+        
+        if (mounted) {
+          if (result) {
+            console.log('✅ Redirect auth successful:', result.user.email);
+            setError('');
+          } else {
+            console.log('✅ No redirect result (first load)');
+          }
+          setIsCheckingRedirect(false);
+        }
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        console.error('❌ Redirect result error:', err.code || err?.message);
+        if (mounted) {
+          // Silently fail for cancelled/popup issues
+          if (err.code !== 'auth/cancelled-popup-request' && 
+              err.code !== 'auth/popup-closed-by-user') {
+            // Don't set error - just continue
+          }
+          setIsCheckingRedirect(false);
+        }
+      }
+    };
+
+    // Wrap everything in try-catch
+    try {
+      checkRedirectResult();
+    } catch (e) {
+      console.error('❌ Critical error in auth check:', e);
+      setIsCheckingRedirect(false);
+    }
+
+    // Enable persistence
+    setPersistence(auth, browserLocalPersistence).catch(err => 
+      console.warn('Persistence error (non-critical):', err)
+    );
+
+    // Cleanup
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
+      console.log('🔐 Starting auth with email:', email);
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
+      console.log('✅ Auth successful');
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      const errorCode = err.code || 'UNKNOWN_ERROR';
+      const errorMsg = err.message || 'Authentication failed';
+      console.error('❌ Auth error:', { code: errorCode, message: errorMsg });
+      
+      // Map Firebase error codes to user messages
+      let displayError = errorMsg;
+      
+      switch(errorCode) {
+        case 'auth/invalid-email':
+          displayError = '❌ Email sahi nahi hai';
+          break;
+        case 'auth/weak-password':
+          displayError = '❌ Password kam se kam 6 characters ka hona chahiye';
+          break;
+        case 'auth/user-not-found':
+          displayError = '❌ Ye email register nahi hai';
+          break;
+        case 'auth/wrong-password':
+          displayError = '❌ Password galat hai';
+          break;
+        case 'auth/email-already-in-use':
+          displayError = '❌ Ye email pehle se register hai';
+          break;
+        case 'auth/operation-not-allowed':
+          displayError = '⚠️ Firebase mein Email/Password auth disable hai! Admin se contact karo. Error: ' + errorCode;
+          break;
+        case 'auth/too-many-requests':
+          displayError = '❌ Bahut zyada attempts. Baad mein try karo.';
+          break;
+        default:
+          displayError = `❌ ${errorMsg} (${errorCode})`;
+      }
+      
+      setError(displayError);
     } finally {
       setLoading(false);
     }
@@ -37,47 +134,338 @@ export const AuthScreen = () => {
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      console.log('🌐 Starting Google redirect auth...');
+      await signInWithRedirect(auth, googleProvider);
+      // User will be redirected to Google, then back here
     } catch (err: any) {
-      setError(err.message || 'Google Sign-In failed');
-    } finally {
+      const errorMsg = err.message || 'Google Sign-In failed';
+      console.error('❌ Google auth error:', errorMsg);
+      setError(errorMsg);
       setLoading(false);
     }
   };
 
-  return (
-    <div className="flex flex-col min-h-screen bg-[#F3F4F6] p-6 justify-center items-center">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-xl border border-gray-100 flex flex-col gap-6"
-      >
-        <div className="flex flex-col items-center gap-2 mb-2">
-          <div className="w-16 h-16 bg-[#008069] rounded-2xl flex items-center justify-center text-white shadow-lg overflow-hidden">
-             <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Mitra" alt="Logo" className="w-12 h-12" />
+  if (isCheckingRedirect) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: '#F3F4F6',
+        padding: '24px',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            backgroundColor: '#008069',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            overflow: 'hidden',
+            margin: '0 auto 16px',
+          }}>
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Mitra" alt="Logo" style={{ width: '48px', height: '48px' }} />
           </div>
-          <h1 className="text-2xl font-black text-[#008069] tracking-tight">Form Mitra AI</h1>
-          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest text-center">Aapka Digital Sarkari Sahayak</p>
+          <p style={{ fontSize: '14px', color: '#666', margin: '0' }}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      backgroundColor: '#F3F4F6',
+      padding: '24px',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '400px',
+        backgroundColor: 'white',
+        borderRadius: '40px',
+        padding: '32px',
+        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+        border: '1px solid #f3f4f6',
+      }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '16px',
+        }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            backgroundColor: '#008069',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(0,128,105,0.2)',
+            overflow: 'hidden',
+          }}>
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Mitra" alt="Logo" style={{ width: '48px', height: '48px' }} />
+          </div>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '900',
+            color: '#008069',
+            letterSpacing: '-0.02em',
+            margin: '0',
+          }}>Form Mitra AI</h1>
+          <p style={{
+            fontSize: '10px',
+            fontWeight: 'bold',
+            color: '#999',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            margin: '0',
+          }}>Aapka Digital Sarkari Sahayak</p>
         </div>
 
-        <form onSubmit={handleAuth} className="flex flex-col gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-gray-400 px-1">Email Address</label>
+        <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{
+              fontSize: '10px',
+              fontWeight: 'bold',
+              color: '#999',
+              textTransform: 'uppercase',
+              paddingLeft: '4px',
+            }}>Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#008069] transition-all"
+              style={{
+                width: '100%',
+                backgroundColor: '#f9fafb',
+                border: '1px solid #f3f4f6',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
+              }}
               required
+              disabled={loading || isCheckingRedirect}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold text-gray-400 px-1">Password</label>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{
+              fontSize: '10px',
+              fontWeight: 'bold',
+              color: '#999',
+              textTransform: 'uppercase',
+              paddingLeft: '4px',
+            }}>Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              style={{
+                width: '100%',
+                backgroundColor: '#f9fafb',
+                border: '1px solid #f3f4f6',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                boxSizing: 'border-box',
+              }}
+              required
+              disabled={loading || isCheckingRedirect}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              backgroundColor: '#fee2e2',
+              padding: '12px',
+              borderRadius: '12px',
+              border: '1px solid #fecaca',
+              color: '#dc2626',
+            }}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || isCheckingRedirect}
+            style={{
+              width: '100%',
+              backgroundColor: '#008069',
+              color: 'white',
+              border: 'none',
+              padding: '16px',
+              borderRadius: '16px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              boxShadow: '0 10px 15px -3px rgba(0,128,105,0.1)',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'opacity 0.2s',
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 0.6s linear infinite',
+                }} />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <span>{isLogin ? 'Sign In' : 'Sign Up'}</span>
+            )}
+          </button>
+        </form>
+
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '16px 0',
+        }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#f3f4f6' }} />
+          <span style={{
+            padding: '0 12px',
+            fontSize: '10px',
+            fontWeight: 'bold',
+            color: '#ccc',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>Or continue with</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#f3f4f6' }} />
+        </div>
+
+        <button
+          onClick={signInWithGoogle}
+          disabled={loading || isCheckingRedirect}
+          style={{
+            width: '100%',
+            backgroundColor: 'white',
+            border: '1px solid #f3f4f6',
+            padding: '16px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            transition: 'opacity 0.2s',
+          }}
+        >
+          {loading ? (
+            <>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid #ccc',
+                borderTop: '2px solid #666',
+                borderRadius: '50%',
+                animation: 'spin 0.6s linear infinite',
+              }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#666' }}>Redirecting...</span>
+            </>
+          ) : (
+            <>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: '20px', height: '20px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#333' }}>Google Sign-In</span>
+            </>
+          )}
+        </button>
+
+        <p style={{
+          textAlign: 'center',
+          fontSize: '11px',
+          color: '#999',
+          fontWeight: '500',
+          margin: '16px 0 0',
+        }}>
+          {isLogin ? 'Naye user hain? ' : 'Pehle se account hai? '}
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError('');
+            }}
+            disabled={loading}
+            style={{
+              color: '#008069',
+              fontWeight: 'bold',
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: 'inherit',
+              padding: '0',
+            }}
+          >
+            {isLogin ? 'Sign Up karein' : 'Sign In karein'}
+          </button>
+        </p>
+
+        <div style={{
+          marginTop: '16px',
+          textAlign: 'center',
+        }}>
+          <p style={{
+            fontSize: '9px',
+            color: '#ccc',
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em',
+            lineHeight: '1.4',
+            margin: '0',
+          }}>
+            🔒 Secure & Private
+          </p>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
               placeholder="••••••••"
               className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#008069] transition-all"
               required

@@ -29103,18 +29103,27 @@ export default function App() {
   };
 
   useEffect(() => {
+    console.log('🚀 Starting auth state listener...');
+    let authCheckTimeout: NodeJS.Timeout;
+    
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      console.log('👤 Auth state changed:', u ? `User: ${u.email}` : 'No user');
+      clearTimeout(authCheckTimeout);
+      
       setUser(u);
       if (u) {
         // Load profile from Firestore
         const path = `users/${u.uid}`;
         try {
+          console.log('📋 Loading profile for user:', u.uid);
           const profileDoc = await getDoc(doc(db, "users", u.uid));
           if (profileDoc.exists()) {
             const data = profileDoc.data() as UserProfile;
+            console.log('✅ Profile loaded:', data.community);
             setProfile(data);
             setSavedSchemeIds(data.savedSchemeIds || []);
           } else {
+            console.log('📝 Creating new profile for:', u.email);
             // Need setup, we keep the default which will trigger setup screen if missing state
             setProfile((prev) => ({
               ...prev,
@@ -29122,12 +29131,26 @@ export default function App() {
             }));
           }
         } catch (err) {
+          console.error('❌ Profile load error:', err);
           handleFirestoreError(err, OperationType.GET, path);
         }
+      } else {
+        console.log('🔓 User logged out');
       }
+      console.log('✅ Auth check complete');
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    // Safety timeout - if auth check takes more than 15 seconds, force complete
+    authCheckTimeout = setTimeout(() => {
+      console.warn('⏱️ Auth check timeout - forcing completion');
+      setLoading(false);
+    }, 15000);
+
+    return () => {
+      clearTimeout(authCheckTimeout);
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -29560,7 +29583,20 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthScreen />;
+    return (
+      <div style={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        padding: '24px',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <AuthScreen />
+      </div>
+    );
   }
 
   // Profile setup check

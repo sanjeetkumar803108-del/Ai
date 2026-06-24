@@ -26,6 +26,30 @@ if (typeof window !== 'undefined') {
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Configure Google provider for better compatibility
+googleProvider.addScopes([
+  'profile',
+  'email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
+]);
+
+// Set custom parameters for login
+googleProvider.setCustomParameters({
+  'login_hint': 'user@example.com',
+  'prompt': 'select_account' // Always show account selection
+});
+
+// Enable persistence
+if (typeof window !== 'undefined') {
+  try {
+    auth.setPersistence = auth.setPersistence || (() => Promise.resolve());
+    console.log('✅ Firebase auth persistence enabled');
+  } catch (e) {
+    console.warn('⚠️ Firebase persistence warning:', e);
+  }
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
