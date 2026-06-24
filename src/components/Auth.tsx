@@ -16,6 +16,7 @@ export const AuthScreen = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isCheckingRedirect, setIsCheckingRedirect] = useState(true);
+  const [renderError, setRenderError] = useState<string | null>(null);
 
   // Check for redirect result on mount
   useEffect(() => {
@@ -178,7 +179,52 @@ export const AuthScreen = () => {
     );
   }
 
-  return (
+  // Render error fallback
+  if (renderError) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: '#F3F4F6',
+        padding: '24px',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '24px',
+          maxWidth: '300px',
+          textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '12px', color: '#dc2626', marginBottom: '12px' }}>
+            ⚠️ {renderError}
+          </p>
+          <button
+            onClick={() => {
+              setRenderError(null);
+              window.location.reload();
+            }}
+            style={{
+              backgroundColor: '#008069',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  try {
+    return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
@@ -464,7 +510,51 @@ export const AuthScreen = () => {
         }
       `}</style>
     </div>
-  );
+    );
+  } catch (err: any) {
+    console.error('❌ Auth render error:', err);
+    setRenderError(err.message || 'Render error occurred');
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: '#F3F4F6',
+        padding: '24px',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '24px',
+          maxWidth: '300px',
+          textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '12px', color: '#dc2626', marginBottom: '12px' }}>
+            ⚠️ Render Error
+          </p>
+          <code style={{ fontSize: '10px', color: '#666', display: 'block', marginBottom: '12px' }}>
+            {err.message}
+          </code>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              backgroundColor: '#008069',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
               placeholder="••••••••"
               className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#008069] transition-all"
