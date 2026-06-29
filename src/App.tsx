@@ -28850,7 +28850,7 @@ export default function App() {
   }, [notifications]);
 
   const [chatContext, setChatContext] = useState<string | undefined>(undefined);
-  const [user, setUser] = useState<User | null>(null);
+  useState<User | null>({ uid: "guest", email: "guest@formmitra.app" } as any)
 
   const [schemes, setSchemes] = useState<Scheme[]>(STATIC_SCHEMES);
   const [isSyncing, setIsSyncing] = useState(false);
