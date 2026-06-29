@@ -258,6 +258,111 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Robust image proxy route to bypass CORS, iframe sandbox, and referrer-policy hotlinking blocks
+  app.get("/api/proxy-image", async (req, res) => {
+    const imageUrl = req.query.url as string;
+    if (!imageUrl) {
+      return res.status(400).send("Missing image URL");
+    }
+
+    try {
+      console.log(`[Image Proxy] Fetching: ${imageUrl}`);
+      const response = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+        timeout: 10000,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache"
+        }
+      });
+
+      const contentType = (response.headers["content-type"] as any) || "image/jpeg";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=43200");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.status(200).send(Buffer.from(response.data));
+    } catch (err: any) {
+      console.warn(`[Image Proxy Info] Remote server did not resolve ${imageUrl} (serving beautiful SVG fallback instead):`, err.message);
+      
+      // Serve a beautifully designed modern Indian SVG gradient card as fallback
+      const urlLower = imageUrl.toLowerCase();
+      let title = "Form Mitra";
+      let subtitle = "Yojana Update";
+      let startColor = "#008069"; // Emerald/teal
+      let endColor = "#059669";
+      
+      if (urlLower.includes("health") || urlLower.includes("ayushman") || urlLower.includes("medical")) {
+        title = "Ayushman Bharat";
+        subtitle = "Sehat Suraksha";
+        startColor = "#ef4444"; // Red
+        endColor = "#b91c1c";
+      } else if (urlLower.includes("agri") || urlLower.includes("kisan") || urlLower.includes("pm-kisan")) {
+        title = "PM-Kisan";
+        subtitle = "Krishi Vikas";
+        startColor = "#10b981"; // Emerald
+        endColor = "#047857";
+      } else if (urlLower.includes("edu") || urlLower.includes("student") || urlLower.includes("scholarship") || urlLower.includes("shiksha")) {
+        title = "Scholarship Update";
+        subtitle = "Shiksha Sahayata";
+        startColor = "#3b82f6"; // Blue
+        endColor = "#1d4ed8";
+      } else if (urlLower.includes("finance") || urlLower.includes("paisa") || urlLower.includes("bank") || urlLower.includes("svanidhi")) {
+        title = "Aarthik Sahayata";
+        subtitle = "Samriddhi Yojana";
+        startColor = "#f59e0b"; // Amber
+        endColor = "#d97706";
+      } else if (urlLower.includes("employ") || urlLower.includes("job") || urlLower.includes("career")) {
+        title = "Rozgar & Jobs";
+        subtitle = "Kaushal Vikas";
+        startColor = "#8b5cf6"; // Violet
+        endColor = "#6d28d9";
+      }
+
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:${startColor};stop-opacity:1" />
+              <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
+            </linearGradient>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="800" height="600" fill="url(#grad)" />
+          <rect width="800" height="600" fill="url(#grid)" />
+          
+          <circle cx="700" cy="100" r="150" fill="rgba(255,255,255,0.08)" />
+          <circle cx="100" cy="500" r="200" fill="rgba(255,255,255,0.05)" />
+          <rect x="50" y="50" width="100" height="100" rx="20" transform="rotate(15 50 50)" fill="rgba(255,255,255,0.03)" />
+          
+          <g transform="translate(400, 240)" text-anchor="middle">
+            <circle cx="0" cy="0" r="80" fill="rgba(255,255,255,0.12)" />
+            <path d="M-30,-20 L30,-20 L40,20 L-40,20 Z" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" />
+            <circle cx="0" cy="-40" r="12" fill="white" />
+            <line x1="-50" y1="35" x2="50" y2="35" stroke="white" stroke-width="6" stroke-linecap="round" />
+            <path d="M-15,10 Q0,-15 15,10" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" />
+          </g>
+
+          <text x="400" y="410" font-family="'Inter', sans-serif, system-ui" font-weight="900" font-size="38" fill="white" text-anchor="middle" letter-spacing="1">${title}</text>
+          <text x="400" y="465" font-family="'Inter', sans-serif, system-ui" font-weight="600" font-size="22" fill="rgba(255,255,255,0.8)" text-anchor="middle" letter-spacing="2">${subtitle}</text>
+          
+          <g transform="translate(400, 530)" text-anchor="middle">
+            <rect x="-100" y="-18" width="200" height="36" rx="18" fill="rgba(0,0,0,0.2)" />
+            <text y="5" font-family="'JetBrains Mono', monospace" font-size="12" fill="white" font-weight="bold" letter-spacing="1">Yojana Sahayak Mitra 🇮🇳</text>
+          </g>
+        </svg>
+      `;
+
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.status(200).send(svg);
+    }
+  });
+
   // Simple direct chat endpoint for native mobile client APK and other lightweight clients
   app.post("/api/bade-bhai-advice", async (req, res) => {
     try {

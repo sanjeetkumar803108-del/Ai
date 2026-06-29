@@ -1,384 +1,219 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
-  View,
   StyleSheet,
+  SafeAreaView,
   StatusBar,
+  BackHandler,
   ActivityIndicator,
+  View,
   Text,
   TouchableOpacity,
-  BackHandler,
   Platform,
-} from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+} from "react-native";
+import { WebView } from "react-native-webview";
+import { Ionicons } from "@expo/vector-icons";
+import { NamaskarSplash } from "./src/components/NamaskarSplash";
 
-const WEB_APP_URL = 'https://ai-one-rust-97.vercel.app';
-
-// Enhanced JS for mobile WebView with better error tracking
-const INJECTED_JS = `
-  (function() {
-    console.log('🚀 Form Mitra App Loading...');
-    
-    // Capture all console logs to send back to React Native
-    const originalLog = console.log;
-    const originalError = console.error;
-    const originalWarn = console.warn;
-    
-    console.log = function(...args) {
-      originalLog.apply(console, args);
-      try {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-          JSON.stringify({ type: 'CONSOLE_LOG', message: args.join(' ') })
-        );
-      } catch(e) {}
-    };
-    
-    console.error = function(...args) {
-      originalError.apply(console, args);
-      try {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-          JSON.stringify({ type: 'CONSOLE_ERROR', message: args.join(' ') })
-        );
-      } catch(e) {}
-    };
-    
-    console.warn = function(...args) {
-      originalWarn.apply(console, args);
-    };
-    
-    // Force hardware compositing
-    document.documentElement.style.transform = 'translateZ(0)';
-    document.documentElement.style.webkitTransform = 'translateZ(0)';
-    document.body.style.transform = 'translateZ(0)';
-    document.body.style.webkitTransform = 'translateZ(0)';
-    
-    // Force visibility
-    document.documentElement.style.visibility = 'visible';
-    document.documentElement.style.opacity = '1';
-    document.body.style.visibility = 'visible';
-    document.body.style.opacity = '1';
-    document.body.style.display = 'block';
-    
-    // Force background
-    document.body.style.backgroundColor = '#ffffff';
-    document.documentElement.style.backgroundColor = '#ffffff';
-
-    // Fix viewport
-    var meta = document.querySelector('meta[name="viewport"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'viewport';
-      document.head.appendChild(meta);
-    }
-    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-    
-    console.log('✅ Page initialization complete');
-    
-    // Send ready signal
-    window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-      JSON.stringify({ type: 'CONTENT_READY' })
-    );
-    true;
-  })();
-`;
+const systemFont = Platform.OS === "ios" ? "System" : "sans-serif";
 
 export default function App() {
-  const webviewRef = useRef<WebView>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [errorInfo, setErrorInfo] = useState('');
+  const webViewRef = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
-  const [showDebug, setShowDebug] = useState(false);
-  const loadingTimerRef = useRef<any>(null);
-  const hardErrorTimeoutRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
-  // Back button handler
-  React.useEffect(() => {
-    const onBackPress = () => {
-      if (canGoBack && webviewRef.current) {
-        webviewRef.current.goBack();
+  // Handle hardware back button on Android to navigate back inside the WebView
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (canGoBack && webViewRef.current) {
+        webViewRef.current.goBack();
         return true;
       }
       return false;
     };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+    BackHandler.addEventListener("hardwareBackPress", handleBackPress);
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", handleBackPress);
+    };
   }, [canGoBack]);
 
-  const hideLoader = () => {
-    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-    if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-    setIsLoading(false);
-  };
+  // LIVE Web URL for Form Mitra Suite (Loads your actual live AI Studio preview directly!)
+  const webAppUrl = "https://ais-pre-tk4okibt4lij5wxepsulso-3794214422.asia-southeast1.run.app";
 
-  const handleReload = () => {
+  const handleRetry = () => {
     setHasError(false);
-    setErrorInfo('');
     setIsLoading(true);
-    if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-    hardErrorTimeoutRef.current = setTimeout(() => {
-      if (isLoading) {
-        setHasError(true);
-        setErrorInfo('🔴 Server 10 seconds mein respond nahi kiya. Network slow hai!');
-        setIsLoading(false);
-      }
-    }, 10000); // 10 second hard timeout
-    webviewRef.current?.reload();
-  };
-
-  const handleError = (syntheticEvent: any) => {
-    const { nativeEvent } = syntheticEvent;
-    console.error('WebView Error:', nativeEvent);
-    const errorMsg = `❌ ${nativeEvent.code}: ${nativeEvent.description}`;
-    setErrorInfo(errorMsg);
-    setHasError(true);
-    setIsLoading(false);
-    if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-  };
-
-  const handleHttpError = (syntheticEvent: any) => {
-    const { nativeEvent } = syntheticEvent;
-    console.error('HTTP Error:', nativeEvent);
-    if (nativeEvent.statusCode >= 400) {
-      const errorMsg = `🌐 HTTP ${nativeEvent.statusCode} - Server mein problem hai!`;
-      setErrorInfo(errorMsg);
-      setHasError(true);
-      setIsLoading(false);
-      if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-    }
-  };
-
-  const handleMessage = (event: any) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      console.log('📱 WebView Message:', data);
-      
-      if (data.type === 'CONTENT_READY') {
-        console.log('✅ Content ready!');
-        hideLoader();
-      } else if (data.type === 'CONSOLE_LOG') {
-        console.log('🌐 [WebApp]:', data.message);
-      } else if (data.type === 'CONSOLE_ERROR') {
-        console.error('🌐 [WebApp ERROR]:', data.message);
-      }
-    } catch (e) {
-      console.log('Message parse error (normal):', e);
-    }
-  };
-
-  // Aggressive timeout — 5 second mein pata chal jayega
-  const handleLoadStart = () => {
-    console.log('🚀 WebView load start');
-    setIsLoading(true);
-    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-    if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-    
-    // Much longer timeout - 8 seconds
-    hardErrorTimeoutRef.current = setTimeout(() => {
-      console.warn('⏱️ 8 second timeout - forcing close loader');
-      if (isLoading) {
-        setIsLoading(false);
-      }
-    }, 8000);
-  };
-
-  const handleLoadEnd = () => {
-    console.log('✅ WebView load ended');
-    if (hardErrorTimeoutRef.current) clearTimeout(hardErrorTimeoutRef.current);
-    // Wait a bit before hiding to ensure content renders
-    setTimeout(() => hideLoader(), 500);
-  };
-
-  const handleNavigationStateChange = (navState: WebViewNavigation) => {
-    setCanGoBack(navState.canGoBack);
+    setRetryKey((prev) => prev + 1); // Triggers key change to force WebView reload attempt
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#008069" />
+      
+      <View style={styles.webWrapper}>
+        {/* WebView: Loaded immediately in the background under the splash screen */}
+        <WebView
+          key={retryKey}
+          ref={webViewRef}
+          source={{ uri: webAppUrl }}
+          style={hasError ? styles.hiddenWebview : styles.webview}
+          onNavigationStateChange={(navState) => {
+            setCanGoBack(navState.canGoBack);
+          }}
+          onLoadStart={() => {
+            setHasError(false);
+            setIsLoading(true);
+          }}
+          onLoadEnd={() => {
+            setIsLoading(false);
+          }}
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.warn("WebView error: ", nativeEvent);
+            setHasError(true);
+            setIsLoading(false);
+          }}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.warn("WebView HTTP error: ", nativeEvent);
+            // Only trigger error screen for serious non-200 states of the main page
+            if (nativeEvent.statusCode >= 400) {
+              setHasError(true);
+              setIsLoading(false);
+            }
+          }}
+          domStorageEnabled={true}
+          javaScriptEnabled={true}
+          originWhitelist={["*"]}
+          mixedContentMode="always"
+          thirdPartyCookiesEnabled={true}
+          allowFileAccess={true}
+          androidHardwareAccelerationDisabled={false}
+          // Modern standard mobile User Agent to ensure full compatibility with modern Web APIs and JS libraries
+          userAgent="Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36"
+        />
 
-      {hasError ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorEmoji}>⚠️</Text>
-          <Text style={styles.errorTitle}>Oops! Mein Tayyar Nahi Hoon</Text>
-          <Text style={styles.errorSubtitle}>{errorInfo}</Text>
-          
-          <TouchableOpacity 
-            style={styles.retryButton} 
-            onPress={handleReload}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.retryText}>🔄 Dobara Load Karo</Text>
-          </TouchableOpacity>
+        {/* Custom loading indicator shown only when not showing full error or splash */}
+        {isLoading && !showSplash && !hasError && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#008069" />
+            <Text style={styles.loadingText}>Yojana details load ho rahi hain...</Text>
+          </View>
+        )}
 
-          <TouchableOpacity 
-            style={styles.debugButton}
-            onPress={() => setShowDebug(!showDebug)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.debugButtonText}>🐛 Debug Info</Text>
-          </TouchableOpacity>
-
-          {showDebug && (
-            <View style={styles.debugInfo}>
-              <Text style={styles.debugText}>URL: {WEB_APP_URL}</Text>
-              <Text style={styles.debugText}>Online: {isOnline ? '✅ Yes' : '❌ No'}</Text>
-              <Text style={styles.debugText}>Platform: {Platform.OS}</Text>
-              <Text style={styles.debugText}>Error: {errorInfo}</Text>
+        {/* Beautiful native error screen in Hindi/English if the URL fails to load */}
+        {hasError && (
+          <View style={styles.errorContainer}>
+            <View style={styles.errorIconBg}>
+              <Ionicons name="wifi-outline" size={48} color="#D97706" />
             </View>
-          )}
-        </View>
-      ) : (
-        <>
-          <WebView
-            ref={webviewRef}
-            source={{ uri: WEB_APP_URL }}
-            style={styles.webview}
+            <Text style={styles.errorTitle}>Internet Connection Nahi Mil Raha! 🌐</Text>
+            <Text style={styles.errorSubtitle}>
+              Sanjeet bhaiya, lagta hai aapka internet disconnected hai ya website temporarily available nahi hai. 
+              Kripya apna mobile network check karein aur niche button par click karein!
+            </Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8}>
+              <Ionicons name="refresh" size={18} color="#ffffff" />
+              <Text style={styles.retryButtonText}>Fir Se Koshish Karein</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-            // Core settings
-            originWhitelist={['*']}
-            mixedContentMode="always"
-            domStorageEnabled={true}
-            javaScriptEnabled={true}
-            allowFileAccess={true}
-            allowUniversalAccessFromFileURLs={true}
-            setSupportMultipleWindows={false}
-            thirdPartyCookiesEnabled={true}
-
-            // Hardware acceleration
-            androidLayerType="hardware"
-            androidHardwareAccelerationDisabled={false}
-
-            // Cache & Storage
-            cacheEnabled={true}
-            cacheMode="LOAD_DEFAULT"
-
-            // User Agent
-            userAgent="Mozilla/5.0 (Linux; Android 13; TECNO LH8n Build/TP1A.220624.014) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-
-            // Injection & Events
-            injectedJavaScript={INJECTED_JS}
-            onLoadStart={handleLoadStart}
-            onLoadEnd={handleLoadEnd}
-            onError={handleError}
-            onHttpError={handleHttpError}
-            onMessage={handleMessage}
-            onNavigationStateChange={(navState) => setCanGoBack(navState.canGoBack)}
-
-            // Scroll behavior
-            scrollEnabled={true}
-            bounces={false}
-            overScrollMode="never"
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-          />
-
-          {isLoading && (
-            <View style={styles.loadingOverlay}>
-              <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color="#4CAF50" />
-                <Text style={styles.loadingTitle}>✨ Form Mitra</Text>
-                <Text style={styles.loadingSubtitle}>AI Tutor ready ho rahe ho...</Text>
-                <Text style={styles.loadingTiny}>Processing loading...</Text>
-              </View>
-            </View>
-          )}
-        </>
-      )}
-    </View>
+        {/* Legendary Welcome Splash: Renders on top to mask the initial load phase and prevent white flashes */}
+        {showSplash && (
+          <NamaskarSplash onComplete={() => setShowSplash(false)} />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
-  webview: { flex: 1, backgroundColor: '#ffffff' },
-  loadingOverlay: {
+  container: {
+    flex: 1,
+    backgroundColor: "#008069", // Matches Form Mitra primary theme color
+  },
+  webWrapper: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  webview: {
+    flex: 1,
+  },
+  hiddenWebview: {
+    display: "none",
+    height: 0,
+    width: 0,
+    opacity: 0,
+  },
+  loadingContainer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.9)", // Clean off-white background while loading
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
   },
-  loadingBox: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingTitle: {
-    marginTop: 20,
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  loadingSubtitle: {
-    marginTop: 8,
-    fontSize: 15,
-    color: '#666666',
-  },
-  loadingTiny: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#999999',
+  loadingText: {
+    fontSize: 14,
+    color: "#008069",
+    fontWeight: "600",
+    fontFamily: systemFont,
   },
   errorContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#F9FAFB",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32,
   },
-  errorEmoji: { fontSize: 56, marginBottom: 16 },
+  errorIconBg: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "rgba(217, 119, 6, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
   errorTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#1F2937",
+    textAlign: "center",
     marginBottom: 12,
+    fontFamily: systemFont,
   },
   errorSubtitle: {
     fontSize: 14,
-    color: '#555555',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 20,
+    color: "#4B5563",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 28,
+    fontFamily: systemFont,
+    fontWeight: "500",
   },
   retryButton: {
-    backgroundColor: '#4CAF50',
+    flexDirection: "row",
+    backgroundColor: "#008069",
     paddingVertical: 14,
-    paddingHorizontal: 40,
+    paddingHorizontal: 28,
     borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: "#008069",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
     elevation: 3,
-    marginBottom: 16,
   },
-  retryText: { 
-    color: '#ffffff', 
-    fontSize: 16, 
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  debugButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    backgroundColor: '#f5f5f5',
-  },
-  debugButtonText: {
-    color: '#666666',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  debugInfo: {
-    marginTop: 16,
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    borderRadius: 8,
-    maxWidth: '100%',
-  },
-  debugText: {
-    fontSize: 11,
-    color: '#333333',
-    fontFamily: 'monospace',
-    marginBottom: 4,
+  retryButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "800",
+    fontFamily: systemFont,
   },
 });

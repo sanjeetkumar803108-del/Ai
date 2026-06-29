@@ -4,6 +4,7 @@
     "slug": "form-mitra-ai",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -18,22 +19,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F9FAFB"
-      },
-      "permissions": [
-        "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.ACCESS_WIFI_STATE"
-      ],
-      "blockedPermissions": []
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [],
-    "extra": {
-      "eas": {
-        "projectId": "4c946158-a7cd-4f2a-8b33-26d50db3cb09"
-      }
     }
   }
 }

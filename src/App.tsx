@@ -244,6 +244,22 @@ const HAS_MAPS_KEY = Boolean(MAPS_API_KEY);
 // Initial connection test
 testConnection();
 
+// Robust image proxy resolver helper
+export const getProxiedImageUrl = (url: string) => {
+  if (!url) return "";
+  const cleanedUrl = url.trim();
+  if (
+    cleanedUrl.startsWith("/") ||
+    cleanedUrl.startsWith("data:") ||
+    cleanedUrl.startsWith("blob:") ||
+    cleanedUrl.startsWith("http://localhost") ||
+    cleanedUrl.startsWith("https://localhost")
+  ) {
+    return cleanedUrl;
+  }
+  return `/api/proxy-image?url=${encodeURIComponent(cleanedUrl)}`;
+};
+
 // --- Community Specific Components ---
 
 const CommunityDecorations = ({ community }: { community?: string }) => {
@@ -789,10 +805,31 @@ const NewsSlider = ({
               >
                 <div className="w-full h-32 rounded-2xl bg-white overflow-hidden border border-gray-100 relative">
                   <img
-                    src={
-                      item.image ||
-                      `https://picsum.photos/seed/${item.id + i}/400/225`
-                    }
+                    src={getProxiedImageUrl((() => {
+                      if (item.image && item.image.startsWith("http")) {
+                        return item.image;
+                      }
+                      const cat = (item.category || "").toLowerCase();
+                      if (cat.includes("scholarship") || cat.includes("student")) {
+                        return "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop";
+                      }
+                      if (cat.includes("education") || cat.includes("exam") || cat.includes("class")) {
+                        return "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop";
+                      }
+                      if (cat.includes("job") || cat.includes("vacancy") || cat.includes("recruitment") || cat.includes("employment") || cat.includes("career")) {
+                        return "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop";
+                      }
+                      if (cat.includes("kheti") || cat.includes("farmer") || cat.includes("agriculture") || cat.includes("kisan")) {
+                        return "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop";
+                      }
+                      if (cat.includes("yojana") || cat.includes("scheme") || cat.includes("social") || cat.includes("welfare")) {
+                        return "https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop";
+                      }
+                      if (cat.includes("health") || cat.includes("ayushman") || cat.includes("medical")) {
+                        return "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop";
+                      }
+                      return "https://images.unsplash.com/photo-1601058268499-e52658bdf926?q=80&w=800&auto=format&fit=crop";
+                    })())}
                     alt={item.title}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
@@ -7831,11 +7868,37 @@ const PersonalizedAIRecommendations = ({
               className="flex-shrink-0 w-80 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-100 overflow-hidden group cursor-pointer"
             >
               <div className="h-40 relative">
-                <img
-                  src={scheme.image}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  alt={scheme.name}
-                />
+                 <img
+                   src={getProxiedImageUrl(scheme.image)}
+                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                   alt={scheme.name}
+                   referrerPolicy="no-referrer"
+                   onError={(e) => {
+                     const cat = (scheme.category || "").toLowerCase();
+                     const id = (scheme.id || "").toLowerCase();
+                     const attempt = e.currentTarget.getAttribute("data-attempt") || "0";
+                     if (attempt === "2") {
+                       e.currentTarget.src = getProxiedImageUrl(`https://picsum.photos/seed/${scheme.id}/800/600`);
+                       return;
+                     }
+                     e.currentTarget.setAttribute("data-attempt", String(parseInt(attempt, 10) + 1));
+                     
+                     let fallbackUrl = "https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop";
+                     
+                     if (cat.includes("agri") || id.includes("kisan") || id.includes("pm-kisan")) {
+                       fallbackUrl = "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop";
+                     } else if (cat.includes("health") || cat.includes("medical") || id.includes("ayushman") || id.includes("bharat")) {
+                       fallbackUrl = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop";
+                     } else if (cat.includes("edu") || cat.includes("stud") || id.includes("student") || id.includes("scholarship") || id.includes("credit-card")) {
+                       fallbackUrl = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop";
+                     } else if (cat.includes("finance") || cat.includes("paisa") || cat.includes("bank") || id.includes("svanidhi") || id.includes("samriddhi") || id.includes("surya")) {
+                       fallbackUrl = "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=800&auto=format&fit=crop";
+                     } else if (cat.includes("employ") || cat.includes("job") || cat.includes("career") || id.includes("kvy") || id.includes("ncs") || id.includes("mgnrega")) {
+                       fallbackUrl = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop";
+                     }
+                     e.currentTarget.src = getProxiedImageUrl(fallbackUrl);
+                   }}
+                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/30">
                   <span className="text-[9px] font-black text-white uppercase tracking-widest">
@@ -17623,7 +17686,7 @@ const HomeScreen = ({
           </div>
           <div>
             <h1 className="text-xl font-black text-gray-800 tracking-tight leading-none uppercase">
-              Form Mitra
+              FORM MITRA AI
             </h1>
             <p className="text-[10px] font-bold text-[#008069] uppercase tracking-widest mt-1 flex items-center gap-1.5">
               <span>Aapka AI Sathi</span>
@@ -18217,12 +18280,38 @@ const HomeScreen = ({
               >
                 <div className="w-full h-24 rounded-2xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 relative">
                   <img
-                    src={
+                    src={getProxiedImageUrl(
                       scheme.image ||
                       `https://picsum.photos/seed/${scheme.id}/200/160`
-                    }
+                    )}
                     alt={scheme.name}
                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const cat = (scheme.category || "").toLowerCase();
+                      const id = (scheme.id || "").toLowerCase();
+                      const attempt = e.currentTarget.getAttribute("data-attempt") || "0";
+                      if (attempt === "2") {
+                        e.currentTarget.src = getProxiedImageUrl(`https://picsum.photos/seed/${scheme.id}/200/160`);
+                        return;
+                      }
+                      e.currentTarget.setAttribute("data-attempt", String(parseInt(attempt, 10) + 1));
+                      
+                      let fallbackUrl = "https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=200&auto=format&fit=crop";
+                      
+                      if (cat.includes("agri") || id.includes("kisan") || id.includes("pm-kisan")) {
+                        fallbackUrl = "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=200&auto=format&fit=crop";
+                      } else if (cat.includes("health") || cat.includes("medical") || id.includes("ayushman") || id.includes("bharat")) {
+                        fallbackUrl = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=200&auto=format&fit=crop";
+                      } else if (cat.includes("edu") || cat.includes("stud") || id.includes("student") || id.includes("scholarship") || id.includes("credit-card")) {
+                        fallbackUrl = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=200&auto=format&fit=crop";
+                      } else if (cat.includes("finance") || cat.includes("paisa") || cat.includes("bank") || id.includes("svanidhi") || id.includes("samriddhi") || id.includes("surya")) {
+                        fallbackUrl = "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=200&auto=format&fit=crop";
+                      } else if (cat.includes("employ") || cat.includes("job") || cat.includes("career") || id.includes("kvy") || id.includes("ncs") || id.includes("mgnrega")) {
+                        fallbackUrl = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=200&auto=format&fit=crop";
+                      }
+                      e.currentTarget.src = getProxiedImageUrl(fallbackUrl);
+                    }}
                   />
                   <div className="absolute top-2 right-2 w-6 h-6 bg-white/80 backdrop-blur-md rounded-lg flex items-center justify-center text-[#008069]">
                     <Bookmark className="w-3.5 h-3.5 fill-current" />
@@ -21878,6 +21967,15 @@ const SchemesScreen = ({
 }) => {
   const [filter, setFilter] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [manualOffset, setManualOffset] = useState(0);
+  const [minutesUntilRefresh, setMinutesUntilRefresh] = useState(60 - (new Date().getMinutes()));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMinutesUntilRefresh(60 - (new Date().getMinutes()));
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<
     { id: string; name: string; hindiName: string; category?: string }[]
@@ -22397,6 +22495,16 @@ const SchemesScreen = ({
   };
 
   const filteredSchemes = schemes.filter((s) => {
+    // 100% Strictly filter by user state if specified in user profile and scheme is state-specific
+    if (
+      s.state &&
+      s.state !== "National" &&
+      userProfile.state &&
+      s.state.toLowerCase() !== userProfile.state.toLowerCase()
+    ) {
+      return false;
+    }
+
     // Automatically filter to only show schemes that match the user's profile community
     if (
       userProfile.community &&
@@ -22426,7 +22534,16 @@ const SchemesScreen = ({
     });
   }, [filteredSchemes, userProfile]);
 
-  const displaySchemes = sortedFilteredSchemes;
+  // Rotate schemes dynamically every 1 hour to keep content refreshing for the user
+  const displaySchemes = useMemo(() => {
+    if (sortedFilteredSchemes.length <= 1) return sortedFilteredSchemes;
+    const hourSeed = Math.floor(Date.now() / (1000 * 60 * 60));
+    const rotationShift = (hourSeed + manualOffset) % sortedFilteredSchemes.length;
+    return [
+      ...sortedFilteredSchemes.slice(rotationShift),
+      ...sortedFilteredSchemes.slice(0, rotationShift),
+    ];
+  }, [sortedFilteredSchemes, manualOffset]);
 
   // Tracking Status Updater
   const updateTrackingStatus = async (scheme: any, newStatus: string) => {
@@ -23134,23 +23251,41 @@ const SchemesScreen = ({
             </button>
           ))}
         </div>
-        <div className="flex justify-between items-center px-4 py-2.5 bg-gray-50 rounded-2xl border border-gray-100/80 mt-1 shadow-2xs">
-          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#008069] animate-pulse shrink-0"></span>
-            Yojanayein (Filter & Sort)
-          </span>
-          <button
-            onClick={() => setSortByDeadline(!sortByDeadline)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border cursor-pointer",
-              sortByDeadline
-                ? "bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-100"
-                : "bg-white text-gray-500 border-gray-100 hover:border-gray-200"
-            )}
-          >
-            <Calendar className={cn("w-3.5 h-3.5", sortByDeadline && "animate-bounce")} />
-            <span>Deadline Nearing ⏰</span>
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100/80 mt-1 gap-2 shadow-2xs">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#008069] animate-pulse shrink-0"></span>
+              Yojanayein (Filter & Sort)
+            </span>
+            <span className="text-[8px] text-gray-400 font-extrabold uppercase tracking-tight">
+              Auto-Rotate in {minutesUntilRefresh}m 🕒
+            </span>
+          </div>
+          <div className="flex gap-1.5 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                setManualOffset((prev) => prev + 1);
+                showToast("Nayi schemes upar aa gayi hain! 🌀📡", "info");
+              }}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-[#008069] border border-gray-100 hover:border-[#008069]/30 transition-all cursor-pointer shadow-3xs"
+              title="Yojanayein ghumayein aur badlein"
+            >
+              <RefreshCw className="w-3.5 h-3.5 animate-pulse" />
+              <span>Ghumayein (Rotate) 🌀</span>
+            </button>
+            <button
+              onClick={() => setSortByDeadline(!sortByDeadline)}
+              className={cn(
+                "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border cursor-pointer shadow-3xs",
+                sortByDeadline
+                  ? "bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-100"
+                  : "bg-white text-gray-500 border-gray-100 hover:border-gray-200"
+              )}
+            >
+              <Calendar className={cn("w-3.5 h-3.5", sortByDeadline && "animate-bounce")} />
+              <span>Deadline ⏰</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -23248,10 +23383,13 @@ const SchemesScreen = ({
               }}
               className={cn(
                 "bg-white rounded-[2rem] border transition-all overflow-hidden flex flex-col relative cursor-pointer",
-                isSelected
-                  ? "border-orange-500 ring-2 ring-orange-500 ring-opacity-20 shadow-xl"
-                  : "border-gray-100 shadow-sm",
-                isExpanded && "shadow-lg scale-[1.01]",
+                isExpanded
+                  ? "premium-glowing-border shadow-xl scale-[1.01]"
+                  : matchRes.score >= 85
+                    ? "new-scheme-border shadow-md hover:shadow-lg"
+                    : isSelected
+                      ? "border-orange-500 ring-2 ring-orange-500 ring-opacity-20 shadow-xl"
+                      : "border-gray-100 shadow-sm",
               )}
             >
               <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10 pointer-events-none">
@@ -23383,13 +23521,38 @@ const SchemesScreen = ({
 
               <div className="h-44 w-full relative overflow-hidden bg-gray-100">
                 <img
-                  src={
+                  src={getProxiedImageUrl(
                     scheme.image ||
                     `https://picsum.photos/seed/${scheme.id}/800/600`
-                  }
+                  )}
                   alt={scheme.name}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  onError={(e) => {
+                    const cat = (scheme.category || "").toLowerCase();
+                    const id = (scheme.id || "").toLowerCase();
+                    const attempt = e.currentTarget.getAttribute("data-attempt") || "0";
+                    if (attempt === "2") {
+                      e.currentTarget.src = getProxiedImageUrl(`https://picsum.photos/seed/${scheme.id}/800/600`);
+                      return;
+                    }
+                    e.currentTarget.setAttribute("data-attempt", String(parseInt(attempt, 10) + 1));
+                    
+                    let fallbackUrl = "https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop";
+                    
+                    if (cat.includes("agri") || id.includes("kisan") || id.includes("pm-kisan")) {
+                      fallbackUrl = "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop";
+                    } else if (cat.includes("health") || cat.includes("medical") || id.includes("ayushman") || id.includes("bharat")) {
+                      fallbackUrl = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop";
+                    } else if (cat.includes("edu") || cat.includes("stud") || id.includes("student") || id.includes("scholarship") || id.includes("credit-card")) {
+                      fallbackUrl = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop";
+                    } else if (cat.includes("finance") || cat.includes("paisa") || cat.includes("bank") || id.includes("svanidhi") || id.includes("samriddhi") || id.includes("surya")) {
+                      fallbackUrl = "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=800&auto=format&fit=crop";
+                    } else if (cat.includes("employ") || cat.includes("job") || cat.includes("career") || id.includes("kvy") || id.includes("ncs") || id.includes("mgnrega")) {
+                      fallbackUrl = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop";
+                    }
+                    e.currentTarget.src = getProxiedImageUrl(fallbackUrl);
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-6 right-6">
@@ -28850,7 +29013,7 @@ export default function App() {
   }, [notifications]);
 
   const [chatContext, setChatContext] = useState<string | undefined>(undefined);
-  useState<User | null>({ uid: "guest", email: "guest@formmitra.app" } as any)
+  const [user, setUser] = useState<User | null>(null);
 
   const [schemes, setSchemes] = useState<Scheme[]>(STATIC_SCHEMES);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -29103,27 +29266,18 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log('🚀 Starting auth state listener...');
-    let authCheckTimeout: NodeJS.Timeout;
-    
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      console.log('👤 Auth state changed:', u ? `User: ${u.email}` : 'No user');
-      clearTimeout(authCheckTimeout);
-      
       setUser(u);
       if (u) {
         // Load profile from Firestore
         const path = `users/${u.uid}`;
         try {
-          console.log('📋 Loading profile for user:', u.uid);
           const profileDoc = await getDoc(doc(db, "users", u.uid));
           if (profileDoc.exists()) {
             const data = profileDoc.data() as UserProfile;
-            console.log('✅ Profile loaded:', data.community);
             setProfile(data);
             setSavedSchemeIds(data.savedSchemeIds || []);
           } else {
-            console.log('📝 Creating new profile for:', u.email);
             // Need setup, we keep the default which will trigger setup screen if missing state
             setProfile((prev) => ({
               ...prev,
@@ -29131,26 +29285,12 @@ export default function App() {
             }));
           }
         } catch (err) {
-          console.error('❌ Profile load error:', err);
           handleFirestoreError(err, OperationType.GET, path);
         }
-      } else {
-        console.log('🔓 User logged out');
       }
-      console.log('✅ Auth check complete');
       setLoading(false);
     });
-
-    // Safety timeout - if auth check takes more than 15 seconds, force complete
-    authCheckTimeout = setTimeout(() => {
-      console.warn('⏱️ Auth check timeout - forcing completion');
-      setLoading(false);
-    }, 15000);
-
-    return () => {
-      clearTimeout(authCheckTimeout);
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -29583,20 +29723,7 @@ export default function App() {
   }
 
   if (!user) {
-    return (
-      <div style={{ 
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        padding: '24px',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        <AuthScreen />
-      </div>
-    );
+    return <AuthScreen />;
   }
 
   // Profile setup check
@@ -30357,10 +30484,10 @@ export default function App() {
               {/* Header Image */}
               <div className="w-full h-44 rounded-3xl overflow-hidden border border-gray-100 relative shadow-inner">
                 <img
-                  src={
+                  src={getProxiedImageUrl(
                     selectedSliderNews.image ||
                     `https://picsum.photos/seed/${selectedSliderNews.id}/500/280`
-                  }
+                  )}
                   alt={selectedSliderNews.title}
                   className="w-full h-full object-cover"
                 />

@@ -65,7 +65,7 @@ export const StudentSkillFinderWidget = ({
         throw new Error("Invalid format received");
       }
     } catch (err: any) {
-      console.error("Failed to load skills:", err);
+      console.warn("Failed to load skills, using local fallback guidelines:", err.message || err);
       // Fallback local guidelines if API triggers error
       getLocalFallback(targetStream);
     } finally {

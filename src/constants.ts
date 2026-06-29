@@ -31,7 +31,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Health',
     community: 'Normal',
     officialUrl: 'https://pmjay.gov.in/',
-    image: 'https://images.unsplash.com/photo-1576091160550-217359f42f8c?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0',
     deadline: Date.now() + 8 * 24 * 60 * 60 * 1000
   },
@@ -48,7 +48,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Social',
     community: 'Normal',
     officialUrl: 'https://nfsa.gov.in/',
-    image: 'https://images.unsplash.com/photo-1594818378821-081162ba8299?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
   {
@@ -65,7 +65,7 @@ export const SCHEMES: Scheme[] = [
     community: 'Normal',
     state: 'Uttar Pradesh',
     officialUrl: 'https://mksy.up.gov.in/',
-    image: 'https://images.unsplash.com/photo-1526644485127-d2970f64e172?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0',
     deadline: Date.now() + 2 * 24 * 60 * 60 * 1000, 
     lastUpdate: Date.now() - 1 * 24 * 60 * 60 * 1000 
@@ -118,7 +118,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Finance',
     community: 'Normal',
     officialUrl: 'https://pmsuryaghar.gov.in/',
-    image: 'https://images.unsplash.com/photo-1509391366360-fe5bb6583e2c?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0',
     deadline: Date.now() + 3 * 24 * 60 * 60 * 1000
   },
@@ -135,7 +135,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Social',
     community: 'Normal',
     officialUrl: 'https://www.pmuy.gov.in/',
-    image: 'https://images.unsplash.com/photo-1559027615-cd9d7a9bbc53?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
   {
@@ -151,7 +151,7 @@ export const SCHEMES: Scheme[] = [
     category: 'Finance',
     community: 'Jobs',
     officialUrl: 'https://pmsvanidhi.mohua.gov.in/',
-    image: 'https://images.unsplash.com/photo-1601058268499-e52658bdf926?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1607619056574-7b8d304f3c6f?q=80&w=800&auto=format&fit=crop',
     aiVersion: 'Mitra Core v1.0'
   },
   {

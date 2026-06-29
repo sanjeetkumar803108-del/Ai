@@ -777,6 +777,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Bhai, agar aap higher studies ke liye paise arrange karne me pareshan ho rahe hain, toh is yojana se bina kisi collateral security ke saste dar par loan mil jayega.",
           "impact": "Aap DRCC office ke chakkar kaatne ke bajae ab direct online MNSSBY portal se apply kar sakte hain.",
           "date": "30 June 2026",
+          "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.7nishchay-yuvaupaj.bihar.gov.in/"
         },
         {
@@ -787,6 +788,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Aapko padhai me financial support dene ke liye sarkar varshik scholarship deti hai. Isme time par documents verify karwana sabse jaruri hai.",
           "impact": "Bhai, apne school ya college ke principal se consult karke pehle bonafide certificate banwayein aur fir NSP portal par apply karein.",
           "date": "15 July 2026",
+          "image": "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://scholarships.gov.in/"
         },
         {
@@ -797,6 +799,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Yeh un sabhi students ke liye sunehra mauka hai jo mehengi test series kharid nahi sakte. Practice se aapka exam anxiety door hoga aur score behtar hoga.",
           "impact": "Directly play store se app download karein ya official ugc portal par free content verify karein.",
           "date": "Ongoing",
+          "image": "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.nta.ac.in/Abhyas"
         },
         {
@@ -807,6 +810,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Bhai agar aapka koi dost ya aap prelims clear karte hain toh aage ki mains ki taiyari ke liye sarkari fund direct college bank account me aayega.",
           "impact": "Pass hone ke bad direct social welfare department ke online form portal par roll number upload karke claim karein.",
           "date": "31 August 2026",
+          "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://state.bihar.gov.in/prdbihar/"
         },
         {
@@ -817,6 +821,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Paisa ab aapki padhai ke aade nahi aayega! Is scheme me non-collateral loan dilaane ke liye direct banks ko instruction diya gaya hai.",
           "impact": "Apne selected college admission letter ke sath portal par single form bharein.",
           "date": "10 July 2026",
+          "image": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.vidyalakshmi.co.in/"
         }
       ],
@@ -829,6 +834,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Bhai, Bihar me sarkaari naukari ka sapna poora karne ka sabse behtar aur sammanit tarika hai yeh. Exam pattern thoda badla hai, isliye focus dhyan se karein.",
           "impact": "Direct bpsc.bih.nic.in par jaakar form fillup jarur karein. Government server raat ko fast chalta hai toh safe rahein.",
           "date": "20 June 2026",
+          "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://bpsc.bih.nic.in/"
         },
         {
@@ -839,6 +845,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "BINA kisi application fee ke, direct verified companies yahan resume shortlist kar ke interview leti hain. Isse fake job calls aur scams se bachao hoga.",
           "impact": "NCS portal par apna e-Shram card ya free student candidate profile register kar ke part-time ya full-time fields choose karein.",
           "date": "15 June 2026",
+          "image": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.ncs.gov.in/"
         },
         {
@@ -849,6 +856,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Keval degree se kaam nahi chalta bhai, aaj kal hands-on skills seekhna behad zaroori hai. Is training ke baad job placement help bhi sarkar hi karwayegi.",
           "impact": "Apne pass ke Skill Development Center (SDC) me jakar admission confirm karwayein.",
           "date": "30 June 2026",
+          "image": "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.pmkvyofficial.org/"
         },
         {
@@ -859,6 +867,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Technical sector me local job ya apprenticeship paane ka achha rasta hai, khas kar mechanical, electrical ya computer fields ke logo ke liye.",
           "impact": "Online application railway portal par submit karke offline training center select karein.",
           "date": "25 June 2026",
+          "image": "https://images.unsplash.com/photo-1512418490979-9173693d2e63?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://railkvy.indianrailways.gov.in/"
         },
         {
@@ -869,6 +878,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Ghar baithe pocket money earn karne ke liye ye verified platform hai. 100% free hai, koi registration fee ya laptop deposit nahi dena hota.",
           "impact": "Apna profile complete karke micro-jobs block filter use karein.",
           "date": "12 July 2026",
+          "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.skillindia.gov.in/"
         }
       ]
@@ -883,6 +893,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "Farmers bhaiyo ke liye kheti me beej aur khad lene ke liye ye samay par aayi madad hai. Bank me dbt trigger on hona chahiye.",
         "impact": "Apni kist ka status PM-Kisan portal par mobile aur aadhar number daalkar check karein.",
         "date": "Immediate",
+        "image": "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?q=80&w=800&auto=format&fit=crop",
         "officialLink": "https://pmkisan.gov.in/"
       },
       {
@@ -893,6 +904,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "Agar aapka aadhaar card 10 saal purana hai toh isko free me online update kar lijiye taaki koi bhi bank details ya govt subsidies na ruke.",
         "impact": "MyAadhaar web portal par login karke apna voter card ya ration card scanning copy online proof upload karein.",
         "date": "14 September 2026",
+        "image": "https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=800&auto=format&fit=crop",
         "officialLink": "https://myaadhaar.uidai.gov.in/"
       },
       {
@@ -903,6 +915,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "Bhai, ye ghar ke bade-buzurgon ki sehat ki suraksha ke liye sunehra faisla hai. Hospital bill ki tension ab sarkar legi.",
         "impact": "Aapke nazdiki CSC center ya government hospital ke ayushman mitra counter se card banwayein.",
         "date": "Ongoing",
+        "image": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=800&auto=format&fit=crop",
         "officialLink": "https://dashboard.pmjay.gov.in/"
       },
       {
@@ -913,6 +926,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "Apne bijli bill ko zero karne aur extra earning karne ka isse accha chance nahi milega. Chhat par solar power lagakar aatm-nirbhar banein.",
         "impact": "Solar portal par register karke apka electricity connection consumer ID select karein.",
         "date": "31 August 2026",
+        "image": "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=800&auto=format&fit=crop",
         "officialLink": "https://pmsuryaghar.gov.in/"
       },
       {
@@ -923,6 +937,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "Agar aapne verification nahi karwaya toh ration milna band ho sakta hai. Ye block aur ration dukan owner se karwana free hai.",
         "impact": "Turant apne ration dukan vitarak (dealer) ke paas jakar biometrics verify karwayein.",
         "date": "30 June 2026",
+        "image": "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop",
         "officialLink": "https://epds.bihar.gov.in/"
       }
     ];
@@ -970,6 +985,7 @@ export const getDailyNews = async (userProfile: any) => {
     - analysis: Detailed explanation of why it matters to the user
     - impact: Practical local impact (e.g. "Apply at your local Block Office or CSC")
     - date: Key deadline or event date
+    - image: A relevant high-quality Unsplash image URL matching the topic (e.g. use https://images.unsplash.com/photo-... with keywords like study, books, job, agriculture, solar, healthcare etc.)
     - officialLink: Mock or real URL for verification
     
     Output Format (JSON Array of 5-6 items):
@@ -982,6 +998,7 @@ export const getDailyNews = async (userProfile: any) => {
         "analysis": "...",
         "impact": "...",
         "date": "...",
+        "image": "...",
         "officialLink": "..."
       },
       ...

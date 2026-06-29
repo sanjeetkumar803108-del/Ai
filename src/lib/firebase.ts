@@ -26,30 +26,6 @@ if (typeof window !== 'undefined') {
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Configure Google provider for better compatibility
-googleProvider.addScopes([
-  'profile',
-  'email',
-  'https://www.googleapis.com/auth/userinfo.profile',
-  'https://www.googleapis.com/auth/userinfo.email'
-]);
-
-// Set custom parameters for login
-googleProvider.setCustomParameters({
-  'login_hint': 'user@example.com',
-  'prompt': 'select_account' // Always show account selection
-});
-
-// Enable persistence
-if (typeof window !== 'undefined') {
-  try {
-    auth.setPersistence = auth.setPersistence || (() => Promise.resolve());
-    console.log('✅ Firebase auth persistence enabled');
-  } catch (e) {
-    console.warn('⚠️ Firebase persistence warning:', e);
-  }
-}
-
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -113,15 +89,15 @@ export async function testConnection() {
       console.log('Firebase connection verified (Local/Cache)');
     }
   } catch (error: any) {
-    console.error('Firebase Connection Test Failed CODE:', error.code);
-    console.error('Firebase Connection Test Failed MSG:', error.message);
+    console.warn('Firebase Connection Test Failed CODE:', error.code);
+    console.warn('Firebase Connection Test Failed MSG:', error.message);
     
     if (error.code === 'permission-denied') {
-      console.error("PERMISSION ERROR: The database might be in locked mode or rules are not allowing this path.");
+      console.warn("PERMISSION ERROR: The database might be in locked mode or rules are not allowing this path.");
     }
     
     if (error.code === 'unavailable') {
-      console.error("CRITICAL: Firestore backend is unreachable. This may be due to network restrictions or database provisioning lag.");
+      console.info("Firestore backend is unreachable (offline/sandboxed). This may be due to network restrictions or database provisioning lag.");
     }
   }
 }
