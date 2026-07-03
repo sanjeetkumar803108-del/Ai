@@ -8,8 +8,9 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const metaUrl = (import.meta as any)?.url;
+const currentFilename = typeof (globalThis as any).__filename !== "undefined" ? (globalThis as any).__filename : (metaUrl ? fileURLToPath(metaUrl) : "");
+const currentDirname = typeof (globalThis as any).__dirname !== "undefined" ? (globalThis as any).__dirname : path.dirname(currentFilename);
 
 const genAI = new GoogleGenAI({ 
   apiKey: process.env.GEMINI_API_KEY || "",
@@ -49,8 +50,9 @@ async function callGeminiWithRetry(params: {
   // Set up a broad list of stable and highly available models
   const fallbackModels = [
     "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash"
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-3.1-flash-lite"
   ];
   
   // Clean up any expired model cooldowns
@@ -105,10 +107,15 @@ async function callGeminiWithRetry(params: {
         }
         
         // If the error indicates a tool or configuration issue (e.g. 400 Bad Request / Unsupported feature),
-        // try once more immediately WITHOUT tools as a graceful fallback.
-        if ((status === 400 || errMsg.toLowerCase().includes("invalid") || errMsg.toLowerCase().includes("tool") || errMsg.toLowerCase().includes("search") || errMsg.toLowerCase().includes("google_search")) && configToUse?.tools) {
-          console.log(`[Gemini Retry] Removing tools/googleSearch to see if that resolves the 400 error on ${currentModel}...`);
-          configToUse = { ...configToUse, tools: undefined };
+        // try once more immediately by first removing responseMimeType/responseSchema, or finally WITHOUT tools as a graceful fallback.
+        if ((status === 400 || errMsg.toLowerCase().includes("invalid") || errMsg.toLowerCase().includes("tool") || errMsg.toLowerCase().includes("search") || errMsg.toLowerCase().includes("google_search") || errMsg.toLowerCase().includes("mime")) && configToUse?.tools) {
+          if (configToUse.responseMimeType === "application/json") {
+            console.log(`[Gemini Retry] Removing responseMimeType and responseSchema to allow tool use on ${currentModel}...`);
+            configToUse = { ...configToUse, responseMimeType: undefined, responseSchema: undefined };
+          } else {
+            console.log(`[Gemini Retry] Removing tools to resolve the 400 error on ${currentModel}...`);
+            configToUse = { ...configToUse, tools: undefined };
+          }
           continue;
         }
 
@@ -258,6 +265,17 @@ async function startServer() {
 
   app.use(express.json());
 
+  // CORS middleware to allow requests from mobile APK (WebView, Capacitor, Cordova, etc.)
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Robust image proxy route to bypass CORS, iframe sandbox, and referrer-policy hotlinking blocks
   app.get("/api/proxy-image", async (req, res) => {
     const imageUrl = req.query.url as string;
@@ -284,7 +302,7 @@ async function startServer() {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.status(200).send(Buffer.from(response.data));
     } catch (err: any) {
-      console.warn(`[Image Proxy Info] Remote server did not resolve ${imageUrl} (serving beautiful SVG fallback instead):`, err.message);
+      console.log(`[Image Proxy Info] Remote server did not resolve ${imageUrl} (serving beautiful SVG fallback instead):`, err.message);
       
       // Serve a beautifully designed modern Indian SVG gradient card as fallback
       const urlLower = imageUrl.toLowerCase();
@@ -494,6 +512,16 @@ async function startServer() {
 
           ### 🌟 RULE 8: COMMON SENSE GOVT SERVER ADVICE
           - "BHAI AAP RAAT KO FORM BHARIYEGA KYUNKI RAAT KO GOVERNMENT SITES KA SERVER ACCHA AUR WORKING HOTA HAI"
+
+          ### 💻 RULE 9: AI WEBSITE BUILDER GIG (MITRA GIG FINDER)
+          - If the user asks about "Website building", "AI website maker", "local shop website gig", "earning via making websites", or any queries about earning money using AI to build websites for local shops:
+            1. **Explain the Opportunity**: They can earn ₹15,000 - ₹45,000 per month by creating modern websites, digital menus, or catalog apps for local family dhabas, restaurants, clinics, hotels, and retail stores using free/trial AI builders (like v0.dev or Bolt.new).
+            2. **How to Do It (Detailed Process)**:
+               - **Step 1: Pitching**: Meet with local business owners who have no website. Politely show them a mobile demo and explain how a digital menu can increase sales by 30%.
+               - **Step 2: AI Prompting**: Open free AI web tools like v0.dev or Bolt.new. Type simple prompts such as: *"Create a modern mobile-first vegetarian restaurant website with online menu and WhatsApp booking"*.
+               - **Step 3: Customization**: Load their exact menu items, prices, address, and a direct pay-via-UPI QR code button.
+               - **Step 4: Free Hosting**: Deploy it for free on platforms like Netlify or Vercel and hand over the live link.
+            3. **Earning & Payment Protocol**: Take a 40% advance before starting, and the remaining 60% via UPI/bank transfer immediately upon showing them the live working link.
 
           MANDATORY Concluding Phrase: "आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।"
 
@@ -1538,8 +1566,30 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
     try {
       const isJobs = community === "Jobs" || community === "Jobs Seeker" || community === "Job Seeker";
       
+      let languageInstruction = "";
+      if (lang === "hi") {
+        languageInstruction = `
+        - You MUST write the ENTIRE JSON response (all values: name, description, duration, whyGood points, futureWork points, portfolioValue points, earnings, howToLearn points, and bhaiInsight) strictly in beautiful Hindi (using Devanagari script).
+        - Do not write any English words in Roman script; use standard Hindi/Devanagari script.
+        `;
+      } else if (lang === "en") {
+        languageInstruction = `
+        - You MUST write the ENTIRE JSON response (all values: name, description, duration, whyGood points, futureWork points, portfolioValue points, earnings, howToLearn points, and bhaiInsight) strictly in clear, professional English.
+        - Do not use Hindi or Hinglish words.
+        `;
+      } else {
+        // hinglish or fallback
+        languageInstruction = `
+        - You MUST write the ENTIRE JSON response (all values: name, description, duration, whyGood points, futureWork points, portfolioValue points, earnings, howToLearn points, and bhaiInsight) strictly in natural, warm Hinglish (Hindi written in the Roman script, e.g., "Bhai, ye skill seekhna bohot easy hai aur isme direct opportunities hain").
+        - Make it sound like a friendly elder brother (Bade Bhai) explaining things in casual conversation.
+        `;
+      }
+
       const prompt = `You are "Mitra Skill Guru", an expert student & career counselor inside the 'Form Mitra AI' app.
-      Your job is to recommend the top 3-4 most suitable, high-earning, and modern practical skills that the user (${name}) can learn to unlock massive opportunities.
+      Your job is to recommend the top 3-4 most suitable, high-earning, and ultra-modern practical skills that the user (${name}) can learn to unlock massive opportunities.
+      
+      CRITICAL DIRECTION: Perform deep research using Google Search on the absolute latest, completely hidden/secret, high-demand AI-based skills for 2026. Gen Z does NOT want obsolete traditional skills (like plain MS Word, Excel, or basic legacy programming). They want cutting-edge AI skills!
+      Examples of hot skills include: "Video Coding with AI / AI-Assisted No-Code App Development" (using Cursor, Lovable, v0, Replit), "Faceless AI Video & Reel Production" (using CapCut, Midjourney, ElevenLabs), "AI Prompt and Workflow Automation" (using Zapier, Claude, Make), and "Generative AI Branding & UI Design systems".
 
       ### TARGET USER PROFILE:
       - Name: ${name}
@@ -1547,16 +1597,18 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
       - Stream / Field: ${stream}
       - Level/Class: ${userClass}
       - Current Occupation: ${occupation}
-      - Preferred Language Style: ${lang} (Friendly Hinglish/Hindi or clear Hindi mixed with English terms)
+      
+      ### LANGUAGE AND LOCALIZATION RULE:
+      ${languageInstruction}
 
       ### CORE INSTRUCTIONS:
       Recommend exactly 3 to 4 specific high-demand practical skills suitable for their profile.
-      For each skill, you must describe the following in pointwise bulletin lists:
+      For each skill, you must describe the following:
       1. What the skill is and core practical concepts.
       2. Why this skill is highly beneficial for them specifically: given their stream/occupation ("${stream}" / "${occupation}").
       3. Future scope & Job placement speed (explain how it gets them hired 2x faster with immediate vacancies).
       4. Portfolio development value (explain what real-world portfolio project proofs they can build, e.g. Figma files, live websites, Excel dashboards, to show recruiters).
-      5. Potential monthly earnings & Salary hike boost percentage (e.g., "₹25,000 - ₹50,000 / month (Approx 45% - 70% salary hike potential)").
+      5. Potential monthly earnings & Salary hike boost percentage (e.g., "₹35,000 - ₹80,000 / month (Approx 50% - 80% salary hike potential)").
 
       ### OUTCOME CONSTRAINTS:
       - Provide a warm, premium, highly encouraging message from "Bade Bhai" (elder brother tone) explaining why they can easily master this and stand out from thousands of other candidates.
@@ -1564,18 +1616,18 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
       {
         "skills": [
           {
-            "name": "Full Skill Name (e.g. Professional Excel & SQL Analytics)",
-            "description": "Short brief description of what the skill is in 1-2 sentence (in Hinglish/Hindi mixed with English words).",
-            "duration": "Duration to master the skill (e.g. 4-6 Weeks, 2 Months).",
+            "name": "Full Skill Name (e.g. AI-Assisted App Development (Cursor & v0))",
+            "description": "Short brief description of what the skill is in 1-2 sentences.",
+            "duration": "Duration to master the skill (e.g. 3-4 Weeks, 1 Month).",
             "whyGood": ["Point 1 about suitability for their specific field", "Point 2 about why this is high demand right now"],
             "futureWork": ["Job placement multiplier details", "How it helps secure faster hires and remote gigs"],
             "portfolioValue": ["The exact live project they can build to show recruiters"],
-            "earnings": "Estimated monthly earnings & Salary hike details (e.g. ₹30,000 - ₹60,000 / month with 50% hike potential)",
+            "earnings": "Estimated monthly earnings & Salary hike details",
             "howToLearn": ["Steps they can take to start learning today", "Helpful tips on where to start"],
-            "category": "Tech / Finance / Creative / Operations"
+            "category": "AI Technology / Digital Creation / Business Automation"
           }
         ],
-        "bhaiInsight": "A very warm, brotherly advice paragraph in Hinglish/Hindi, telling them how to dedicate 1 hour daily to build projects, upgrade their resume instantly, and easily qualify for modern jobs."
+        "bhaiInsight": "A very warm, brotherly advice paragraph, telling them how to dedicate 1 hour daily to build projects, upgrade their resume instantly, and easily qualify for modern jobs."
       }
 
       Format the response as a valid JSON object only. Do NOT include any markdown code blocks, just raw JSON.`;
@@ -1584,45 +1636,8 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
         model: "gemini-3.5-flash",
         contents: [{ parts: [{ text: prompt }] }],
         config: {
-          responseMimeType: "application/json",
           temperature: 0.7,
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              skills: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    duration: { type: Type.STRING },
-                    whyGood: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING }
-                    },
-                    futureWork: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING }
-                    },
-                    portfolioValue: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING }
-                    },
-                    earnings: { type: Type.STRING },
-                    howToLearn: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING }
-                    },
-                    category: { type: Type.STRING }
-                  },
-                  required: ["name", "description", "duration", "whyGood", "futureWork", "portfolioValue", "earnings", "howToLearn", "category"]
-                }
-              },
-              bhaiInsight: { type: Type.STRING }
-            },
-            required: ["skills", "bhaiInsight"]
-          }
+          tools: [{ googleSearch: {} }], // Inject Google Search grounding for real deep research!
         }
       });
 
@@ -1640,176 +1655,152 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
       let skillsList: any[] = [];
       let bhaiMessage = "";
 
-      if (isJobs) {
-        // Fallback for Job Seekers / Jobs Community
+      // High-quality modern AI-driven Gen Z fallbacks perfectly localized based on preferredLanguage
+      if (lang === "hi") {
         skillsList = [
           {
-            name: "Professional Data Analytics & Cloud Warehousing (SQL + PowerBI)",
-            category: "Data Operations",
-            description: "Excel spreadsheets aur MySQL databases se dynamic real-time dashboards and corporate graphs prepare karna seekhein.",
-            duration: "4 to 6 Weeks",
+            name: "एआई-असिस्टेड ऐप डेवलपमेंट और कोडिंग (Cursor & Lovable)",
+            category: "एआई टेक्नोलॉजी",
+            description: "बिना कोडिंग सीखे एआई टूल्स की मदद से मात्र 30 मिनट में शानदार रिस्पॉन्सिव वेबसाइट्स और ऐप्स बनाना सीखें।",
+            duration: "3 से 4 सप्ताह",
             whyGood: [
-              "Companies me fast decision-making ke liye raw database analysts ki sabse zyada demand hai.",
-              "Aap structured queries aur automated sales metrics visualization tables asani se manage kar sakenge."
+              "आजकल एआई आधारित कोड जनरेटर टूल्स का चलन है, जिससे बिना प्रोग्रामिंग बैकग्राउंड के भी तेजी से ऐप्स बनाए जा सकते हैं।",
+              "लॉजिकल सोच और सही प्रॉम्ट लिखना ही एकमात्र कुंजी है जो जेन जेड के लिए बिल्कुल सही है।"
             ],
             futureWork: [
-              "2x Faster Placements: High priority vacancies in startups, MNCs, and corporate houses.",
-              "Data-driven roles me entry barriers bohot low hote hain, jisse non-coding background wale bhi lag sakte hain."
+              "2 गुना तेज हायरिंग: स्टार्टअप्स और फ्रीलांस मार्केट्स में एआई नो-कोड डेवलपर्स की तत्काल भारी मांग है।",
+              "कम समय में अपना डिजिटल पोर्टफोलियो बनाकर सीधे क्लाइंट्स हासिल करें।"
             ],
             portfolioValue: [
-              "Build a functional Sales Performance Dashboard from raw database spreadsheets using PowerBI/Excel to impress HR recruiters."
+              "एआई की मदद से 3 लाइव वर्किंग टूल्स (जैसे डेली टास्क ट्रैकर या कस्टमाइज्ड स्टूडेंट कैलकुलेटर) बनाएं और उनके लिंक रिज्यूमे में शेयर करें।"
             ],
-            earnings: "₹35,000 - ₹70,000 / month (Immediate 50% - 80% salary boost potential with live portfolio)",
+            earnings: "₹35,000 - ₹80,000 / महीना (शानदार लाइव पोर्टफोलियो के साथ तुरंत 70% तक सैलरी हाइक!)",
             howToLearn: [
-              "Database systems ke basics aur standard SQL queries key parameters YouTube ya free portals se sikhen.",
-              "Mock dataset banakar direct portfolio representations taiyar karein."
+              "Cursor Editor और v0.dev को फ्री में इस्तेमाल करना सीखें।",
+              "बेसिक प्रॉम्प्ट गाइडलाइंस और एआई एपीआई इंटीग्रेशन यूट्यूब या मुफ्त गाइड्स के जरिए समझें।"
             ]
           },
           {
-            name: "Enterprise Digital Marketing, SEO & Ads Strategy",
-            category: "Growth & Business",
-            description: "Google Ads optimization, organic search rankings (SEO) aur social media promotions ke through target customers connect karein.",
-            duration: "5 Weeks",
+            name: "एआई फेसलेस वीडियो क्रिएशन और रील प्रोडक्शन (CapCut & ElevenLabs)",
+            category: "एआई डिजिटल क्रिएशन",
+            description: "एआई वॉयसओवर, जेनरेटिव आर्ट और ऑटो-कैप्शन का उपयोग करके इंस्टाग्राम और यूट्यूब के लिए वायरल वीडियो बनाएं।",
+            duration: "3 सप्ताह",
             whyGood: [
-              "Commerce/Arts/STEM background ke business seekers ke product values badhane me perfect skill hai.",
-              "Market customer trends aur search organic keyword tricks handle karna easy and intuitive hai."
+              "आजकल छोटे व्यवसायों और ब्रांड्स को अपनी रील्स बनवाने के लिए क्रिएटिव एडिटर्स की भारी जरूरत है।",
+              "बिना खुद का चेहरा दिखाए या कैमरा खरीदे, अपने स्मार्टफोन से ही कमाल के रील्स बनाएं।"
             ],
             futureWork: [
-              "Direct recruitment in media agency networks as Performance Marketer within 40 days.",
-              "Remote clients and global freelancing retainer projects key priority based access."
+              "स्थानीय व्यवसायों, ब्रांड्स और एजुकेटर्स के लिए मंथली बेसिस पर रील्स मैनेज करने का मौका।",
+              "कमिटमेंट केवल 1 घंटा प्रतिदिन, जिससे पढ़ाई या नौकरी के साथ करना बेहद आसान है।"
             ],
             portfolioValue: [
-              "Make a detailed live presentation showing SEO Keyword research & simulated Google Ads strategy case-study for a real business."
+              "कम से कम 10 एआई जेनरेटेड वीडियोज के साथ एक इंस्टाग्राम थीम पेज सेटअप करें और उसकी शानदार रीच दिखाएं।"
             ],
-            earnings: "₹30,000 - ₹65,000 / month (Approx 40% - 60% salary hike potential with certified profiles)",
+            earnings: "₹25,000 - ₹55,000 / महीना (पढ़ाई के साथ-साथ शानदार एक्स्ट्रा पॉकेट मनी!)",
             howToLearn: [
-              "HubSpot Academy aur Google Career Certificates ke free digital marketing program search karke karein.",
-              "Apne active products or social handles grow karne ke practical insights implement karein."
-            ]
-          },
-          {
-            name: "UI/UX Product Design (Figma Masters & Dynamic Prototyping)",
-            category: "Creative Engineering",
-            description: "Modern websites aur mobile applications ke interactive UI screen visual graphics designs Figma software par model karein.",
-            duration: "6 Weeks",
-            whyGood: [
-              "Design validation aur modern wireframes me high-earning capabilities sabse responsive hotey hain.",
-              "Logical visual system templates control karna fast seekh sakte hain without complex code parameters."
-            ],
-            futureWork: [
-              "Specialist designer requirements inside mobile agencies and tech networks.",
-              "Globally design works are extremely high-paying, remote freelance deals are plentiful."
-            ],
-            portfolioValue: [
-              "Make 3 solid mobile app screen prototypes inside Figma with full interactive transitions and publish your portfolio link."
-            ],
-            earnings: "₹40,000 - ₹85,000 / month (Huge 60% - 100% Salary Upgrade potential!)",
-            howToLearn: [
-              "Free Figma tutorials and layouts guides look up karein interactive design blogs par.",
-              "Dribbble ya Behance patterns ko reconstruct karke dynamic portfolio display pages banayein."
+              "CapCut या VN मोबाइल एडिटर और ElevenLabs एआई वॉयस जनरेटर का इस्तेमाल सीखें।",
+              "वायरल वीडियो हुक्स और एआई स्क्रिप्ट राइटिंग की बारीकियों को समझें।"
             ]
           }
         ];
-        bhaiMessage = `Dost ${name}, job seeking market me sabse bade fast-track checks high project portfolios aur practical proofs hote hain! In skills me se ek ko select karke live projects taiyar kijiye. Recruiters ko fake resumes ke badle practical GitHub/Figma links dikhaiye — aapki salary boost aur hiring speed instant triple ho jayegi! Aapka bhai hamesha backup ke sath help karega.`;
+        bhaiMessage = `दोस्त ${name}, आज के डिजिटल दौर में जेन जेड के लिए पुराने तरीके आउटडेटेड हो चुके हैं! अब एआई टूल्स के साथ स्मार्ट तरीके से काम करने का समय है। इन आधुनिक स्किल्स में से किसी एक को चुनकर अपना लाइव पोर्टफोलियो बनाएं। नकली रिज्यूमे के बजाय लाइव काम दिखाएं — आपकी सैलरी और जॉब मिलने की रफ्तार तुरंत दोगुनी हो जाएगी! आपका बड़ा भाई हमेशा आपके साथ है।`;
+      } else if (lang === "en") {
+        skillsList = [
+          {
+            name: "AI-Assisted Web App Development (Cursor & Lovable)",
+            category: "AI Technology",
+            description: "Build beautiful, fully-functional web applications in minutes using AI-powered code assistants, without writing complex code manually.",
+            duration: "3 to 4 Weeks",
+            whyGood: [
+              "Modern tech startups prefer builders who leverage AI to ship products 10x faster.",
+              "Logical thinking and prompt design are the only requirements, making it perfect for non-technical backgrounds."
+            ],
+            futureWork: [
+              "2x Faster Hiring: High demand for AI-augmented developers and builders in modern digital agencies.",
+              "Excellent global remote work and high-paying freelance gigs on Upwork/Fiverr."
+            ],
+            portfolioValue: [
+              "Build 3 interactive live web tools (e.g. customized GPA tracker or local business catalog) using AI code tools and share live links."
+            ],
+            earnings: "₹35,000 - ₹80,000 / month (Immediate 50% - 80% salary boost potential with live project proof!)",
+            howToLearn: [
+              "Start using the free tier of Cursor editor and explore v0.dev for UI elements.",
+              "Learn custom prompt engineering structures to direct AI models to write clean web code."
+            ]
+          },
+          {
+            name: "AI Faceless Video Production & Reel Curation",
+            category: "AI Digital Creation",
+            description: "Create highly engaging, viral vertical Shorts and Reels using AI image generators, ElevenLabs voices, and CapCut transitions.",
+            duration: "3 Weeks",
+            whyGood: [
+              "Massive demand from brands, local cafes, and educators who want to go viral but have zero video-making skills.",
+              "Create professional visual content without showing your face or investing in expensive camera gear."
+            ],
+            futureWork: [
+              "Retainer-based social media management contracts for local businesses.",
+              "Grow your own highly monetizable faceless theme channels passively."
+            ],
+            portfolioValue: [
+              "Launch a dedicated Instagram theme channel with at least 10 high-quality viral-style AI Reels showing proof of reach."
+            ],
+            earnings: "₹25,000 - ₹55,000 / month (Highly flexible micro-gigs alongside college or full-time roles)",
+            howToLearn: [
+              "Explore ElevenLabs for voices and CapCut templates for fast smartphone transitions.",
+              "Master ChatGPT script writing and hooks to keep audience retention high."
+            ]
+          }
+        ];
+        bhaiMessage = `Hey ${name}, traditional skills are becoming obsolete in this Gen Z era. Start building real portfolio projects using modern AI tools today! Showing live GitHub, Behance, or Figma proofs to recruiters instead of blank resumes will accelerate your salary hikes instantly. Your Bade Bhai is always here to support you!`;
       } else {
-        // Fallback for Students community
-        if (stream === "PCM") {
-          skillsList = [
-            {
-              name: "Full-Stack Web Development (HTML, CSS, JS & React)",
-              category: "Tech & Software",
-              description: "HTML, CSS, modern JavaScript aur React.js frontend structures use karke highly responsive, stunning websites banana seekhein.",
-              duration: "8 to 12 Weeks",
-              whyGood: [
-                "PCM students ke mathematical logical rules and reasoning is development me bohot help karegi.",
-                "Aap programming basics aur UI building bohot jaldi grasp kar payenge."
-              ],
-              futureWork: [
-                "Software Engineer, Web Developer, aur Remote Developer roles ke liye primary skill hai.",
-                "Upwork aur Fiverr par clients ke liye landing pages aur websites banake achha kama sakte hain."
-              ],
-              portfolioValue: [
-                "Create a personal responsive portfolio website showing off your school projects, academic achievements, and future dreams."
-              ],
-              earnings: "₹25,000 - ₹60,000 / month (Starting freelance & remote work alongside college studies)",
-              howToLearn: [
-                "FreeCodeCamp aur YouTube ke free tutorials se HTML aur CSS se shuru karein.",
-                "Roz 1-2 ghanta coding practice karein aur chote-chote responsive projects banayein."
-              ]
-            },
-            {
-              name: "Python Programming & AI Prompt Engineering",
-              category: "Artificial Intelligence",
-              description: "Data analysis ke liye simple Python programming rules aur modern AI APIs integration models explore karein.",
-              duration: "6 Weeks",
-              whyGood: [
-                "Python sabse simple language hai aur STEM studies me analytics ke liye perfect hai.",
-                "AI systems (jaise ChatGPT, Gemini) ko build karna seekhna future-proof skill hai."
-              ],
-              futureWork: [
-                "Python Developer, Data Analyst, aur AI Content Creator ki positions ke liye high demand hai.",
-                "Future research projects ya college admissions me iska bohot bada advantage milega."
-              ],
-              portfolioValue: [
-                "Build a localized desktop assistant tool or a smart prompt optimizer using python scripts to save homework hours."
-              ],
-              earnings: "₹30,000 - ₹75,000 / month (Freelance AI optimizer or developer)",
-              howToLearn: [
-                "Python basics learn karein, phir learn karein how to use API integration.",
-                "Mitra app me practice karein aur chat prompts improve karne ki techniques seekhein."
-              ]
-            }
-          ];
-          bhaiMessage = `Dost ${name}, PCM ke saath programming aur software designs seekhna aapke liye sone pe suhaga hoga! Aapko bilkul tension lene ki zaroorat nahi hai. Roz bas studies ke baad evening me 1-2 ghante nikalna hai. Dheere-dheere 3 month me aap expert ban jayenge aur studies par bhi koi load nahi padega! Always with you, Bhai.`;
-        } else {
-          skillsList = [
-            {
-              name: "UI/UX Product Designing (Figma Essentials)",
-              category: "Creative & Design",
-              description: "Zero coding and full fluid design layout systems seekhein, interactive mobile apps aur elegant portfolios design karna seekhein.",
-              duration: "4 to 6 Weeks",
-              whyGood: [
-                "Creative visual geometry aur symmetry layout sense badhiya hota hai.",
-                "Isme zero coding mechanical lines ki zaroorat hoti hai, bas thoda logic aur creativity chahiye."
-              ],
-              futureWork: [
-                "Product Designer, UI/UX Specialist, aur Graphic Architecture positions.",
-                "Startup companies and mobile app agencies hire visual experts first."
-              ],
-              portfolioValue: [
-                "Redesign a popular local mobile app (like a food delivery or bus ticketing app) and share your interactive Figma links."
-              ],
-              earnings: "₹20,000 - ₹45,000 / month (Design projects online alongside studies)",
-              howToLearn: [
-                "Figma software ko free download karein aur use karna seekhein YouTube video guides se.",
-                "Apne favorite mobile apps ka simple user interface clone aur replicate karke resume build karein."
-              ]
-            },
-            {
-              name: "Professional Blogging & SEO Content Writing",
-              category: "Creative Writing",
-              description: "Internet users ki informative search queries ke answers likhein aur Google searches me write-ups grow karke regular stream income kamaayein.",
-              duration: "4 Weeks",
-              whyGood: [
-                "School/College subject analytical viewpoints aapko deep text communication values dete hain.",
-                "Research topics ko simple explain karna helps boost writing fluency."
-              ],
-              futureWork: [
-                "Blogger, Search Engine optimizer, Copywriter, and social media post manager.",
-                "High quality brand articles demand is rising globally for remote writers."
-              ],
-              portfolioValue: [
-                "Set up a free blog on writing channels like Medium or Blogger, writing about interesting educational studies."
-              ],
-              earnings: "₹18,000 - ₹35,000 / month (Consistent freelance blog postings)",
-              howToLearn: [
-                "SEO basics, keyword density and readable content styles videos follow karein.",
-                "Weekly 2 fresh posts start karein writing flow establish karne ke liye."
-              ]
-            }
-          ];
-          bhaiMessage = `Bhai ${name}, studies ke sath-sath local project designs aur content writing skills explore karna aapki deep thinking ko monetise kar dega! Roz bas 1 ghanta practical work karein premium career growth ke liye. Aapka bada bhai hamesha guide karega.`;
-        }
+        // Hinglish (friendly blend)
+        skillsList = [
+          {
+            name: "AI-Assisted Web App Development (Cursor & Lovable)",
+            category: "AI Technology",
+            description: "Bina coding seekhe modern AI code assistants (jaise Cursor aur v0) ki help se sirf 30 minutes me professional responsive websites aur apps build karna seekhein.",
+            duration: "3 to 4 Weeks",
+            whyGood: [
+              "Gen Z builders ke liye coding syntax ratne ki jarurat nahi hai. Bas logical thinking aur proper prompts likh kar full-stack sites launch kar sakte hain.",
+              "Startups and digital agencies me un developers ki high-demand hai jo AI integration se fast deliver karte hain."
+            ],
+            futureWork: [
+              "2x Faster Placements: Non-technical students bhi responsive modern landing page roles and tech internships direct qualify kar sakte hain.",
+              "Remote clients and high-paying freelance deals are immediately open globally."
+            ],
+            portfolioValue: [
+              "AI code builders use karke 3 live working single-page tools (jaise dynamic notes dashboard ya custom student planner) banayein aur resume me live URL list karein."
+            ],
+            earnings: "₹35,000 - ₹80,000 / month (Consistent high-paying micro-projects with live proof!)",
+            howToLearn: [
+              "Free Cursor editor download karein aur standard v0.dev tools explore karein.",
+              "Basic prompts rules aur api call methods YouTube tutorials ke through step-by-step seekhein."
+            ]
+          },
+          {
+            name: "AI Faceless Video Production & Reel Curation",
+            category: "AI Digital Creation",
+            description: "ElevenLabs AI voices, ChatGPT scripts aur modern CapCut editing templates use karke premium high-converting reels and shorts build karein.",
+            duration: "3 Weeks",
+            whyGood: [
+              "Bina camera ke samne aaye aur bina voice record kiye, smartphone se high quality content generate karna extremely straightforward hai.",
+              "Social media growth me local small businesses, cafes, and academies digital creators ko high monthly retainers pay kar rahe hain."
+            ],
+            futureWork: [
+              "Part-time or remote Social Media management positions with multiple local and global clients.",
+              "Apna personal high-traffic faceless niche channel grow karke direct passive sponsorships receive karein."
+            ],
+            portfolioValue: [
+              "At least 10 viral style AI-generated Reels ke sath ek live active Instagram theme page establish karein aur analytics output show karein."
+            ],
+            earnings: "₹25,000 - ₹55,000 / month (Excellent pocket money options alongside study/jobs)",
+            howToLearn: [
+              "Free CapCut templates edit karna seekhein aur sound design overlay integrate karein.",
+              "Trending hooks structure copy create karne ke liye ChatGPT prompts practice karein."
+            ]
+          }
+        ];
+        bhaiMessage = `Dost ${name}, modern Gen Z era me purane, boring tarike bilkul chalne wale nahi hain! AI tools ke sath smart work karne ka samay aa gaya hai. In skills me se ek ko select karke practical work portfolios banaiye, blank resumes ke badle live projects HR ko dikhayein — aapki salary boost aur hiring speed instant triple ho jayegi! Aapka bade bhai hamesha backup ke sath help karega.`;
       }
 
       res.json({
@@ -1820,39 +1811,387 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
     }
   });
 
+  // Curator-verified 100% genuine local student gigs database for lightning-fast matching and offline resilience
+  const LOCAL_GIGS_DATABASE = [
+    {
+      name: "AI Sticker Designer & Seller on Redbubble",
+      earnings: "₹4,000 - ₹15,000 / month (Passive royalty income)",
+      commitment: "Flexible (1 hour/day on mobile/laptop)",
+      description: "Generate beautiful aesthetic, anime, or quote stickers using free AI tools (like Bing Image Creator or Leonardo.ai) and upload them to Redbubble to earn royalties automatically when people buy them.",
+      skills: ["Free AI prompt generation", "Aesthetic layout creation", "Basic search tag research"],
+      applyLink: "https://www.redbubble.com/about/selling",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "Mainstream sellers manually design for hours, but you can use free AI tools on your smartphone to generate 20+ viral-style aesthetic stickers (like cute cats, programming jokes, or motivational study quotes) in 10 minutes. Redbubble handles printing, shipping, and payments completely, giving you pure passive income.",
+      mobileRoadmap: [
+        "Leonardo.ai ya Bing Image Creator (free AI tools) mobile par open karke cute stickers ya trendy designs generate karein (e.g. 'cute cat drinking boba sticker, vector, white background').",
+        "Photoroom web tool se image ka background 1-second me transparent karke HD quality me save karein.",
+        "Redbubble artist signup page par register karein aur apna custom design store setup karein.",
+        "Trending tags (like #anime, #studygram) ke sath design upload karein aur passive monthly income receive karein."
+      ],
+      paymentSolution: "Direct monthly payment to your bank account via PayPal link. Pure passive income once designs are uploaded.",
+      realityCheck: "Initial designs might take time to get noticed. Uploading 30-50 high-quality trendy stickers increases your chances of consistent sales dramatically!"
+    },
+    {
+      name: "Pinterest Niche Traffic Curator & Affiliate Marketer",
+      earnings: "₹5,000 - ₹20,000 / month (Passive affiliate commissions)",
+      commitment: "Flexible (30-45 mins/day)",
+      description: "Create visual ideas, aesthetic boards, or motivational prints on Pinterest using free Canva templates and link them to reputable Indian affiliate programs (like Amazon Associates or EarnKaro).",
+      skills: ["Canva image selection", "Affiliate product curation", "Pinterest SEO"],
+      applyLink: "https://www.pinterest.com/",
+      categories: ["Commerce", "General"],
+      minClass: "11",
+      whySecret: "Most people spam WhatsApp groups, but Pinterest is a massive visual search engine where millions search for outfits, study notes, or home decor. By posting aesthetic pins with your affiliate links, your pins keep driving traffic and sales for years without any active effort.",
+      mobileRoadmap: [
+        "EarnKaro ya Amazon Associates program par free account banakar high-demand lifestyle/study products select karein.",
+        "Canva app open karke beautiful aesthetic pins (photos with smart text overlays) design karein.",
+        "Pinterest Business Account signup karke setup karein aur daily 2-3 high-quality pins publish karein.",
+        "Pin description me apna affiliate link insert karein taaki jab bhi koi shop kare, aapko direct commission mile."
+      ],
+      paymentSolution: "Direct bank account transfer (NEFT/UPI) from EarnKaro or Amazon India Associates panel once earnings reach ₹250.",
+      realityCheck: "Requires patience to build initial organic reach. Consistency in pinning daily for 2-3 weeks is key to driving thousands of free visits."
+    },
+    {
+      name: "AI Stock Image Contributor on Shutterstock",
+      earnings: "₹3,000 - ₹12,000 / month (Royalty per download)",
+      commitment: "Flexible (1 hour/day on smartphone)",
+      description: "Generate beautiful high-resolution landscape backgrounds, abstract office textures, or realistic vector icons using free AI image generators and submit them to Shutterstock's Contributor portal.",
+      skills: ["AI text-to-image prompt writing", "Stock photography guidelines", "Image tag research"],
+      applyLink: "https://submit.shutterstock.com/",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "Global marketing agencies constantly buy background graphics, textures, and vector concepts on Shutterstock. Instead of holding an expensive camera, you can use advanced free AI generators on your phone to create stunning stock graphics and earn royalties globally!",
+      mobileRoadmap: [
+        "Shutterstock Contributor website par free registration karein aur profile setup karein.",
+        "Free mobile AI tools (jaise Copilot ya Adobe Firefly) se beautiful abstract textures ya office wallpaper designs generate karein.",
+        "Check karein ki dimensions standard high-resolution (4MP+) ho, aur clean output maintain ho.",
+        "Shutterstock board par relevant tags aur title ke sath images upload karein aur har download par royalty kamayein."
+      ],
+      paymentSolution: "Paid monthly via PayPal or Payoneer directly into your linked Indian Bank Account. Global royalty income!",
+      realityCheck: "Images must pass Shutterstock's quality check. Avoid uploading blurry images or trademarked icons to ensure fast approval."
+    },
+    {
+      name: "Carrd One-Page Mobile Web Designer for Shops",
+      earnings: "₹4,000 - ₹10,000 per website design",
+      commitment: "Flexible (2-3 hours per project)",
+      description: "Design elegant, high-converting one-page portfolio websites or digital menus for local cafes, coaching institutes, and boutiques using the free Carrd.co platform on your mobile or PC.",
+      skills: ["Carrd.co interface", "Basic layout copywriting", "Client communication"],
+      applyLink: "https://carrd.co/",
+      categories: ["Arts", "Commerce", "General"],
+      minClass: "10",
+      whySecret: "Local businesses (home-bakers, boutiques, tuition teachers) want a modern online presence but find agency web development too expensive. You can build a stunning, fully-functional 1-page website using ready-made Carrd templates in 30 minutes on your phone and charge ₹1500 to ₹5000 per client!",
+      mobileRoadmap: [
+        "Carrd.co par free profile register karein aur unke slick, mobile-responsive layouts customize karna seekhein.",
+        "Local Instagram-based small businesses ya coaching centers ko approach karke modern website portfolio design provide karne ka pitch karein.",
+        "Client ki custom requirements (photos, operational timing, UPI qr, location links) collect karein.",
+        "Website build karein aur standard custom domain redirect add karke complete transfer setup karein."
+      ],
+      paymentSolution: "Get paid 50% advance and 50% post-delivery directly via GPay, Paytm, or UPI transfer from the business owner.",
+      realityCheck: "Most local owners don't realize how simple and cheap web design is. Your visual design and pitch are everything!"
+    },
+    {
+      name: "Notion Custom Template Maker & Gumroad Seller",
+      earnings: "₹5,000 - ₹25,000 / month (Product royalty)",
+      commitment: "Flexible (1-2 hours/day)",
+      description: "Create highly organized, aesthetic Notion workspaces, exam trackers, bullet journals, or study planners and list them on free digital shelves like Gumroad or Twitter.",
+      skills: ["Notion databases and layouts", "Aesthetic design coordination", "Social media distribution"],
+      applyLink: "https://www.notion.so/",
+      categories: ["PCM", "PCB", "Commerce", "Arts", "General"],
+      minClass: "11",
+      whySecret: "Gen Z students and working professionals are obsessed with aesthetic productivity, but they don't want to design complex Notion trackers from scratch. One highly polished study planner can sell thousands of copies passively for years on Gumroad as a free digital download with optional tips!",
+      mobileRoadmap: [
+        "Notion web or mobile app download karke custom aesthetic dashboard build karna seekhein (e.g. daily syllabus planner, water tracker, study streak board).",
+        "Template sharing link generate karein aur dynamic thumbnail covers design karein Canva use karke.",
+        "Gumroad.com par free account banakar template price setup karein (keep it free with pay-what-you-want option, or low cost like ₹49/₹99).",
+        "Pinterest, WhatsApp groups, ya student Reddit threads par aesthetic screen-grabs post karke link promote karein."
+      ],
+      paymentSolution: "Gumroad processes international and domestic student card/UPI payments and transfers payouts directly to your linked bank account.",
+      realityCheck: "Aesthetic appeal matters! High-quality mockups and active distribution on student forums guarantee continuous sales."
+    },
+    {
+      name: "AI Local Dialect Voice Recording on Karya App",
+      earnings: "₹3,000 - ₹8,000 / month (Based on task approval)",
+      commitment: "Flexible (1 hour/day on smartphone)",
+      description: "Read and record simple sentences on screen in your native Indian regional language (Bhojpuri, Maithili, Hindi, Tamil, etc.) to train localized LLM translation models.",
+      skills: ["Native regional language fluency", "Clear pronunciation", "A quiet room for recording"],
+      applyLink: "https://www.karya.in/",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "Large AI corporations are spending billions to make LLMs understand regional Indian accents, but they recruit via quiet crowd-work portals. Most students are busy searching 'data entry' on Google and miss these high-paying, direct-transfer tasks.",
+      mobileRoadmap: [
+        "Karya app play store se directly download karein aur native language select karein.",
+        "Profile verify karne ke liye 1-minute ka demo recording sample submit karein.",
+        "Task board se active voice reading and labeling projects select karein.",
+        "Sentence reading complete karke instant approve hone ka wait karein."
+      ],
+      paymentSolution: "Direct Bank account or UPI transfer (IMPS/NEFT) integrated right inside the Karya app — withdraw anytime!",
+      realityCheck: "Earning totally depends on task volume. Make sure to record in a quiet room with zero background fan noise for fast approval!"
+    },
+    {
+      name: "Local Google Maps Business Profiler & Optimizer",
+      earnings: "₹500 - ₹1,200 per local business optimization",
+      commitment: "Flexible (1-2 hours / client, WFH/Local)",
+      description: "Help unmapped local shops, boutiques, and cafes in your city set up and optimize their Google Business Profiles with high-quality photos and accurate operational hours.",
+      skills: ["Google Maps app usage", "Smartphone photography", "Basic conversational skills"],
+      applyLink: "https://www.google.com/business/",
+      categories: ["Commerce", "General"],
+      minClass: "10",
+      whySecret: "Local Indian shops lose 30%+ of walk-in customers because they are unlisted or have incorrect numbers on maps. They will happily pay ₹500 to a student who sets up their official map listing and takes nice pictures of their storefront.",
+      mobileRoadmap: [
+        "Apne locality ke unlisted ya incorrect timings wale shops ko identify karein.",
+        "Shop owner ko map listing ke benefits explain karke simple pitch karein.",
+        "Google Business Profile app download karke shop details, photos aur timings update karein.",
+        "Listing verification code submit karein aur owner ko map management handover karein."
+      ],
+      paymentSolution: "Direct payment to your personal UPI (Paytm/GPay/PhonePe) by the shop owner once their listing is live on maps.",
+      realityCheck: "Easy to start, zero capital. Pitching to 5 shop owners usually gets 1-2 clients. Requires basic communication."
+    },
+    {
+      name: "Faceless Instagram Reels Creator for Local Boutiques",
+      earnings: "₹4,000 - ₹10,000 / month per client business",
+      commitment: "Flexible (1-2 hours/day remote)",
+      description: "Edit and post attractive product reels and aesthetic slide video collections on Instagram for local boutiques, bakeries, or shoe shops using free CapCut templates on your phone.",
+      skills: ["CapCut or InShot editing", "Basic Instagram Reels trends"],
+      applyLink: "https://internshala.com/internships/part-time-work-from-home-social-media-marketing-internships/",
+      categories: ["Arts", "General"],
+      minClass: "11",
+      whySecret: "Small boutique and local shop owners want to leverage Instagram Reels to go viral but have zero time or video editing skills. No competitor goes shop-to-shop digitally. You don't need to visit; they send product photos, you edit them on CapCut on your phone!",
+      mobileRoadmap: [
+        "CapCut or InShot photo template transitions video-making seekhein.",
+        "Local bakeries ya dress boutiques ke Instagram accounts find karke unhe DM karein.",
+        "Unke product images curate karke 3 modern free reels demo bana kar bhejein.",
+        "Monthly package (e.g. ₹4000 for 12 Reels) agree karein aur reels manage karna shuru karein."
+      ],
+      paymentSolution: "Direct client payment to your GPay / PhonePe / UPI ID, or bank transfer.",
+      realityCheck: "Requires a good aesthetic sense and regular posting. Getting your first client is the hardest step, but 1 client leads to more!"
+    },
+    {
+      name: "Canva Social Media Designer on Internshala",
+      earnings: "₹4,000 - ₹8,000 / month (Part-time stipend)",
+      commitment: "2-3 hours/day (Work From Home)",
+      description: "Design attractive social media graphics, templates, and basic posters for Indian startups and boutiques using ready-made Canva elements & templates.",
+      skills: ["Canva design", "Basic creative layout sense"],
+      applyLink: "https://internshala.com/internships/part-time-work-from-home-graphic-design-internships/",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "Local agencies are flooded with client work, but startups don't need expert Adobe designers — they just need simple, clean designs made inside 10 minutes using standard Canva templates on mobile.",
+      mobileRoadmap: [
+        "Canva app mobile me download karein aur standard templates edit karna sikhein.",
+        "Apna custom portfolio (e.g. 5 sample posts) ready karke simple Link sharing share karein.",
+        "Internshala par profile register karke 'Part-time graphic design' internships me apply karein.",
+        "Selection interview call milte hi apna Canva live link portfolio share karein."
+      ],
+      paymentSolution: "Paid monthly via direct bank transfer or GPay/PhonePe linked to your Indian phone number.",
+      realityCheck: "Stipend range is strict. Needs 2 hours daily of smartphone layouts crafting. Highly secure."
+    },
+    {
+      name: "Audio-to-Text Transcriptionist on Scribie",
+      earnings: "₹350 - ₹1,200 per audio hour",
+      commitment: "Flexible, no minimum target",
+      description: "Listen to clean recorded audio files (conversations, speeches, or interviews) and accurately type them down into clear text format.",
+      skills: ["Good English listening", "Clean and fast computerized typing"],
+      applyLink: "https://scribie.com/freelance-transcription",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "Global corporations record hours of research but cannot use AI auto-captioning because of thick local accents. They pay humans per audio minute to ensure accuracy.",
+      mobileRoadmap: [
+        "Scribie.com par freelancer account link register karein.",
+        "Mobile screen aur earphone use karke online audio transcription test complete karein.",
+        "Low-difficulty short audio clips (1-3 minutes) se start karein.",
+        "Scribie automatic proofing platform se correction check karke submit karein."
+      ],
+      paymentSolution: "PayPal transfer linked inside Scribie dashboard, which triggers automatic zero-fee sweep to Indian Bank accounts next business morning.",
+      realityCheck: "₹3,000 - ₹7,000 / month. Requires extreme silence, concentration, and good audio parsing ability."
+    },
+    {
+      name: "Website & Mobile App Beta Tester on uTest",
+      earnings: "₹2,000 - ₹6,000 / month (Paid per bug found and approved)",
+      commitment: "Flexible (Work whenever you get active test cycle invitations)",
+      description: "Test new websites and mobile applications of top global companies before they are launched to the public. Point out buttons that do not click or text that is cut off.",
+      skills: ["Paying attention to detail", "English report writing", "Android/iOS phone operations"],
+      applyLink: "https://www.utest.com/",
+      categories: ["General"],
+      minClass: "10",
+      whySecret: "Mainstream people assume app testing requires coding. But uTest employs normal smartphone users to test normal consumer features (like login flows, checkout clicks) to see if average users face issues.",
+      mobileRoadmap: [
+        "uTest.com portal par click karke join as tester register karein.",
+        "uTest Academy key lessons study karein (it teaches you how to report a bug easily on mobile).",
+        "Apne smartphone, OS version aur browser details and country profile update karein.",
+        "Aapki profile match hote hi active test cycles invite respond karein aur bugs report karein."
+      ],
+      paymentSolution: "Direct monthly automatic transfer to your verified Bank Account using direct transfer or secure Paypal-to-Bank transfer.",
+      realityCheck: "Requires completing uTest Academy lessons first. High-quality bug reporting yields persistent invitations and steady pocket money."
+    },
+    {
+      name: "Data Labeling and Microwork on Toloka AI",
+      earnings: "₹1,500 - ₹4,000 / month (Paid in USD, instantly withdrawable)",
+      commitment: "Flexible (Do tasks on phone whenever you are traveling or waiting)",
+      description: "Perform quick, bite-sized tasks like checking if search results match query keywords, verifying if website images are clear, or comparing two short texts.",
+      skills: ["Basic analytical thinking", "strict rule-following", "internet browsing"],
+      applyLink: "https://toloka.ai/tolokers/",
+      categories: ["General"],
+      minClass: "10",
+      whySecret: "Most Indian students fall for 'CAPTCHA entry' scams that never pay out. Toloka is a massive global AI pipeline platform operated by certified corporate companies that offers genuine microscopic web-evaluation tasks with zero registration fee.",
+      mobileRoadmap: [
+        "Register on Toloka.ai as a Toloker and complete the profile details.",
+        "Select beginner training tasks (these are free tutorials that show how to label correctly).",
+        "Take the short guidance test to unlock real paid micro-tasks.",
+        "Perform tasks with high accuracy to increase your tester skill score and unlock higher payouts."
+      ],
+      paymentSolution: "Instant payout to Paypal or Payoneer wallet, which automatically auto-clears to any Indian Bank Account.",
+      realityCheck: "Zero investment, extremely fast approval. Payouts per micro-task are small (e.g. $0.02 - $0.15) but accumulate fast if you work with high precision."
+    },
+    {
+      name: "Video Editor & Shorts Curator for Local YouTube Creators",
+      earnings: "₹3,000 - ₹8,000 / month per creator",
+      commitment: "Flexible (2 hours/day on your phone editing software)",
+      description: "Reformat long-form YouTube videos, podcasts or live business streams into highly engaging vertical Shorts/Reels with bright auto-captions and transition sound effects.",
+      skills: ["Mobile video editing apps (VN, CapCut, InShot)", "understanding of viral hooks"],
+      applyLink: "https://internshala.com/internships/part-time-work-from-home-video-editing-internships/",
+      categories: ["Arts", "General"],
+      minClass: "10",
+      whySecret: "YouTube creators have massive backlog of videos but zero time to slice them into vertical Shorts. If you proactively send them 3 pre-edited viral-ready vertical clips from their own YouTube videos, they will readily hire you part-time!",
+      mobileRoadmap: [
+        "Select an active Indian YouTuber with 10k-50k subscribers who doesn't post vertical shorts regularly.",
+        "Download 1-2 of their long videos and cut out 3 highly interesting 30-second clips on CapCut/VN.",
+        "Add trending background music and bold captions, then email them these clips as a free demo package.",
+        "Offer to edit 15 Shorts a month for a flat monthly payout of ₹3000 to ₹5000."
+      ],
+      paymentSolution: "Direct client-to-student transfer via GPay, PhonePe, UPI or bank account.",
+      realityCheck: "Requires dedicated practice of video editing hooks and regular communication. Once you secure 2 active creators, it turns into a solid recurring stream!"
+    },
+    {
+      name: "AI-Powered Local Web Developer (AI Website Builder)",
+      earnings: "₹15,000 - ₹45,000 / month (Based on 1-3 local client projects)",
+      commitment: "Flexible (2-4 hours/day)",
+      description: "Build modern, highly professional websites, digital menus, or catalog applications for local restaurants, dhabas, hotels, clinics, and stores using advanced free/trial AI web builders (like v0.dev, Bolt.new, or Wix ADI) without any complex coding experience.",
+      skills: ["AI web prompt engineering", "v0.dev / Bolt.new interface", "Local client negotiation & pitching"],
+      applyLink: "https://v0.dev/",
+      categories: ["Commerce", "General"],
+      minClass: "10",
+      whySecret: "Thousands of local dhabas, family restaurants, clinics, hotels, and retail stores in your area have absolutely zero web presence or outdated map listings. Custom coding usually takes software agencies weeks and costs ₹30,000+, but using cutting-edge AI website builders on your laptop/mobile, you can generate a complete, stunning, mobile-responsive custom website or booking page in less than 2 hours! You can easily pitch and charge local business owners ₹10,000 to ₹20,000 per site.",
+      mobileRoadmap: [
+        "Apne aas-paas ke local restaurants, dhabas, clinics, hotels, ya stores ko select karein jinka internet par koi website nahi hai ya details galat hain.",
+        "Business owner se milkar politely batayein ki ek customized digital menu aur website se unki customer reach aur monthly sales 30% badh sakti hain.",
+        "v0.dev ya Bolt.new jaise modern free AI generators open karke client ki business theme ke hisab se ek basic visual website structure generate karein (e.g. 'Create a modern mobile-first vegetarian restaurant website with online menu and WhatsApp booking').",
+        "AI dwara bane code/page me restaurant ke exact items, price list, contact number, aur direct pay-via-UPI QR code scan button load karein, aur use free platform jaise Netlify or Vercel par live karke link client ko dikhayein."
+      ],
+      paymentSolution: "Take a 40% advance token money before starting the development, and receive the remaining 60% balance via UPI (GPay/Paytm/PhonePe) immediately when you deliver the live working website link to the owner.",
+      realityCheck: "Owner ko direct technology ya coding se koi lena-dena nahi hota. Unhe attractive visual layout, accurate prices aur setup complete milna chahiye. Agar aap unke menu card ke real photos click karke pehle se ek demo design dikhayenge, toh deal lock karne ka chance 5 guna badh jata hai!"
+    }
+  ];
+
+  // Performs keyword matches and scores local gigs database for lightning fast search responses
+  function searchLocalGigs(queryText: string, userStream: string = "General"): any[] {
+    const cleanQuery = queryText.toLowerCase().trim();
+    if (!cleanQuery) return [];
+
+    const matched = LOCAL_GIGS_DATABASE.map(gig => {
+      let score = 0;
+      
+      if (gig.name.toLowerCase().includes(cleanQuery)) score += 10;
+      if (gig.description.toLowerCase().includes(cleanQuery)) score += 5;
+      
+      const skillMatch = gig.skills.some(skill => skill.toLowerCase().includes(cleanQuery));
+      if (skillMatch) score += 4;
+
+      if (gig.whySecret.toLowerCase().includes(cleanQuery) || gig.paymentSolution.toLowerCase().includes(cleanQuery)) score += 2;
+
+      const categoryMatch = gig.categories.some(cat => cat.toLowerCase() === userStream.toLowerCase());
+      if (categoryMatch) score += 1;
+
+      return { gig, score };
+    });
+
+    return matched
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.gig);
+  }
+
   // Mitra Gig Finder - Specialized Student Gigs Search API
   app.post("/api/gigs/search", async (req, res) => {
     const { query = "", profile = {} } = req.body;
     const name = profile.name || "Dost";
     const userClass = profile.class || "10/12/College";
     const userStream = profile.stream || "Others";
+    const preferredLanguage = profile.preferredLanguage || "hinglish";
+
+    // 1. Fail-fast if Gemini API key is missing to avoid long hanging times trying to reach API
+    if (!process.env.GEMINI_API_KEY) {
+      console.log("[Gig Finder] No GEMINI_API_KEY available. Serving matching local gigs instantly.");
+      const localMatches = searchLocalGigs(query, userStream);
+      if (localMatches.length > 0) {
+        return res.json({ gigs: localMatches });
+      }
+      return res.json({ gigs: LOCAL_GIGS_DATABASE.slice(0, 3) });
+    }
+
+    let languageInstruction = "";
+    if (preferredLanguage === "hi") {
+      languageInstruction = "You MUST write all the user-facing details (name, whySecret, mobileRoadmap steps, paymentSolution, realityCheck, description, earnings, commitment, skills) STRICTLY in beautiful Devanagari Hindi (pure Hindi script). Do not use English script for these text explanations.";
+    } else if (preferredLanguage === "en") {
+      languageInstruction = "You MUST write all the user-facing details (name, whySecret, mobileRoadmap steps, paymentSolution, realityCheck, description, earnings, commitment, skills) STRICTLY in clear, fluent, professional English. Do not use Hindi or Hinglish words.";
+    } else {
+      // hinglish
+      languageInstruction = "You MUST write all the user-facing details (name, whySecret, mobileRoadmap steps, paymentSolution, realityCheck, description, earnings, commitment, skills) STRICTLY in friendly, warm, energetic Hinglish (Hindi language written in English/Roman alphabets). E.g., 'Karya app download karke task start karein'.";
+    }
 
     try {
-      const prompt = `You are "Mitra Gig Finder", a specialized part-time job and micro-gig researcher for Indian students inside 'Form Mitra AI'.
-      Your goal is to find 100% free, zero-investment, genuine online earning opportunities matching the topic or interest: "${query}".
+      const prompt = `You are an "Advanced Secret Gig Hunter & Trend Analyzer" inside the "Form Mitra AI" platform.
+      Your primary objective is to dynamically research and discover completely NEW, hidden, and 100% legal digital earning methods for Indian students matching the topic or interest query: "${query}".
 
-      ### TARGET USER STAGE:
+      ### TARGET USER PROFILE:
       - Name: ${name}
-      - Student level: Class/education standard ${userClass}, ${userStream} stream.
+      - Student standard: Class ${userClass}, ${userStream} stream.
 
-      ### STRICT LAWS (SCAM SHIELD PROTOCOL):
-      1. CRITICAL: You MUST NEVER suggest any job, work, agency or platform that requires a registration fee, security deposit, buying sample datasets/training papers, or sharing confidential OTPs.
-      2. REAL-WORLD LIVE WEB TARGETS: Suggest actual, active, known freelancing/micro-task platforms operating in India (e.g. Internshala, Chegg, Upwork, Fiverr, Scribie, Rev, Photomath, Brainly, Freelancer). No fictional links or placeholder portals.
-      3. STUDENT FRIENDLY: Match gigs specifically suitable for student capabilities alongside study schedules.
+      ### LANGUAGE RULE (CRITICAL):
+      ${languageInstruction}
 
-      ### OUTPUT STYLE:
-      Return exact matching gigs matching user search query: "${query}".
-      Provide exactly 3 genuine gigs in JSON format.
+      ### CRITICAL RULES FOR IDEATION:
+      1. HIGH-VALUE SECRET HACKS & MODERN METHODS: Focus on highly clever, creative, and "AI-assisted" modern digital side-hustles on popular or emerging platforms. Think about specific, high-yield smart strategies:
+         - Designing trending aesthetic sticker packs or anime decals using free AI tools (Leonardo.ai/Bing Image Creator) to sell on Redbubble or Gumroad.
+         - Building high-traffic visual niche boards on Pinterest with Canva overlays and linking them to Indian affiliate networks (like EarnKaro/Amazon India Associates).
+         - Uploading high-quality AI-generated stock photography, abstract office backdrops, and mobile wallpapers on Shutterstock, Adobe Stock, or Freepik.
+         - Designing sleek 1-page mobile-friendly portfolios or event menus for local small businesses (shops, home bakeries, local coaching centers) using Carrd.co on mobile.
+         - Creating customizable study templates, digital planners, or formula sheets in Canva to sell on Gumroad or top student micro-payment channels.
+         - Running specialized AI-enhanced photo editing, background removal, or object-erasing gigs for local wedding or boutique photographers.
+      2. ANTI-CLICHÉ RULE: DO NOT suggest boring, saturated, or cliché ideas like basic copy-pasting, standard blogging, YouTube channel creation, filling online surveys on scam sites, transcription on old websites, simple freelance data entry, or generic Fiverr/Upwork logo designing. We want obscure, smart hacks that 99% of students miss!
+      3. DEEP & ACTIONABLE NOVEL STRATEGY: Rather than generic recommendations, provide extremely specific, step-by-step smart strategies (e.g., how to search for viral trends, remove background cleanly on Photoroom, write perfect SEO tags, or pass quality reviews).
+      4. MOBILE-FIRST: The gig MUST be executable entirely on a smartphone.
+      5. ZERO INVESTMENT: Focus on high-skill or effort-based, zero-capital ideas.
+      6. SCAM SHIELD PROTOCOL: You MUST NEVER suggest any job, work, agency, or platform that requires a registration fee, security deposit, buying materials, or sharing confidential OTPs/PINs. Encourage safety and alert users of fraud immediately if appropriate.
+
+      ### OUTPUT STYLE & STRUCTURE:
+      - name: The Secret Gig - Name of the method clearly.
+      - whySecret: Why it is a secret, explaining low competition and why mainstream people are missing it. (Write according to the LANGUAGE RULE, like an encouraging "Bade Bhai" if Hinglish or Hindi, or helpful guide if English).
+      - mobileRoadmap: A highly specific, 4-step actionable guide on how to start today using only a mobile phone. Must be an array of exactly 4 detailed step strings. (Write according to the LANGUAGE RULE).
+      - paymentSolution: Explicitly explain how to easily withdraw money to an Indian bank account or UPI (strictly avoiding platforms with Stripe/international gateway issues). E.g., direct UPI, IMPS, or automatic PayPal-to-bank transfer. (Write according to the LANGUAGE RULE).
+      - realityCheck: Provide realistic earning potential and the exact skill or time required. Be honest and grounded. (Write according to the LANGUAGE RULE).
+      - earnings: Summary of expected earnings (e.g., ₹500/task or ₹4,000/month). (Write according to the LANGUAGE RULE).
+      - commitment: Recommended time commitment (e.g., 1-2 hours/day). (Write according to the LANGUAGE RULE).
+      - description: Clear 1-2 sentence overview of the actual work. (Write according to the LANGUAGE RULE).
+      - skills: Array of 2-3 beginner-friendly skills needed. (Write according to the LANGUAGE RULE).
+      - applyLink: A verified official website link or portal link to get started (e.g. Karya, Premise, uTest, Internshala, etc.).
+      - categories: Array of 1-2 strings. Must only contain values from: ["PCM", "PCB", "Commerce", "Arts", "General"]. Choose "General" if it fits all.
+      - minClass: Standard school/college level needed as a string, usually "10" or "11" or "12".
+
       Your output must be a valid JSON matching this schema:
       {
         "gigs": [
           {
-            "name": "Verified Pocket-Money Gig: Role name",
-            "earnings": "Expected Earning: e.g. ₹500/task or ₹5000/month",
-            "commitment": "e.g. 2 hours/day",
-            "description": "What they have to do: Clear 1-2 sentence explanation of the actual work.",
-            "skills": ["Skill 1", "Skill 2"],
-            "applyLink": "Genuine HTTP apply or website link"
+            "name": "...",
+            "earnings": "...",
+            "commitment": "...",
+            "description": "...",
+            "skills": ["...", "..."],
+            "applyLink": "...",
+            "whySecret": "...",
+            "mobileRoadmap": ["Step 1", "Step 2", "Step 3", "Step 4"],
+            "paymentSolution": "...",
+            "realityCheck": "...",
+            "categories": ["General"],
+            "minClass": "10"
           }
         ]
       }
@@ -1881,9 +2220,34 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
                       type: Type.ARRAY,
                       items: { type: Type.STRING }
                     },
-                    applyLink: { type: Type.STRING }
+                    applyLink: { type: Type.STRING },
+                    whySecret: { type: Type.STRING },
+                    mobileRoadmap: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING }
+                    },
+                    paymentSolution: { type: Type.STRING },
+                    realityCheck: { type: Type.STRING },
+                    categories: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING }
+                    },
+                    minClass: { type: Type.STRING }
                   },
-                  required: ["name", "earnings", "commitment", "description", "skills", "applyLink"]
+                  required: [
+                    "name", 
+                    "earnings", 
+                    "commitment", 
+                    "description", 
+                    "skills", 
+                    "applyLink", 
+                    "whySecret", 
+                    "mobileRoadmap", 
+                    "paymentSolution", 
+                    "realityCheck",
+                    "categories",
+                    "minClass"
+                  ]
                 }
               }
             },
@@ -1901,26 +2265,9 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
     } catch (error: any) {
       console.warn("[Gig Finder] Error returning searched gigs:", cleanErrorMessage(error));
       
-      // Localized fallback matching query loosely
+      // Fallback selection from local verified database
       res.json({
-        gigs: [
-          {
-            name: `Verified Pocket-Money Gig: Freelance ${query || "Data Entry Educator"}`,
-            earnings: "₹250 - ₹500 / assignment",
-            commitment: "Flexible 1-2 hours / day",
-            description: `Deliver quality tasks matching ${query || "basic student skills"} on verified student-friendly platforms like Internshala.`,
-            skills: [query || "General Skills", "Accuracy", "Reliable Internet"],
-            applyLink: "https://internshala.com/internships/part-time-work-from-home-internships/"
-          },
-          {
-            name: `Verified Pocket-Money Gig: Micro tasking for ${query || "Design Content"}`,
-            earnings: "₹1,500 - ₹4,500 / week",
-            commitment: "No minimum hours",
-            description: `Assist small teams worldwide with micro digital projects associated with ${query || "basic English & web skills"}.`,
-            skills: ["Basic English proficiency", "Attention to instructions"],
-            applyLink: "https://www.upwork.com/freelance-jobs/"
-          }
-        ]
+        gigs: LOCAL_GIGS_DATABASE.slice(0, 2)
       });
     }
   });
@@ -1965,6 +2312,11 @@ ${notifications.map((n, i) => `${i + 1}. Title: "${n.title}" | Detail: "${n.body
     }
   });
 
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -1979,11 +2331,6 @@ ${notifications.map((n, i) => `${i + 1}. Title: "${n.title}" | Detail: "${n.body
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-
-  // Health check
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
-  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);

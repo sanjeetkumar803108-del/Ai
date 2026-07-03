@@ -4,22 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
-
-    <!-- WebView / APK safety polyfill for Notification API -->
-    <script>
-      if (typeof window.Notification === 'undefined') {
-        window.Notification = function () {
-          console.warn('Notification not supported in this WebView');
-        };
-        window.Notification.permission = 'denied';
-        window.Notification.requestPermission = function () {
-          return Promise.resolve('denied');
-        };
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

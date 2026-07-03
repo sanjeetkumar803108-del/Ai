@@ -17433,6 +17433,7 @@ const HomeScreen = ({
   onRefreshNews,
   onSelectNews,
   isBackgroundSaving,
+  onStartTour,
 }: {
   onNavigate: (v: string) => void;
   userProfile: UserProfile;
@@ -17451,6 +17452,7 @@ const HomeScreen = ({
   onRefreshNews?: () => void;
   onSelectNews: (item: any) => void;
   isBackgroundSaving?: boolean;
+  onStartTour?: () => void;
 }) => {
   const [showQuickScan, setShowQuickScan] = useState(false);
   const [showSmartQR, setShowSmartQR] = useState(false);
@@ -17758,181 +17760,7 @@ const HomeScreen = ({
         </motion.div>
       )}
 
-      <section className="bg-slate-50 border border-slate-100 p-5 rounded-[2.5rem] flex flex-col gap-4 shadow-xs">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🤝</span>
-            <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">
-              Aapki Suvidha - Simple App Guide
-            </h2>
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">
-            Aasan rasta - sabke liye samajhna asaan
-          </p>
-        </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-2xl">
-          {[
-            { id: "youth", label: "Youth / युवा", emoji: "⚡" },
-            { id: "elderly", label: "Seniors / बुजुर्ग", emoji: "👴" },
-            { id: "csc", label: "Helper / ग्राहक", emoji: "🏬" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setGuideTab(tab.id as any)}
-              className={cn(
-                "py-2 px-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer",
-                guideTab === tab.id
-                  ? "bg-white text-[#008069] shadow-xs"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <span>{tab.emoji}</span>
-              <span className="inline-block">{tab.label.split("/")[0]}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Contents */}
-        <div className="grid grid-cols-1 gap-3">
-          {guideTab === "youth" && (
-            <div className="space-y-3">
-              <p className="text-[11px] font-bold text-slate-600 leading-normal">
-                👋 <strong>Nav Yuvak Sathi:</strong> College admission, student credit cards, scholarships, and easy format resizer for online forms:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div
-                  onClick={() => {
-                    onAskMitra("Mujhe latest college scholarships aur student credit cards schemes betaao.");
-                  }}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">🎓</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Scholarships</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Student Credit Card & Help</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => {
-                    onAskMitra("Khel, kaushal vikas ya skill development jobs ke liye kaunsi schemes hain?");
-                  }}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">💼</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Skill & Jobs</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Kaushal Vikas & Rozgar</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => onNavigate("tools")}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">📸</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Photo & Format</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Passport / Sign Resizer</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {guideTab === "elderly" && (
-            <div className="space-y-3">
-              <p className="text-[11px] font-bold text-slate-600 leading-normal">
-                👴 <strong>Buzurg aur Kisan Sathi:</strong> Free ration card benefits, kisan nidhi, and simple details to secure family old age pension:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div
-                  onClick={() => {
-                    onAskMitra("Mujhe Vridha Pension (Old Age Pension) aur Vidhva Pension schemes ke baare me poori jaankari chahiye.");
-                  }}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">👵</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Pension Seva</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Vridha Pension Jaankari</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => {
-                    onAskMitra("Kisan Samman Nidhi aur khad-beej (agricultural subsidies) ki schems batao.");
-                  }}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">🌾</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Kheti Badi</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Kisan Nidhi Subsidies</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => onNavigate("chat")}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">🗣️</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Bolkar Poochein</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Bina likhe sahi jawab AI se</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {guideTab === "csc" && (
-            <div className="space-y-3">
-              <p className="text-[11px] font-bold text-slate-600 leading-normal">
-                🏬 <strong>CSC Sanchalak / Grahak Help:</strong> Secure applications without errors, verify eligibility and find local center spots:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div
-                  onClick={() => onShowFormAudit()}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">🔍</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Galti Auditor</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Form Rejection se bachein</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => onNavigate("guide")}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">📑</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">Live Guide</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Aasan online form process</p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => {
-                    onNavigate("csc-hub");
-                  }}
-                  className="bg-white border border-slate-100/80 p-3.5 rounded-2xl flex items-start gap-3 cursor-pointer hover:border-[#008069]/30 hover:shadow-xs active:scale-95 transition-all"
-                >
-                  <span className="text-2xl mt-0.5">📍</span>
-                  <div>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none">CSC Map Finder</h4>
-                    <p className="text-[10px] font-semibold text-[#008069] mt-1">Apna pass ka center map par</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Main Big Options */}
       <section className="grid grid-cols-2 gap-4 pt-2">
@@ -27282,6 +27110,7 @@ const SettingsScreen = ({
   onNavigateToScheme,
   onShowFeedback,
   schemes,
+  onRestartTour,
 }: {
   user: User | null;
   profile: UserProfile;
@@ -27292,6 +27121,7 @@ const SettingsScreen = ({
   onNavigateToScheme: (id: string) => void;
   onShowFeedback: () => void;
   schemes: Scheme[];
+  onRestartTour?: () => void;
 }) => {
   const handleLogout = async () => {
     try {
@@ -28258,6 +28088,27 @@ const SettingsScreen = ({
           </div>
         </div>
 
+        {onRestartTour && (
+          <button
+            onClick={() => {
+              onRestartTour();
+              onNavigate("dashboard");
+            }}
+            className="w-full bg-indigo-50 p-5 rounded-3xl border border-indigo-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98] mb-3"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+                <RefreshCw className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-gray-900">Refresh App Tour</p>
+                <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5 tracking-tight">Discover hidden features like Vault & Batch Rename</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-indigo-300" />
+          </button>
+        )}
+
         <button
           onClick={onShowFeedback}
           className="w-full bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]"
@@ -29107,6 +28958,83 @@ export default function App() {
     dailyRemindersEnabled: true,
   });
 
+  const [dashboardTourStep, setDashboardTourStep] = useState<number | null>(null);
+  const [arrowCoords, setArrowCoords] = useState<{ x: number; y: number; placement: "top" | "left" | "right" | "bottom" }>({ x: 0, y: 0, placement: "bottom" });
+
+  useEffect(() => {
+    if (dashboardTourStep === null) return;
+    const tabIds = ["home", "schemes", "chat", "tools"];
+    const currentTabId = tabIds[dashboardTourStep - 1];
+    if (!currentTabId) return;
+
+    const updatePosition = () => {
+      const isMobile = window.innerWidth < 768;
+      const elementId = isMobile ? `nav-tab-${currentTabId}` : `desktop-sidebar-tab-${currentTabId}`;
+      const element = document.getElementById(elementId);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        if (isMobile) {
+          setArrowCoords({
+            x: rect.left + rect.width / 2,
+            y: rect.top - 16,
+            placement: "bottom"
+          });
+        } else {
+          setArrowCoords({
+            x: rect.right + 16,
+            y: rect.top + rect.height / 2,
+            placement: "left"
+          });
+        }
+      } else {
+        if (isMobile) {
+          setArrowCoords({
+            x: window.innerWidth / 2,
+            y: window.innerHeight - 90,
+            placement: "bottom"
+          });
+        } else {
+          setArrowCoords({
+            x: 290,
+            y: 180 + (dashboardTourStep * 55),
+            placement: "left"
+          });
+        }
+      }
+    };
+
+    const timer = setTimeout(updatePosition, 350);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [dashboardTourStep, activeTab]);
+
+  // Sync activeTab with current dashboard tour step automatically
+  useEffect(() => {
+    if (dashboardTourStep !== null) {
+      const tabIds = ["home", "schemes", "chat", "tools"];
+      const targetTab = tabIds[dashboardTourStep - 1];
+      if (targetTab && activeTab !== targetTab) {
+        setActiveTab(targetTab as any);
+      }
+    }
+  }, [dashboardTourStep]);
+
+  useEffect(() => {
+    if (user && profile.state && profile.community) {
+      const tourDone = localStorage.getItem("form_mitra_dashboard_tour_v1");
+      if (tourDone !== "true") {
+        const timer = setTimeout(() => {
+          setDashboardTourStep(1);
+          setActiveTab("home");
+        }, 2500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user, profile.state, profile.community]);
+
   const profileRef = useRef(profile);
   useEffect(() => {
     profileRef.current = profile;
@@ -29731,6 +29659,142 @@ export default function App() {
     return <Onboarding onComplete={saveProfile} />;
   }
 
+  // Dashboard Interactive Tour Overlay and Tooltip with Arrows
+  const renderDashboardTour = () => {
+    if (dashboardTourStep === null) return null;
+
+    const steps = [
+      {
+        id: "home",
+        title: "Home Section (मुख्य स्क्रीन)",
+        hindiTitle: "होम डैशबोर्ड",
+        description: "Yahan aapko Mitra App ke sabhi sabse powerful features milenge, jaise: \n\n• ✨ Instant AI Eligibility Checker (पात्रता जांचकर्ता)\n• 📋 Digital Document Quality Audit (दस्तावेज़ ऑडिट)\n• 🚀 Daily Study Streaks & Leaderboard Ranks\n• 📰 Live Board & Smart State News Alerts\n• 🔒 Safe & Secure Documents Vault!\n\nYahan aapki detailed profile aur specialized Pro-Tips bhi milti hain.",
+        icon: HomeIcon,
+      },
+      {
+        id: "schemes",
+        title: "Schemes Section (सरकारी योजनाएं)",
+        hindiTitle: "नवीनतम योजनाएं",
+        description: "Yahan par sabhi latest aur genuine sarkari aur corporate schemes ki certified jankari milti hai, jiske liye aap live eligibility check kar sakte hain aur direct safe links se apply kar sakte hain!",
+        icon: BookOpen,
+      },
+      {
+        id: "chat",
+        title: "Mitra AI Section (एआई मदद)",
+        hindiTitle: "मित्रा एआई साथी चैट",
+        description: "Aapka personal AI Nodal Officer! Kisi bhi sarkaari form, document, ya career ke doubt ke liye Mitra AI se seedhe chat karein aur instant step-by-step guidance paayein!",
+        icon: MessageCircle,
+      },
+      {
+        id: "tools",
+        title: "Tools Section (स्मार्ट टूल्स)",
+        hindiTitle: "पावरफुल टूल्स हब",
+        description: "Yahan aapko humare sabhi super powerful tools milenge - jaise Student Pocket Money Gig Finder (pocket money kamane ke liye), Smart Student Skill Finder (nayi secret skills), Resume Generator, aur Document Quality Audit tool!",
+        icon: LayoutDashboard,
+      },
+    ];
+
+    const currentStepIndex = dashboardTourStep - 1;
+    const currentStep = steps[currentStepIndex];
+    if (!currentStep) return null;
+
+    return (
+      <div className="fixed inset-0 z-[200] pointer-events-none font-sans">
+        {/* Transparent backdrop to click-to-exit, no blur, no dark tint, so section remains 100% visible */}
+        <div className="absolute inset-0 bg-transparent pointer-events-auto cursor-default" onClick={() => setDashboardTourStep(null)} />
+
+        {/* Bouncing Pointer Arrow */}
+        <div
+          className="absolute z-[210] transition-all duration-500 ease-out"
+          style={{
+            left: `${arrowCoords.x}px`,
+            top: `${arrowCoords.y}px`,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <div className="relative flex flex-col items-center">
+            {arrowCoords.placement === "bottom" ? (
+              <div className="flex flex-col items-center animate-bounce">
+                <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-lg border-2 border-white">
+                  👇
+                </div>
+                <div className="w-3 h-3 bg-amber-500 rotate-45 mt-[-6px] shadow-sm border-r-2 border-b-2 border-white" />
+              </div>
+            ) : (
+              <div className="flex items-center animate-bounce">
+                <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-lg mr-1 border-2 border-white">
+                  👉
+                </div>
+                <div className="w-3 h-3 bg-amber-500 rotate-45 ml-[-6px] shadow-sm border-l-2 border-b-2 border-white" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Walkthrough Tooltip Dialog Box */}
+        <div
+          className="absolute z-[210] pointer-events-auto w-[90%] max-w-sm p-5 rounded-[2.5rem] bg-white border-4 border-slate-900 shadow-2xl transition-all duration-500 animate-fade-in"
+          style={{
+            left: window.innerWidth < 768 ? "50%" : `${arrowCoords.x + (arrowCoords.placement === "left" ? 40 : -420)}px`,
+            top: window.innerWidth < 768 ? "35%" : `${Math.max(100, arrowCoords.y - 120)}px`,
+            transform: window.innerWidth < 768 ? "translate(-50%, -50%)" : "none",
+          }}
+        >
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold shrink-0">
+              <currentStep.icon className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <span className="text-[8px] bg-amber-500 text-white px-2.5 py-1 rounded-full font-black uppercase tracking-widest leading-none">
+                Mitra Sathi Safar • Step {dashboardTourStep}/4
+              </span>
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight mt-1.5 leading-none">
+                {currentStep.title}
+              </h3>
+              <p className="text-[9px] text-[#008069] font-black uppercase tracking-wider mt-0.5">
+                {currentStep.hindiTitle}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-[11px] font-semibold text-slate-700 leading-relaxed mb-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 whitespace-pre-line">
+            {currentStep.description}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+            <button
+              onClick={() => {
+                localStorage.setItem("form_mitra_dashboard_tour_v1", "true");
+                setDashboardTourStep(null);
+                showToast("Aapne app guide skip kiya! Kabhi bhi Safar Guide button se start kar sakte hain. 👍", "info");
+              }}
+              className="px-4 py-2 text-gray-400 hover:text-gray-600 font-extrabold text-[10px] uppercase tracking-wider bg-transparent border-0 cursor-pointer active:scale-95"
+            >
+              Skip
+            </button>
+            <button
+              onClick={() => {
+                if (dashboardTourStep < 4) {
+                  const nextStep = dashboardTourStep + 1;
+                  setDashboardTourStep(nextStep);
+                  const targetTab = steps[nextStep - 1].id;
+                  setActiveTab(targetTab as any);
+                } else {
+                  localStorage.setItem("form_mitra_dashboard_tour_v1", "true");
+                  setDashboardTourStep(null);
+                  showToast("Badhai ho! 🥳 Aapne Mitra Tour successfully poora kar liya hai!", "info");
+                }
+              }}
+              className="px-5 py-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer active:scale-95 border-0 shadow-md shadow-amber-200"
+            >
+              <span>{dashboardTourStep < 4 ? "Aage Chalo ➡️" : "Shuru Karein! 🎉"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Interactive Tutorial check
   if (!profile.hasCompletedTutorial) {
     return (
@@ -29982,6 +30046,10 @@ export default function App() {
                   onRefreshNews={handleFetchNews}
                   onSelectNews={(item) => setSelectedSliderNews(item)}
                   isBackgroundSaving={isBackgroundSaving}
+                  onStartTour={() => {
+                    setDashboardTourStep(1);
+                    setActiveTab("home");
+                  }}
                 />
             </div>
             <div className={cn("w-full flex-col flex", activeTab === "skill-finder" ? "block animate-fade-in" : "hidden")}>
@@ -30221,6 +30289,7 @@ export default function App() {
                   }}
                   onShowFeedback={() => handleShowFeedback("general")}
                   schemes={communitySchemes}
+                  onRestartTour={() => setDashboardTourStep(1)}
                 />
             </div>
           </main>
@@ -30652,6 +30721,8 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {renderDashboardTour()}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { AppNotification } from '../types';
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
-  if (typeof window === 'undefined' || !('Notification' in window)) {
+  if (!('Notification' in window)) {
     console.warn('This browser does not support desktop notification');
     return false;
   }
@@ -19,21 +19,17 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 };
 
 export const showLocalNotification = (title: string, options?: NotificationOptions) => {
-  if (typeof window !== "undefined" && "Notification" in window) {
-    if (Notification.permission === 'granted') {
-      const notification = new Notification(title, {
-        icon: '/vite.svg', // Fallback icon
-        badge: '/vite.svg',
-        ...options
-      });
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(title, {
+      icon: '/vite.svg', // Fallback icon
+      badge: '/vite.svg',
+      ...options
+    });
 
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    }
-  } else {
-    console.warn("Notifications are not supported or available in this context.");
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
   }
 };
 

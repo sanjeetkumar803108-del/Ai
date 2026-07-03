@@ -26,9 +26,10 @@ export const StudentSkillFinderWidget = ({
   userProfile: UserProfile;
   onAskMitra: (q: string) => void;
 }) => {
+  const isStudentMode = userProfile.community === "Student";
   const isJobsMode = userProfile.community === "Jobs";
   const [stream, setStream] = useState<string>(
-    userProfile.stream || (isJobsMode ? "Commerce" : "Others")
+    isStudentMode ? (userProfile.stream || "Others") : "Others"
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [bhaiInsight, setBhaiInsight] = useState<string>("");
@@ -75,127 +76,161 @@ export const StudentSkillFinderWidget = ({
 
   const getLocalFallback = (targetStream: string) => {
     const name = userProfile.name || "Dost";
-    if (isJobsMode) {
+    const lang = userProfile.preferredLanguage || "hinglish";
+
+    if (lang === "hi") {
       setSkills([
         {
-          name: "Professional Data Analytics & Cloud Warehousing (SQL + PowerBI)",
-          category: "Data Operations",
+          name: "एआई-असिस्टेड ऐप डेवलपमेंट और कोडिंग (Cursor & Lovable)",
+          category: "एआई टेक्नोलॉजी",
+          description: "बिना कोडिंग सीखे एआई टूल्स की मदद से मात्र 30 मिनट में शानदार रिस्पॉन्सिव वेबसाइट्स और ऐप्स बनाना सीखें।",
+          duration: "3 से 4 सप्ताह",
           whyGood: [
-            "Companies me fast decision-making ke liye modern data and business metrics operators ki highest demand hai.",
-            "Aap advanced SQL queries aur automatic sales dashboard visualizations asani se manage kar sakenge."
+            "आजकल एआई आधारित कोड जनरेटर टूल्स का चलन है, जिससे बिना प्रोग्रामिंग बैकग्राउंड के भी तेजी से ऐप्स बनाए जा सकते हैं।",
+            "लॉजिकल सोच और सही प्रॉम्ट लिखना ही एकमात्र कुंजी है जो जेन जेड के लिए बिल्कुल सही है।"
           ],
           futureWork: [
-            "2x Faster Jobs Placement: Direct hire in high-priority job vacancies within startups & MNCs.",
-            "Aapko short-listed non-coding status milega jisse career field change karna extremely easy ho jayega."
+            "2 गुना तेज हायरिंग: स्टार्टअप्स और फ्रीलांस मार्केट्स में एआई नो-कोड डेवलपर्स की तत्काल भारी मांग है।",
+            "कम समय में अपना डिजिटल पोर्टफोलियो बनाकर सीधे क्लाइंट्स हासिल करें।"
           ],
           portfolioValue: [
-            "PowerBI ya Excel Sheet use karke local retail business ki 'Live Interactive Sales Analysis' project banayein aur resume me project links update karein."
+            "एआई की मदद से 3 लाइव वर्किंग टूल्स (जैसे डेली टास्क ट्रैकर या कस्टमाइज्ड स्टूडेंट कैलकुलेटर) बनाएं और उनके लिंक रिज्यूमे में शेयर करें।"
           ],
-          earnings: "₹35,000 - ₹70,000 / month (Immediate 50% - 80% salary hike potential with live portfolio proof!)",
+          earnings: "₹35,000 - ₹80,000 / महीना (शानदार लाइव पोर्टफोलियो के साथ तुरंत 70% तक सैलरी हाइक!)",
           howToLearn: [
-            "Google Sheets and standard databases tools practice karein simple YouTube courses se.",
-            "Form Mitra AI se sample questions solve karke mock tests analyze karein."
+            "Cursor Editor और v0.dev को फ्री में इस्तेमाल करना सीखें।",
+            "बेसिक प्रॉम्प्ट गाइडलाइंस और एआई एपीआई इंटीग्रेशन यूट्यूब या मुफ्त गाइड्स के जरिए समझें।"
           ]
         },
         {
-          name: "Enterprise Digital Marketing, SEO & Performance Ads",
-          category: "Growth & Search Operations",
+          name: "एआई फेसलेस वीडियो क्रिएशन और रील प्रोडक्शन (CapCut & ElevenLabs)",
+          category: "एआई डिजिटल क्रिएशन",
+          description: "एआई वॉयसओवर, जेनरेटिव आर्ट और ऑटो-कैप्शन का उपयोग करके इंस्टाग्राम और यूट्यूब के लिए वायरल वीडियो बनाएं।",
+          duration: "3 सप्ताह",
           whyGood: [
-            "Commerce, Arts ya Technical background ke professional seekers ke liye is skill ki value limitless hai.",
-            "Social platforms aur organic search algorithms use karke business results produce karna super easy hai."
+            "आजकल छोटे व्यवसायों और ब्रांड्स को अपनी रील्स बनवाने के लिए क्रिएटिव एडिटर्स की भारी जरूरत है।",
+            "बिना खुद का चेहरा दिखाए या कैमरा खरीदे, अपने स्मार्टफोन से ही कमाल के रील्स बनाएं।"
           ],
           futureWork: [
-            "Instant Hires access: Companies digital marketing specialists ko zero experience par bhi screen karti hain.",
-            "Remote high-paying freelancing roles are immediately open on Upwork & Fiverr."
+            "स्थानीय व्यवसायों, ब्रांड्स और एजुकेटर्स के लिए मंथली बेसिस पर रील्स मैनेज करने का मौका।",
+            "कमिटमेंट केवल 1 घंटा प्रतिदिन, जिससे पढ़ाई या नौकरी के साथ करना बेहद आसान है।"
           ],
           portfolioValue: [
-            "Real local businesses ke social content handles ko 2 weeks tak optimize karke real static organic growth stats dikhayein."
+            "कम से कम 10 एआई जेनरेटेड वीडियोज के साथ एक इंस्टाग्राम थीम पेज सेटअप करें और उसकी शानदार रीच दिखाएं।"
           ],
-          earnings: "₹30,000 - ₹65,000 / month (Approx 40% - 60% high-salary escalation with certified link portfolio!)",
+          earnings: "₹25,000 - ₹55,000 / महीना (पढ़ाई के साथ-साथ शानदार एक्स्ट्रा पॉकेट मनी!)",
           howToLearn: [
-            "Google and HubSpot free certifications courses complete karein within 10 days.",
-            "Apni knowledge live testing campaigns ke upar practice karke validation checks run karein."
+            "CapCut या VN मोबाइल एडिटर और ElevenLabs एआई वॉयस जनरेटर का इस्तेमाल सीखें।",
+            "वायरल वीडियो हुक्स और एआई स्क्रिप्ट राइटिंग की बारीकियों को समझें।"
           ]
         }
       ]);
-      setBhaiInsight(`Bhai ${name}, job seekers community ke liye main guarantee deta hoon ki advanced project portfolios aur validated practical links hi sabse bada game charger hain! Resume me fake details likhne ke badle, live LinkedIn, Behance ya GitHub pages par work share kijiye — aapko jaldi jobs milengi aur salary 60% tak badh jayegi!`);
+      setBhaiInsight(`दोस्त ${name}, आज के डिजिटल दौर में जेन जेड के लिए पुराने तरीके आउटडेटेड हो चुके हैं! अब एआई टूल्स के साथ स्मार्ट तरीके से काम करने का समय है। इन आधुनिक स्किल्स में से किसी एक को चुनकर अपना लाइव पोर्टफोलियो बनाएं। नकली रिज्यूमे के बजाय लाइव काम दिखाएं — आपकी सैलरी और जॉब मिलने की रफ्तार तुरंत दोगुनी हो जाएगी! आपका बड़ा भाई हमेशा आपके साथ है।`);
+    } else if (lang === "en") {
+      setSkills([
+        {
+          name: "AI-Assisted Web App Development (Cursor & Lovable)",
+          category: "AI Technology",
+          description: "Build beautiful, fully-functional web applications in minutes using AI-powered code assistants, without writing complex code manually.",
+          duration: "3 to 4 Weeks",
+          whyGood: [
+            "Modern tech startups prefer builders who leverage AI to ship products 10x faster.",
+            "Logical thinking and prompt design are the only requirements, making it perfect for non-technical backgrounds."
+          ],
+          futureWork: [
+            "2x Faster Hiring: High demand for AI-augmented developers and builders in modern digital agencies.",
+            "Excellent global remote work and high-paying freelance gigs on Upwork/Fiverr."
+          ],
+          portfolioValue: [
+            "Build 3 interactive live web tools (e.g. customized GPA tracker or local business catalog) using AI code tools and share live links."
+          ],
+          earnings: "₹35,000 - ₹80,000 / month (Immediate 50% - 80% salary boost potential with live project proof!)",
+          howToLearn: [
+            "Start using the free tier of Cursor editor and explore v0.dev for UI elements.",
+            "Learn custom prompt engineering structures to direct AI models to write clean web code."
+          ]
+        },
+        {
+          name: "AI Faceless Video Production & Reel Curation",
+          category: "AI Digital Creation",
+          description: "Create highly engaging, viral vertical Shorts and Reels using AI image generators, ElevenLabs voices, and CapCut transitions.",
+          duration: "3 Weeks",
+          whyGood: [
+            "Massive demand from brands, local cafes, and educators who want to go viral but have zero video-making skills.",
+            "Create professional visual content without showing your face or investing in expensive camera gear."
+          ],
+          futureWork: [
+            "Retainer-based social media management contracts for local businesses.",
+            "Grow your own highly monetizable faceless theme channels passively."
+          ],
+          portfolioValue: [
+            "Launch a dedicated Instagram theme channel with at least 10 high-quality viral-style AI Reels showing proof of reach."
+          ],
+          earnings: "₹25,000 - ₹55,000 / month (Highly flexible micro-gigs alongside college or full-time roles)",
+          howToLearn: [
+            "Explore ElevenLabs for voices and CapCut templates for fast smartphone transitions.",
+            "Master ChatGPT script writing and hooks to keep audience retention high."
+          ]
+        }
+      ]);
+      setBhaiInsight(`Hey ${name}, traditional skills are becoming obsolete in this Gen Z era. Start building real portfolio projects using modern AI tools today! Showing live GitHub, Behance, or Figma proofs to recruiters instead of blank resumes will accelerate your salary hikes instantly. Your Bade Bhai is always here to support you!`);
     } else {
-      if (targetStream === "PCM") {
-        setSkills([
-          {
-            name: "Freelance React & Tailwind Frontend UI Builder",
-            category: "Tech & Software",
-            whyGood: [
-              "PCM logical reasoning programming tools and structure coordinate karne me bohot fast help karegi.",
-              "Programming basics aur responsive web design formats adapt karna easy dynamic process hai."
-            ],
-            futureWork: [
-              "Future Software Engineering stream selection aur elite college placement opportunities me big edge.",
-              "Academic studies ke sath-sath simple visual landing page freelance tasks build kijiye."
-            ],
-            portfolioValue: [
-              "Build your own beautiful portfolio website listing academic credentials and creative web designing modules."
-            ],
-            earnings: "₹25,000 - ₹60,000 / month (Excellent freelancing earnings stream alongside standard college)",
-            howToLearn: [
-              "FreeCodeCamp aur free programming tutorials start karein HTML, CSS & Basic JavaScript se.",
-              "Daily 1 hour coding constraints handle karein custom projects build-up ke liye."
-            ]
-          },
-          {
-            name: "Python Applications & AI Systems Prompt Engineering",
-            category: "Artificial Intelligence",
-            whyGood: [
-              "Python language is mathematically simple and works wonder for data statistics analyses.",
-              "Modern AI structures like ChatGPT, Claude aur Gemini parameters calibrate karna seekhna next-generation core requirement hai."
-            ],
-            futureWork: [
-              "Python Automation Developer, remote Prompt Optimizer, and digital assistance tasks.",
-              "Next-level research scholarships ya technical internships me high-value priority entries."
-            ],
-            portfolioValue: [
-              "Create 5 premium automated smart chat prompts for automated homework tracking tools and save hours manually."
-            ],
-            earnings: "₹30,000 - ₹75,000 / month (Excellent high demand freelancing rewards)",
-            howToLearn: [
-              "Python basics seekhein variables and loops tutorials se, and start interacting with standard API channels.",
-              "Form Mitra AI modules complete karein code generation techniques seekhne ke liye."
-            ]
-          }
-        ]);
-        setBhaiInsight(`Dost ${name}, PCM stream ke sath technology seekhna means career me direct super speed injection! Roz bas evening me 1 ghanta practical design work doliye. studies par bina kisi pressure ke 3 months me aap smart money systems build up shuru kardenge! Best of luck, bade bhai ka ashirwad hamesha sath hai.`);
-      } else {
-        setSkills([
-          {
-            name: "Product Interface UI/UX Designing (Professional Figma Prototyping)",
-            category: "Creative Arts",
-            whyGood: [
-              "Geometric layouts placement and color synchronization are easy to capture for intuitive minds.",
-              "Zero software coding dependency! Simple logical placements and UI components control."
-            ],
-            futureWork: [
-              "Mobile App companies aur specialized website design networks hire graphic specialists first.",
-              "Unlimited high priority freelance projects options on modern web platforms."
-            ],
-            portfolioValue: [
-              "Redesign any popular local utility app UI structure (e.g. Bus Tickets or Food Order) and build high key transition layouts."
-            ],
-            earnings: "₹20,000 - ₹45,000 / month (Excellent freelance earnings parallel to normal classes)",
-            howToLearn: [
-              "Figma software download karein and follow 20 essential UI building videos on YouTube.",
-              "Clone famous web widgets and buttons formats to build a stellar portfolio link."
-            ]
-          }
-        ]);
-        setStream("PCM");
-        setBhaiInsight(`Bhai ${name}, creativity is your biggest asset! Visual graphics, dynamic presentation interfaces aur video editing learn kijiye. Studies and local college duties handle karte-karte aap high scale professional creators ke absolute partners ban sakte ho!`);
-      }
+      // Hinglish (friendly blend)
+      setSkills([
+        {
+          name: "AI-Assisted Web App Development (Cursor & Lovable)",
+          category: "AI Technology",
+          description: "Bina coding seekhe modern AI code assistants (jaise Cursor aur v0) ki help se sirf 30 minutes me professional responsive websites aur apps build karna seekhein.",
+          duration: "3 to 4 Weeks",
+          whyGood: [
+            "Gen Z builders ke liye coding syntax ratne ki jarurat nahi hai. Bas logical thinking aur proper prompts likh kar full-stack sites launch kar sakte hain.",
+            "Startups and digital agencies me un developers ki high-demand hai jo AI integration se fast deliver karte hain."
+          ],
+          futureWork: [
+            "2x Faster Placements: Non-technical students bhi responsive modern landing page roles and tech internships direct qualify kar sakte hain.",
+            "Remote clients and high-paying freelance deals are immediately open globally."
+          ],
+          portfolioValue: [
+            "AI code builders use karke 3 live working single-page tools (jaise dynamic notes dashboard ya custom student planner) banayein aur resume me live URL list karein."
+          ],
+          earnings: "₹35,000 - ₹80,000 / month (Consistent high-paying micro-projects with live proof!)",
+          howToLearn: [
+            "Free Cursor editor download karein aur standard v0.dev tools explore karein.",
+            "Basic prompts rules aur api call methods YouTube tutorials ke through step-by-step seekhein."
+          ]
+        },
+        {
+          name: "AI Faceless Video Production & Reel Curation",
+          category: "AI Digital Creation",
+          description: "ElevenLabs AI voices, ChatGPT scripts aur modern CapCut editing templates use karke premium high-converting reels and shorts build karein.",
+          duration: "3 Weeks",
+          whyGood: [
+            "Bina camera ke samne aaye aur bina voice record kiye, smartphone se high quality content generate karna extremely straightforward hai.",
+            "Social media growth me local small businesses, cafes, and academies digital creators ko high monthly retainers pay kar rahe hain."
+          ],
+          futureWork: [
+            "Part-time or remote Social Media management positions with multiple local and global clients.",
+            "Apna personal high-traffic faceless niche channel grow karke direct passive sponsorships receive karein."
+          ],
+          portfolioValue: [
+            "At least 10 viral style AI-generated Reels ke sath ek live active Instagram theme page establish karein aur analytics output show karein."
+          ],
+          earnings: "₹25,000 - ₹55,000 / month (Excellent pocket money options alongside study/jobs)",
+          howToLearn: [
+            "Free CapCut templates edit karna seekhein aur sound design overlay integrate karein.",
+            "Trending hooks structure copy create karne ke liye ChatGPT prompts practice karein."
+          ]
+        }
+      ]);
+      setBhaiInsight(`Dost ${name}, modern Gen Z era me purane, boring tarike bilkul chalne wale nahi hain! AI tools ke sath smart work karne ka samay aa gaya hai. In skills me se ek ko select karke practical work portfolios banaiye, blank resumes ke badle live projects HR ko dikhayein — aapki salary boost aur hiring speed instant triple ho jayegi! Aapka bade bhai hamesha backup ke sath help karega.`);
     }
   };
 
   useEffect(() => {
-    // Initial fetch from server
-    fetchSkills(stream, true);
+    // Initial fetch from server with community-based default stream
+    const targetStream = userProfile.community === "Student" ? (userProfile.stream || "Others") : "Others";
+    setStream(targetStream);
+    fetchSkills(targetStream, true);
   }, [userProfile.community]);
 
   const handleStreamChange = (newStream: string) => {
@@ -286,36 +321,42 @@ export const StudentSkillFinderWidget = ({
             <span>
               "Bhai, agar tumne yahan bataye hue modern, practical skills seekh liye toh tumhara **portfolio** bohot aacha hojayega, recruiters khud directly contact karenge, aur tumhari **salary directly 40% - 60% tak badh sakti hai**! Tumhe bohot jaldi high priority and permanent jobs mil sakti hain. Humare dynamic recommendations check karo:"
             </span>
-          ) : (
+          ) : isStudentMode ? (
             <span>
               "Sathi, tumhari studies (<strong>{stream}</strong>) ke sath kaunsi high-earning practical skills sabse badhiya h? Seekhne se tumhari side earning options upgrade ho jayengi aur personal portfolio outstanding lagega! Mitra AI se direct explore kijiye:"
+            </span>
+          ) : (
+            <span>
+              "Sathi, aapke professional growth aur side income ke liye kaunsi high-earning practical skills sabse badhiya hain? Seekhne se aapki earning options upgrade ho jayengi aur digital presence outstanding lagega! Mitra AI se direct explore kijiye:"
             </span>
           )}
         </p>
       </div>
 
-      {/* Stream switcher tabs (especially relevant for students, but shown to jobs seeker too to broaden scope) */}
-      <div className="relative z-10">
-        <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 mb-2 font-mono flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5" />
-          {isJobsMode ? "APNI PREFERRED EDUCATION FIELD SELECT KAREIN:" : "ANUSAR STREAM CHUNNEIN (CHOOSE STREAM):"}
-        </p>
-        <div className="flex flex-wrap gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5">
-          {["PCM", "PCB", "Commerce", "Arts", "Others"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleStreamChange(tab)}
-              className={`px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all ${
-                stream === tab 
-                  ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black shadow-md shadow-amber-400/20" 
-                  : "text-zinc-300 hover:bg-white/15"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+      {/* Stream switcher tabs (only for Student community) */}
+      {isStudentMode && (
+        <div className="relative z-10">
+          <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 mb-2 font-mono flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5" />
+            ANUSAR STREAM CHUNNEIN (CHOOSE STREAM):
+          </p>
+          <div className="flex flex-wrap gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5">
+            {["PCM", "PCB", "Commerce", "Arts", "Others"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleStreamChange(tab)}
+                className={`px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all ${
+                  stream === tab 
+                    ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black shadow-md shadow-amber-400/20" 
+                    : "text-zinc-300 hover:bg-white/15"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="py-16 flex flex-col items-center justify-center gap-3 bg-black/20 rounded-3xl border border-white/5">
@@ -386,6 +427,38 @@ export const StudentSkillFinderWidget = ({
                         {skill.earnings}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Ask with AI Button - Compact & Gorgeous */}
+                  <div 
+                    className="relative z-10 mt-1"
+                    onClick={(e) => e.stopPropagation()} // Prevent card toggle
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const lang = userProfile.preferredLanguage || "hinglish";
+                        const prompt = lang === "hi"
+                          ? `बधाई हो भाई! मुझे इस शानदार आधुनिक स्किल "${skill.name}" के बारे में एकदम शुरुआत से, नर्सरी लेवल पर समझाओ।
+1. यह स्किल आज के समय में क्यों सबसे बेस्ट है और भविष्य में क्या स्कोप है?
+2. इसे सीख लेने के बाद मैं कितना मंथली इनकम (earnings) कमा सकता हूँ?
+3. इसे सीखने के लिए क्या-क्या स्टेप्स हैं और कहाँ से एकदम सही तरीके से सीखें?
+4. इस स्किल को सीखने के बाद मुझे काम या क्लाइंट्स कहाँ से मिलेंगे और पेमेंट कैसे निकालूँगा?
+एकदम ग्राउंड लेवल से साफ़-साफ़ गाइड करो ताकि मैं बिना किसी गलती के इसे कर सकूँ।`
+                          : `Bhai, mujhe is modern high-demand skill "${skill.name}" ke baare me ekdam shuruaat se, nursery level par explain karo.
+1. Ye skill kyu sabse best hai aur iska future scope kya hai?
+2. Isko seekhne ke baad monthly income kitni ho sakti hai?
+3. Step-by-step isko kaise seekhein aur kaha se sahi resources milenge?
+4. Seekh lene ke baad kaise kahi apply karein ya clients kaise dhoondhein aur payment kaise receive karein?
+Ground level se fully clear steps me samjhao taaki main bina kisi mistake ke shuru kar sakoon.`;
+                        
+                        onAskMitra(prompt);
+                      }}
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-950 text-xs font-black rounded-2xl transition-all cursor-pointer uppercase tracking-wider shadow-lg active:scale-[0.98]"
+                    >
+                      <Sparkles className="w-4 h-4 text-slate-950 animate-pulse" />
+                      <span>{userProfile.preferredLanguage === "hi" ? "एआई मित्रा से स्टेप-बाय-स्टेप समझें" : "Ask AI Step-by-Step Guide"}</span>
+                    </button>
                   </div>
 
                   {/* Pointwise Custom metrics shown only when expanded */}
