@@ -138,7 +138,7 @@ export const getSpeech = async (text: string): Promise<string | null> => {
     try {
       console.log(`TTS Request (Attempt ${attempt + 1}) for text length:`, text.length);
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-tts-preview",
+        model: "gemini-3.5-flash",
         contents: [{ parts: [{ text: `Say clearly and naturally: ${text}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
@@ -245,7 +245,7 @@ export const analyzeForm = async (imageBase64: string, mimeType: string) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -411,7 +411,7 @@ export const generateSchemeLetter = async (schemeName: string, schemeDetails: an
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -493,7 +493,7 @@ export const generateFormalLetter = async (topic: string, details: string, userP
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -598,11 +598,7 @@ export const getSchemeSmartTip = async (scheme: any, userProfile: UserProfile): 
 /**
  * Analyzes a filled form image against a scheme's requirements.
  */
-export const analyzeFilledForm = async (imageFile: File, scheme: any): Promise<{
-  isValid: boolean;
-  errors: { field: string; message: string; severity: 'error' | 'warning' }[];
-  feedback: string;
-}> => {
+export const analyzeFilledForm = async (imageFile: File, scheme?: any): Promise<any> => {
   if (!ai) throw new Error("AI not initialized.");
 
   // Convert file to base64
@@ -613,34 +609,39 @@ export const analyzeFilledForm = async (imageFile: File, scheme: any): Promise<{
   });
 
   const prompt = `
-    Role: You are "Form Mitra AI", an expert audit officer for Indian government schemes.
+    Role: You are "Form Mitra AI", an expert audit officer for Indian government and official forms.
     
-    Task: Audit the provided image of a filled application form for the scheme: "${scheme.name}".
+    Task: Audit the provided image of a filled application form ${scheme ? 'for the scheme: ' + scheme.name : '(generic audit)'}.
     
-    Scheme Requirements:
+    ${scheme ? `Scheme Requirements:
     - Target: ${scheme.description}
-    - Common Fields: Name, Aadhaar, Income, Date of Birth, Signature, Category.
+    - Common Fields: Name, Aadhaar, Income, Date of Birth, Signature, Category.` : 'Check for general correctness: Name, IDs, Signature, Date of Birth, etc.'}
     
     Instructions:
     1. Extract all visible text and fields from the form.
-    2. Check for:
-       - Missing required fields (e.g., Signature, Date).
-       - Illegible handwriting (mark as warning).
-       - Logic errors (e.g., age doesn't match DOB).
-       - Mismatch with scheme eligibility (if visible).
+    2. Check for missing required fields, illegible handwriting, logic errors, and any missing signatures/photos.
     
-    Format: Return a JSON object:
+    Format: Return a JSON object EXACTLY matching this schema (do NOT include markdown formatting like \`\`\`json):
     {
-      "isValid": boolean,
-      "errors": [{ "field": "string", "message": "Hinglish feedback", "severity": "error|warning" }],
-      "feedback": "Overall summary in Hinglish (expert 'Bade Bhai' style)"
+      "riskScore": 45, // Number between 0-100 (higher = higher chance of rejection)
+      "verdict": "string (Short verdict like 'Form Needs Attention')",
+      "photoAudit": {
+        "isAccepted": boolean,
+        "backgroundStatus": "string (e.g. 'Clear' or 'Cluttered')",
+        "clarity": "string (e.g. 'Sharp' or 'Blurry')",
+        "brightness": "string",
+        "alignment": "string",
+        "legibility": "string"
+      },
+      "majorIssues": [
+        { "issue": "string", "severity": "high" | "medium", "fix": "string (Bade bhai style fix instruction)" }
+      ],
+      "identifiedFields": [
+        { "field": "string", "value": "string", "status": "ok" | "error" | "warning" }
+      ],
+      "looksGood": ["string", "string"]
     }
-    
-    Hinglish Tone Examples: 
-    - "Bhai, signature miss ho gaya hai."
-    - "Dost, income certificate wala section thoda dhundhla hai."
   `;
-
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
@@ -651,7 +652,7 @@ export const analyzeFilledForm = async (imageFile: File, scheme: any): Promise<{
             { text: prompt },
             {
               inlineData: {
-                mimeType: imageFile.type,
+                mimeType: imageFile.type === 'application/pdf' ? 'application/pdf' : imageFile.type,
                 data: base64Data
               }
             }
@@ -663,14 +664,15 @@ export const analyzeFilledForm = async (imageFile: File, scheme: any): Promise<{
       }
     });
 
-    const result = JSON.parse(response.text);
+    const result = JSON.parse(response.text || '{}');
     return result;
   } catch (error) {
     console.error("Form audit error:", error);
     return {
-      isValid: false,
-      errors: [{ field: "System", message: "Bhai, image process karne mein thodi dikkat ho rahi hai. Kripya phirse try karein.", severity: "error" }],
-      feedback: "Dost, abhi system busy hai. Ek baar check kar lo ki image saaf hai ya nahi."
+      riskScore: 100,
+      verdict: "Error Processing Form",
+      photoAudit: { isAccepted: false, backgroundStatus: "Unknown", clarity: "Unknown" },
+      majorIssues: [{ issue: "System Error", severity: "high", fix: "Bhai, image process karne mein thodi dikkat ho rahi hai. Kripya phirse try karein." }]
     };
   }
 };
@@ -712,7 +714,7 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [{ text: prompt }]
@@ -1007,7 +1009,7 @@ export const getDailyNews = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -1069,7 +1071,7 @@ export const getDailyQuiz = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -1243,7 +1245,7 @@ export const analyzeHandwrittenDocument = async (imageBase64: string, mimeType: 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -1301,7 +1303,7 @@ export const extractProfileData = async (imageBase64: string, mimeType: string) 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -1351,7 +1353,7 @@ export const matchEligibility = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -1392,7 +1394,7 @@ export const getCounselingRoadmap = async (examName: string, rank: string, userP
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
@@ -1427,7 +1429,7 @@ export const analyzeScreenForGuidance = async (imageBase64: string, mimeType: st
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -1486,7 +1488,7 @@ export const getComparisonRecommendation = async (schemes: any[], userProfile: a
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
     return response.text || "";
@@ -1597,7 +1599,7 @@ export const getProfileRecommendations = async (userProfile: any) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
@@ -1713,7 +1715,7 @@ export const getAIResponse = async (userMessage: string, chatHistory: any[] = []
     }
 
     const response = await ai.models.generateContent({ 
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [
         ...chatHistory.map(h => ({ role: h.role, parts: h.parts })),
         { role: 'user', parts }
@@ -1859,7 +1861,7 @@ export const analyzeDocumentQuality = async (imageBase64: string, mimeType: stri
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -1925,7 +1927,7 @@ export const enhanceDocument = async (imageBase64: string, mimeType: string) => 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.5-flash",
       contents: [{
         role: "user",
         parts: [

@@ -48,12 +48,7 @@ async function callGeminiWithRetry(params: {
   let delay = 1000;
   
   // Set up a broad list of stable and highly available models
-  const fallbackModels = [
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-3.1-flash-lite"
-  ];
+  const fallbackModels = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemma-4-26b-a4b-it"];
   
   // Clean up any expired model cooldowns
   const now = Date.now();
@@ -203,7 +198,8 @@ async function saveFirestoreMessage(
   content: string,
   idToken: string,
   thought: string | null = null,
-  image: string | null = null
+  image: string | null = null,
+  isError: boolean = false
 ) {
   const projectId = "gen-lang-client-0416312455";
   const databaseId = "ai-studio-6d408628-d32c-4de8-8b94-e0d99094b94f";
@@ -213,6 +209,7 @@ async function saveFirestoreMessage(
   const conversationUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/users/${userId}/conversations/${convId}?updateMask.fieldPaths=lastMessage&updateMask.fieldPaths=updatedAt&key=${apiKey}`;
 
   const messageFields: any = {
+    isError: { booleanValue: isError },
     role: { stringValue: role },
     content: { stringValue: content },
     timestamp: { integerValue: String(Date.now()) },
@@ -399,7 +396,7 @@ async function startServer() {
       });
 
       const response = await callGeminiWithRetry({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash",
         contents: formattedHistory,
         config: {
           systemInstruction: `
@@ -419,7 +416,7 @@ async function startServer() {
       const reply = response.text || "Kya thik se sun nahi paya mere bhai, kripya ek baar aur bolenge?";
       res.json({ reply });
     } catch (e: any) {
-      console.error("[bade-bhai-advice] Error:", e);
+      console.error("[bade-bhai-advice] Error:", e); import("fs").then(fs => fs.writeFileSync("error.log", String(e.stack || e)));
       res.status(500).json({ reply: "Sanjeet bhai, lagta hai internet server thoda dheema hai. Lekin chinta mat karo, tumhara bada bhai hamesha tumhare sath hai! " });
     }
   });
@@ -567,8 +564,8 @@ async function startServer() {
       } catch (err: any) {
         console.error("[Background Chat] Processing error:", err.message);
         try {
-          const errorMsg = "Bhai, server thoda busy lag raha hai ya connection me pareshani hai. Kripya dubaara try karein, main aapke saath hoon!\n\nआपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।";
-          await saveFirestoreMessage(userId, convId, "assistant", errorMsg, idToken, `Error: ${err.message}`);
+          const errorMsg = "Bhai, server thoda busy lag raha, thodi der mein try karo. Connection me thodi pareshani hai, par main aapke saath hoon!";
+          await saveFirestoreMessage(userId, convId, "assistant", errorMsg, idToken, `Error: ${err.message}`, null, true);
         } catch (innerErr) {
           console.error("[Background Chat] Critical: failed to write fallback error:", innerErr);
         }

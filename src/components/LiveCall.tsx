@@ -39,7 +39,7 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
 
       // 2. Setup Session
       const sessionPromise = ai.live.connect({
-        model: "gemini-3.1-flash-live-preview",
+        model: "gemini-3.5-flash",
         callbacks: {
           onopen: () => {
             setIsConnected(true);

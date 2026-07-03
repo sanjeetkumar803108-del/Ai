@@ -1,0 +1,700 @@
+ 23501	                    statusBg = "bg-emerald-50 border-emerald-100 text-emerald-700";
+ 23502	                    barColor = "bg-emerald-500";
+ 23503	                  } else if (progressPct >= 50) {
+ 23504	                    statusLabel = `${metCount} of ${totalCount} documents upload ho chuke hain`;
+ 23505	                    statusBg = "bg-amber-50 border-amber-100/60 text-amber-700";
+ 23506	                    barColor = "bg-amber-500";
+ 23507	                  } else if (progressPct > 0) {
+ 23508	                    statusLabel = `${metCount} of ${totalCount} documents upload ho chuke hain`;
+ 23509	                    statusBg = "bg-amber-50 border-amber-100/60 text-amber-700";
+ 23510	                    barColor = "bg-amber-400";
+ 23511	                  } else {
+ 23512	                    statusLabel = `Documents upload baaki hain (0/${totalCount})`;
+ 23513	                    
+ 23514	                    const daysLeft = scheme.deadline ? Math.ceil((scheme.deadline - Date.now()) / (24 * 60 * 60 * 1000)) : 999;
+ 23515	                    if (daysLeft <= 3 && daysLeft > 0) {
+ 23516	                      statusBg = "bg-rose-50 border-rose-100/60 text-rose-600";
+ 23517	                      barColor = "bg-rose-500";
+ 23518	                    } else {
+ 23519	                      statusBg = "bg-slate-50 border-slate-200 text-slate-500";
+ 23520	                      barColor = "bg-slate-300";
+ 23521	                    }
+ 23522	                  }
+ 23523	                  
+ 23524	                  return (
+ 23525	                    <div className="bg-slate-50/50 rounded-2xl p-4 border border-gray-100 flex flex-col gap-3">
+ 23526	                      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+ 23527	                        <span className="text-gray-400 flex items-center gap-1.5 font-bold">
+ 23528	                          <FileText className="w-3.5 h-3.5 text-[#008069]" />
+ 23529	                          Document Readiness
+ 23530	                        </span>
+ 23531	                        <span className={cn("px-2 py-0.5 rounded-full text-[9px] border font-black", statusBg)}>
+ 23532	                          {progressPct}% Ready
+ 23533	                        </span>
+ 23534	                      </div>
+ 23535	                      
+ 23536	                      {/* Interactive/Visual Progress Bar */}
+ 23537	                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+ 23538	                        <div 
+ 23539	                          className={cn("h-full transition-all duration-500 rounded-full", barColor)}
+ 23540	                          style={{ width: `${progressPct}%` }}
+ 23541	                        />
+ 23542	                      </div>
+ 23543	                      
+ 23544	                      {/* Help Text / Hinglish Guidance */}
+ 23545	                      <p className="text-[10px] text-gray-500 font-extrabold leading-tight">
+ 23546	                        {statusLabel}
+ 23547	                      </p>
+ 23548	                      
+ 23549	                      {/* Quick Document Status Indicators (Inline list) */}
+ 23550	                      <div className="flex flex-wrap gap-1.5 mt-0.5">
+ 23551	                        {requiredDocs.map((doc, idx) => {
+ 23552	                          const met = isDocumentMet(doc, userDocs);
+ 23553	                          return (
+ 23554	                            <span 
+ 23555	                              key={idx} 
+ 23556	                              className={cn(
+ 23557	                                "text-[9px] font-black px-2 py-1 rounded-lg border flex items-center gap-1 transition-all",
+ 23558	                                met 
+ 23559	                                  ? "bg-green-50 border-green-200/80 text-green-700" 
+ 23560	                                  : "bg-gray-100/70 border-gray-200 text-gray-400"
+ 23561	                              )}
+ 23562	                            >
+ 23563	                              {met ? "✔" : "✕"} {doc}
+ 23564	                            </span>
+ 23565	                          );
+ 23566	                        })}
+ 23567	                      </div>
+ 23568	                    </div>
+ 23569	                  );
+ 23570	                })()}
+ 23571	
+ 23572	                {/* Application Tracking */}
+ 23573	                <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
+ 23574	                  <div className="flex justify-between items-center">
+ 23575	                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+ 23576	                      <LayoutDashboard className="w-3 h-3 text-[#008069]" />
+ 23577	                      Track Status
+ 23578	                    </p>
+ 23579	                    {(() => {
+ 23580	                      const trackingApp = applications.find(
+ 23581	                        (a) =>
+ 23582	                          a.schemeName === scheme.hindiName ||
+ 23583	                          a.schemeName === scheme.name,
+ 23584	                      );
+ 23585	                      if (!trackingApp) return null;
+ 23586	                      return (
+ 23587	                        <span
+ 23588	                          className={cn(
+ 23589	                            "text-[9px] font-black px-2 py-0.5 rounded-full border border-gray-100 uppercase tracking-widest",
+ 23590	                            statusColors[
+ 23591	                              trackingApp.status as keyof typeof statusColors
+ 23592	                            ],
+ 23593	                          )}
+ 23594	                        >
+ 23595	                          {trackingApp.status}
+ 23596	                        </span>
+ 23597	                      );
+ 23598	                    })()}
+ 23599	                  </div>
+ 23600	                  <select
+ 23601	                    value={
+ 23602	                      applications.find(
+ 23603	                        (a) =>
+ 23604	                          a.schemeName === scheme.hindiName ||
+ 23605	                          a.schemeName === scheme.name,
+ 23606	                      )?.status || ""
+ 23607	                    }
+ 23608	                    onChange={(e) =>
+ 23609	                      updateTrackingStatus(scheme, e.target.value)
+ 23610	                    }
+ 23611	                    onClick={(e) => e.stopPropagation()}
+ 23612	                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-[#008069]/10 cursor-pointer"
+ 23613	                  >
+ 23614	                    <option value="" disabled>
+ 23615	                      Status set karein...
+ 23616	                    </option>
+ 23617	                    <option value="Submitted">Applied (Aavedan Kiya)</option>
+ 23618	                    <option value="Under Review">Under Review (Jaanch)</option>
+ 23619	                    <option value="Approved">Approved (Manzoor)</option>
+ 23620	                    <option value="Rejected">Rejected (Radd)</option>
+ 23621	                  </select>
+ 23622	                </div>
+ 23623	
+ 23624	                <div className="grid grid-cols-3 gap-2 mt-2">
+ 23625	                  <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex flex-col justify-center">
+ 23626	                    <p className="text-[8px] uppercase font-black text-orange-600 mb-0.5 tracking-tighter">
+ 23627	                      Eligibility
+ 23628	                    </p>
+ 23629	                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+ 23630	                      {scheme.eligibility?.[0] || "Check now"}
+ 23631	                    </p>
+ 23632	                  </div>
+ 23633	                  <div className="p-2 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
+ 23634	                    <p className="text-[8px] uppercase font-black text-green-600 mb-0.5 tracking-tighter">
+ 23635	                      Benefit
+ 23636	                    </p>
+ 23637	                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+ 23638	                      {scheme.benefits?.[0] || "AI can tell details"}
+ 23639	                    </p>
+ 23640	                  </div>
+ 23641	                  <div className="p-2 bg-blue-50 rounded-xl border border-blue-100 flex flex-col justify-center">
+ 23642	                    <p className="text-[8px] uppercase font-black text-blue-600 mb-0.5 tracking-tighter">
+ 23643	                      Documents
+ 23644	                    </p>
+ 23645	                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+ 23646	                      {scheme.documents?.[0] || "Aadhar/PAN"}
+ 23647	                    </p>
+ 23648	                  </div>
+ 23649	                </div>
+ 23650	
+ 23651	                {scheme.officialUrl && (
+ 23652	                  <a
+ 23653	                    href={scheme.officialUrl}
+ 23654	                    target="_blank"
+ 23655	                    rel="noreferrer"
+ 23656	                    onClick={(e) => e.stopPropagation()}
+ 23657	                    className="w-full py-4 bg-[#008069] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-green-100 active:scale-[0.98] transition-all hover:bg-[#00a687] flex items-center justify-center gap-2 border border-[#008069]"
+ 23658	                  >
+ 23659	                    <ExternalLink className="w-4 h-4" />
+ 23660	                    Apply Now (Sarkari Link)
+ 23661	                  </a>
+ 23662	                )}
+ 23663	
+ 23664	                <AnimatePresence>
+ 23665	                  {isExpanded && (
+ 23666	                    <motion.div
+ 23667	                      initial={{ height: 0, opacity: 0 }}
+ 23668	                      animate={{ height: "auto", opacity: 1 }}
+ 23669	                      exit={{ height: 0, opacity: 0 }}
+ 23670	                      className="overflow-hidden flex flex-col gap-6 pt-4 border-t border-gray-50"
+ 23671	                    >
+ 23672	                      {/* Profile Eligibility matching report */}
+ 23673	                      <div className="bg-emerald-500/[0.04] p-5 rounded-2xl border border-emerald-500/10 flex flex-col gap-3">
+ 23674	                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-500/10 pb-3">
+ 23675	                          <div className="flex items-center gap-2">
+ 23676	                            <span className="text-lg"></span>
+ 23677	                            <div>
+ 23678	                              <h4 className="text-xs font-black text-emerald-900 uppercase tracking-widest leading-none">
+ 23679	                                Your Eligibility Report (पात्रता रिपोर्ट)
+ 23680	                              </h4>
+ 23681	                              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight mt-1">
+ 23682	                                Personalized evaluation based on your profile
+ 23683	                              </p>
+ 23684	                            </div>
+ 23685	                          </div>
+ 23686	                          <span className="bg-[#008069] text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm">
+ 23687	                            {matchRes.score}% Eligibility Rate
+ 23688	                          </span>
+ 23689	                        </div>
+ 23690	
+ 23691	                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+ 23692	                          {matchRes.reasons.map((r, i) => (
+ 23693	                            <div key={i} className="bg-white p-3.5 rounded-2xl border border-emerald-500/5 shadow-3xs flex items-start gap-2.5">
+ 23694	                              <span className="text-base text-emerald-500 shrink-0">✅</span>
+ 23695	                              <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
+ 23696	                                {r}
+ 23697	                              </p>
+ 23698	                            </div>
+ 23699	                          ))}
+ 23700	                        </div>
+ 23701	                      </div>
+ 23702	
+ 23703	                      {/* � Yojana Bulletin Summary Points */}
+ 23704	                      <div className="bg-amber-500/[0.03] p-5 rounded-2xl border border-amber-500/10 flex flex-col gap-3">
+ 23705	                        <div className="flex items-center gap-2 border-b border-amber-500/10 pb-3">
+ 23706	                          <span className="text-lg">�</span>
+ 23707	                          <div>
+ 23708	                            <h4 className="text-xs font-black text-amber-900 uppercase tracking-widest leading-none">
+ 23709	                              Yojana Bulletin (योजना विशेष फटाफट जानकारी)
+ 23710	                            </h4>
+ 23711	                            <p className="text-[10px] text-amber-600 font-bold uppercase tracking-tight mt-1">
+ 23712	                              Aasan bullet points me samjhein is scheme ko
+ 23713	                            </p>
+ 23714	                          </div>
+ 23715	                        </div>
+ 23716	
+ 23717	                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-1">
+ 23718	                          <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
+ 23719	                            <span className="text-[10px] font-black text-[#008069] uppercase tracking-wider flex items-center gap-1.5">
+ 23720	                              � योजना का उद्देश्य / Purpose
+ 23721	                            </span>
+ 23722	                            <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
+ 23723	                              {scheme.hindiName} ka uddeshya {scheme.category === "Agriculture" ? "kisano ko aarthika roop se majboot aur unhe samriddha banana hai." : scheme.category === "Education" ? "chatron ki higher education ko bina kisi rukaawat ke aasan banana hai." : scheme.category === "Finance" ? "aam logo ko vyapaar ya aarthik chhoot ke madhyam se subsidised loan ya subsidy pradan karna hai." : "parivaron ko saste anaaj, swasthya suvidha ya buniyaadi sahayata dena hai."}
+ 23724	                            </p>
+ 23725	                          </div>
+ 23726	
+ 23727	                          <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
+ 23728	                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
+ 23729	                              � मुख्य फायदे / Benefits
+ 23730	                            </span>
+ 23731	                            <div className="flex flex-col gap-1">
+ 23732	                              {scheme.benefits && scheme.benefits.length > 0 ? (
+ 23733	                                scheme.benefits.map((b, i) => (
+ 23734	                                  <p key={i} className="text-[11px] font-bold text-slate-700 leading-tight">
+ 23735	                                    • {b}
+ 23736	                                  </p>
+ 23737	                                ))
+ 23738	                              ) : (
+ 23739	                                <p className="text-[11px] font-bold text-slate-700">Sidhe bank khate (DBT) me aarthik madad pradan ki jayegi.</p>
+ 23740	                              )}
+ 23741	                            </div>
+ 23742	                          </div>
+ 23743	
+ 23744	                          <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
+ 23745	                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
+ 23746	                              � पात्रता नियम / Eligibility
+ 23747	                            </span>
+ 23748	                            <div className="flex flex-col gap-1">
+ 23749	                              {scheme.eligibility && scheme.eligibility.length > 0 ? (
+ 23750	                                scheme.eligibility.map((e, i) => (
+ 23751	                                  <p key={i} className="text-[11px] font-bold text-slate-700 leading-tight">
+ 23752	                                    • {e}
+ 23753	                                  </p>
+ 23754	                                ))
+ 23755	                              ) : (
+ 23756	                                <p className="text-[11px] font-bold text-slate-700">Upyukt profile ke anusaar sabhi eligible nagrik aavedan kar sakte hain.</p>
+ 23757	                              )}
+ 23758	                            </div>
+ 23759	                          </div>
+ 23760	
+ 23761	                          <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
+ 23762	                            <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider flex items-center gap-1.5">
+ 23763	                              ज़रुरी कागजात / Documents
+ 23764	                            </span>
+ 23765	                            <div className="flex flex-wrap gap-1.5 mt-0.5">
+ 23766	                              {scheme.documents && scheme.documents.length > 0 ? (
+ 23767	                                scheme.documents.map((d, i) => (
+ 23768	                                  <span key={i} className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-[10px] font-bold">
+ 23769	                                    � {d}
+ 23770	                                  </span>
+ 23771	                                ))
+ 23772	                              ) : (
+ 23773	                                <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-[10px] font-bold">� Aadhar Card / Bank Detail</span>
+ 23774	                              )}
+ 23775	                            </div>
+ 23776	                          </div>
+ 23777	                        </div>
+ 23778	                      </div>
+ 23779	
+ 23780	                      {/* Full Description & Follow-up - Placed below summary description as requested */}
+ 23781	                      <div className="flex flex-col gap-4">
+ 23782	                        <div className="space-y-2">
+ 23783	                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">
+ 23784	                            Scheme Details
+ 23785	                          </p>
+ 23786	                          <p className="text-sm text-gray-700 leading-relaxed font-bold bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+ 23787	                            {scheme.hindiDescription || scheme.description}
+ 23788	                          </p>
+ 23789	                        </div>
+ 23790	
+ 23791	                        <SchemeFollowUp
+ 23792	                          scheme={scheme}
+ 23793	                          onAskMitra={onAskMitra}
+ 23794	                        />
+ 23795	                      </div>
+ 23796	
+ 23797	                      <SchemeSmartTip
+ 23798	                        scheme={scheme}
+ 23799	                        userProfile={userProfile}
+ 23800	                      />
+ 23801	
+ 23802	                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+ 23803	                        {scheme.eligibility &&
+ 23804	                          scheme.eligibility.length > 0 && (
+ 23805	                            <div className="p-5 bg-orange-50/50 rounded-2xl border border-orange-100/40 relative overflow-hidden">
+ 23806	                              <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+ 23807	                              <div className="flex items-center gap-3 mb-4">
+ 23808	                                <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
+ 23809	                                  <SearchCheck className="w-4 h-4" />
+ 23810	                                </div>
+ 23811	                                <h4 className="text-[11px] font-black text-orange-900 uppercase tracking-widest">
+ 23812	                                  Eligibility
+ 23813	                                </h4>
+ 23814	                              </div>
+ 23815	                              <ul className="space-y-3">
+ 23816	                                {scheme.eligibility.map(
+ 23817	                                  (e: string, i: number) => (
+ 23818	                                    <li
+ 23819	                                      key={i}
+ 23820	                                      className="text-xs text-orange-950/80 font-bold flex gap-3 items-start leading-snug"
+ 23821	                                    >
+ 23822	                                      <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+ 23823	                                      <span>{e}</span>
+ 23824	                                    </li>
+ 23825	                                  ),
+ 23826	                                )}
+ 23827	                              </ul>
+ 23828	                            </div>
+ 23829	                          )}
+ 23830	
+ 23831	                        {scheme.benefits && scheme.benefits.length > 0 && (
+ 23832	                          <div className="p-5 bg-green-50/50 rounded-2xl border border-green-100/40 relative overflow-hidden">
+ 23833	                            <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+ 23834	                            <div className="flex items-center gap-3 mb-4">
+ 23835	                              <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center text-green-600 shadow-sm">
+ 23836	                                <Award className="w-4 h-4" />
+ 23837	                              </div>
+ 23838	                              <h4 className="text-[11px] font-black text-green-900 uppercase tracking-widest">
+ 23839	                                Benefits
+ 23840	                              </h4>
+ 23841	                            </div>
+ 23842	                            <ul className="space-y-3">
+ 23843	                              {scheme.benefits.map((b: string, i: number) => (
+ 23844	                                <li
+ 23845	                                  key={i}
+ 23846	                                  className="text-xs text-green-950/80 font-bold flex gap-3 items-start leading-snug"
+ 23847	                                >
+ 23848	                                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
+ 23849	                                  <span>{b}</span>
+ 23850	                                </li>
+ 23851	                              ))}
+ 23852	                            </ul>
+ 23853	                          </div>
+ 23854	                        )}
+ 23855	
+ 23856	                        {scheme.documents && scheme.documents.length > 0 && (
+ 23857	                          <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/40 relative overflow-hidden">
+ 23858	                            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
+ 23859	                            <div className="flex items-center gap-3 mb-4">
+ 23860	                              <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+ 23861	                                <FileText className="w-4 h-4" />
+ 23862	                              </div>
+ 23863	                              <h4 className="text-[11px] font-black text-blue-900 uppercase tracking-widest">
+ 23864	                                Documents
+ 23865	                              </h4>
+ 23866	                            </div>
+ 23867	                            <div className="flex flex-col gap-2">
+ 23868	                              {scheme.documents.map((d: string, i: number) => (
+ 23869	                                <div
+ 23870	                                  key={i}
+ 23871	                                  className="flex items-center justify-between bg-white/60 p-2.5 rounded-xl border border-blue-100/50 group/doc"
+ 23872	                                >
+ 23873	                                  <span className="text-xs font-bold text-blue-950/80">
+ 23874	                                    {d}
+ 23875	                                  </span>
+ 23876	                                  <button
+ 23877	                                    onClick={(e) => {
+ 23878	                                      e.stopPropagation();
+ 23879	                                      setActiveUploadDoc(d);
+ 23880	                                      fileInputRef.current?.click();
+ 23881	                                    }}
+ 23882	                                    className="w-8 h-8 rounded-lg bg-white border border-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+ 23883	                                  >
+ 23884	                                    <Upload className="w-3.5 h-3.5" />
+ 23885	                                  </button>
+ 23886	                                </div>
+ 23887	                              ))}
+ 23888	                            </div>
+ 23889	                          </div>
+ 23890	                        )}
+ 23891	                      </div>
+ 23892	
+ 23893	                      <div className="bg-gradient-to-br from-gray-900 to-slate-800 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
+ 23894	                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/10 transition-all duration-700" />
+ 23895	                        <div className="relative z-10">
+ 23896	                          <header className="mb-4">
+ 23897	                            <div className="flex items-center gap-2 mb-1">
+ 23898	                              <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
+ 23899	                              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+ 23900	                                Mitra AI Hub
+ 23901	                              </h4>
+ 23902	                            </div>
+ 23903	                            <p className="text-xs text-gray-300 font-medium">
+ 23904	                              Verify official details & ask questions about this
+ 23905	                              scheme in Hinglish.
+ 23906	                            </p>
+ 23907	                          </header>
+ 23908	
+ 23909	                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ 23910	                            {scheme.officialUrl && (
+ 23911	                              <a
+ 23912	                                href={scheme.officialUrl}
+ 23913	                                target="_blank"
+ 23914	                                rel="noreferrer"
+ 23915	                                onClick={(e) => e.stopPropagation()}
+ 23916	                                className="py-4 bg-[#008069] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#008069]/20 active:scale-95 hover:bg-[#00a687] transition-all flex items-center justify-center gap-2 border border-[#008069]"
+ 23917	                              >
+ 23918	                                <ExternalLink className="w-4 h-4" />
+ 23919	                                Apply Now (Official)
+ 23920	                              </a>
+ 23921	                            )}
+ 23922	                            <button
+ 23923	                              onClick={(e) => {
+ 23924	                                e.stopPropagation();
+ 23925	                                onAskMitra(
+ 23926	                                  `Tell me more about ${scheme.hindiName || scheme.name}. Mujhe is scheme ke baare mein visthar se jaankari chahiye (Eligibility, Documents, Application process).`,
+ 23927	                                );
+ 23928	                              }}
+ 23929	                              className="py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-gray-900/20 active:scale-95 hover:bg-black transition-all flex items-center justify-center gap-2"
+ 23930	                            >
+ 23931	                              <MessageCircle className="w-4 h-4" />
+ 23932	                              Ask Mitra AI
+ 23933	                            </button>
+ 23934	                            <button
+ 23935	                              onClick={handleShare}
+ 23936	                              className="py-4 bg-white text-gray-900 border border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 hover:border-[#008069] transition-all flex items-center justify-center gap-2 group/share"
+ 23937	                            >
+ 23938	                              <Share2 className="w-4 h-4 text-[#008069] group-hover/share:scale-110 transition-transform" />
+ 23939	                              {didCopyShare ? "Copied!" : "Share Info"}
+ 23940	                            </button>
+ 23941	                            <button
+ 23942	                              onClick={(e) => {
+ 23943	                                e.stopPropagation();
+ 23944	                                onAskMitra(
+ 23945	                                  `VERIFY_OFFICIAL: Please search and verify the details of ${scheme.hindiName || scheme.name} from its official government website right now. Match it with the latest 2026 data and correct any mistakes.`,
+ 23946	                                );
+ 23947	                              }}
+ 23948	                              className="py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+ 23949	                            >
+ 23950	                              <Globe className="w-4 h-4 text-orange-400" />
+ 23951	                              Verify Details
+ 23952	                            </button>
+ 23953	
+ 23954	                            <button
+ 23955	                              onClick={(e) => {
+ 23956	                                e.stopPropagation();
+ 23957	                                const schemeForm = {
+ 23958	                                  formName: scheme.hindiName || scheme.name,
+ 23959	                                  summary: `${scheme.hindiName || scheme.name} ke liye practice form simulator.`,
+ 23960	                                  fields: (
+ 23961	                                    scheme.documents || [
+ 23962	                                      "Aadhar Card",
+ 23963	                                      "Mobile Number",
+ 23964	                                      "Bank Details",
+ 23965	                                    ]
+ 23966	                                  ).map((doc: string) => ({
+ 23967	                                    field: doc,
+ 23968	                                    explanation: `${doc} ki details yahan bharein.`,
+ 23969	                                    whyItMatters: doc
+ 23970	                                      .toLowerCase()
+ 23971	                                      .includes("aadhar")
+ 23972	                                      ? "Identity verify karne ke liye zaroori hai."
+ 23973	                                      : doc.toLowerCase().includes("mobile")
+ 23974	                                        ? "OTP aur updates ke liye sahi number chahiye."
+ 23975	                                        : doc.toLowerCase().includes("bank")
+ 23976	                                          ? "Subsidy ka paisa seedha aapke account mein aayega."
+ 23977	                                          : "Form verification ke liye zaroori hai.",
+ 23978	                                    isCritical: true,
+ 23979	                                    exampleValue: doc
+ 23980	                                      .toLowerCase()
+ 23981	                                      .includes("aadhar")
+ 23982	                                      ? "1234 5678 9012"
+ 23983	                                      : doc.toLowerCase().includes("mobile")
+ 23984	                                        ? "9876543210"
+ 23985	                                        : doc.toLowerCase().includes("bank")
+ 23986	                                          ? "98765432101 (IFSC: SBIN0001234)"
+ 23987	                                          : "Sample Value",
+ 23988	                                  })),
+ 23989	                                };
+ 23990	                                onStartSimulator(schemeForm);
+ 23991	                              }}
+ 23992	                              className="py-4 bg-orange-50 text-orange-600 border border-orange-100 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 hover:bg-orange-100 transition-all flex items-center justify-center gap-2"
+ 23993	                            >
+ 23994	                              <LayoutDashboard className="w-4 h-4" />
+ 23995	                              Practice Simulator
+ 23996	                            </button>
+ 23997	                          </div>
+ 23998	                        </div>
+ 23999	                      </div>
+ 24000	
+ 24001	                      <div className="flex justify-center pb-4">
+ 24002	                        <button
+ 24003	                          onClick={(e) => {
+ 24004	                            e.stopPropagation();
+ 24005	                            onShowFeedback(
+ 24006	                              "scheme",
+ 24007	                              scheme.id,
+ 24008	                              scheme.hindiName,
+ 24009	                            );
+ 24010	                          }}
+ 24011	                          className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] hover:text-[#008069] transition-colors"
+ 24012	                        >
+ 24013	                          <MessageSquare className="w-3.5 h-3.5" />
+ 24014	                          Scheme Feedback Dein
+ 24015	                        </button>
+ 24016	                      </div>
+ 24017	
+ 24018	                      <div className="pt-4 border-t border-gray-50 flex flex-col gap-3">
+ 24019	                        <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+ 24020	                          <div className="flex-1 mr-4">
+ 24021	                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+ 24022	                              Application Draft Mitra
+ 24023	                            </h4>
+ 24024	                            <p className="text-[11px] text-gray-500 font-medium">
+ 24025	                              Draft a personalized letter in seconds.
+ 24026	                            </p>
+ 24027	                          </div>
+ 24028	                          <button
+ 24029	                            onClick={(e) => {
+ 24030	                              e.stopPropagation();
+ 24031	                              handleGenerateLetter(scheme);
+ 24032	                            }}
+ 24033	                            disabled={
+ 24034	                              isGeneratingLetter &&
+ 24035	                              activeLetterSchemeId === scheme.id
+ 24036	                            }
+ 24037	                            className={cn(
+ 24038	                              "px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shrink-0 border",
+ 24039	                              isGeneratingLetter &&
+ 24040	                                activeLetterSchemeId === scheme.id
+ 24041	                                ? "bg-gray-100 text-gray-400 border-gray-200"
+ 24042	                                : "bg-white text-gray-900 border-gray-200 shadow-sm hover:border-[#008069] active:scale-95",
+ 24043	                            )}
+ 24044	                          >
+ 24045	                            {isGeneratingLetter &&
+ 24046	                            activeLetterSchemeId === scheme.id ? (
+ 24047	                              <>
+ 24048	                                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+ 24049	                                <span>Writing...</span>
+ 24050	                              </>
+ 24051	                            ) : (
+ 24052	                              <>
+ 24053	                                <FileText className="w-3 h-3 text-[#008069]" />
+ 24054	                                <span>Draft Letter</span>
+ 24055	                              </>
+ 24056	                            )}
+ 24057	                          </button>
+ 24058	                        </div>
+ 24059	
+ 24060	                        {letterContent &&
+ 24061	                          activeLetterSchemeId === scheme.id && (
+ 24062	                            <motion.div
+ 24063	                              initial={{ opacity: 0, y: 10 }}
+ 24064	                              animate={{ opacity: 1, y: 0 }}
+ 24065	                              className="bg-gray-50 rounded-2.5rem p-6 border border-gray-100 flex flex-col gap-4 shadow-inner"
+ 24066	                            >
+ 24067	                              <div className="flex justify-between items-center">
+ 24068	                                <span className="text-[9px] font-black text-[#008069] uppercase tracking-widest">
+ 24069	                                  Generated Letter
+ 24070	                                </span>
+ 24071	                                <button
+ 24072	                                  onClick={(e) => {
+ 24073	                                    e.stopPropagation();
+ 24074	                                    copyToClipboard(letterContent!);
+ 24075	                                  }}
+ 24076	                                  className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl border border-gray-100 text-[#008069] text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-green-50 transition-colors"
+ 24077	                                >
+ 24078	                                  {didCopyLetter ? (
+ 24079	                                    <>
+ 24080	                                      <Check className="w-3 h-3" /> Copied!
+ 24081	                                    </>
+ 24082	                                  ) : (
+ 24083	                                    <>
+ 24084	                                      <Copy className="w-3 h-3" /> Copy Text
+ 24085	                                    </>
+ 24086	                                  )}
+ 24087	                                </button>
+ 24088	                              </div>
+ 24089	                              <div className="bg-white p-5 rounded-2xl border border-gray-100 text-[11px] text-gray-800 font-serif leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto shadow-sm">
+ 24090	                                {letterContent}
+ 24091	                              </div>
+ 24092	                              <p className="text-[9px] text-gray-400 italic text-center px-4 leading-tight">
+ 24093	                                Ye ek draft hai. Kripya details check karein aur
+ 24094	                                placeholders ([ ]) ko apni sahi jankari se
+ 24095	                                bharein.
+ 24096	                              </p>
+ 24097	                            </motion.div>
+ 24098	                          )}
+ 24099	                      </div>
+ 24100	                    </motion.div>
+ 24101	                  )}
+ 24102	                </AnimatePresence>
+ 24103	
+ 24104	                <div className="flex justify-center pt-2">
+ 24105	                  {isExpanded ? (
+ 24106	                    <ChevronUp className="w-5 h-5 text-gray-300" />
+ 24107	                  ) : (
+ 24108	                    <ChevronDown className="w-5 h-5 text-gray-300" />
+ 24109	                  )}
+ 24110	                </div>
+ 24111	              </div>
+ 24112	              <div className="flex border-t border-gray-50 overflow-hidden">
+ 24113	                <button
+ 24114	                  onClick={(e) => {
+ 24115	                    e.stopPropagation();
+ 24116	                    onAskMitra(scheme.name);
+ 24117	                  }}
+ 24118	                  className={cn(
+ 24119	                    "flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2",
+ 24120	                    scheme.officialUrl
+ 24121	                      ? "bg-white text-[#008069] hover:bg-green-50"
+ 24122	                      : "bg-[#008069] text-white hover:bg-[#005c4b]",
+ 24123	                  )}
+ 24124	                >
+ 24125	                  <MessageCircle className="w-3.5 h-3.5" />
+ 24126	                  Details
+ 24127	                </button>
+ 24128	                {scheme.officialUrl ? (
+ 24129	                  <a
+ 24130	                    href={scheme.officialUrl}
+ 24131	                    target="_blank"
+ 24132	                    rel="noreferrer"
+ 24133	                    onClick={(e) => e.stopPropagation()}
+ 24134	                    className="flex-1 py-4 bg-[#008069] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#005c4b] transition-colors flex items-center justify-center gap-2 border-l border-white/10"
+ 24135	                  >
+ 24136	                    Apply Now
+ 24137	                    <ExternalLink className="w-3.5 h-3.5" />
+ 24138	                  </a>
+ 24139	                ) : (
+ 24140	                  <button
+ 24141	                    onClick={(e) => {
+ 24142	                      e.stopPropagation();
+ 24143	                      // Create a basic form structure based on the scheme
+ 24144	                      const schemeForm = {
+ 24145	                        formName: scheme.hindiName || scheme.name,
+ 24146	                        summary: `${scheme.hindiName || scheme.name} ke liye practice form simulator.`,
+ 24147	                        fields: (
+ 24148	                          scheme.documents || [
+ 24149	                            "Aadhar Card",
+ 24150	                            "Mobile Number",
+ 24151	                            "Bank Details",
+ 24152	                          ]
+ 24153	                        ).map((doc: string) => ({
+ 24154	                          field: doc,
+ 24155	                          explanation: `${doc} ki details yahan bharein.`,
+ 24156	                          whyItMatters: doc.toLowerCase().includes("aadhar")
+ 24157	                            ? "Sarkari records se data match karne ke liye base ID hai."
+ 24158	                            : doc.toLowerCase().includes("mobile")
+ 24159	                              ? "Form status ki jaankari SMS par milne ke liye."
+ 24160	                              : doc.toLowerCase().includes("bank")
+ 24161	                                ? "Benefit ka paisa DBT ke zariye seedhe khate mein pahuchega."
+ 24162	                                : "Aapki eligibility confirm karne ke liye.",
+ 24163	                          isCritical: true,
+ 24164	                          exampleValue: doc.toLowerCase().includes("aadhar")
+ 24165	                            ? "1234 5678 9012"
+ 24166	                            : doc.toLowerCase().includes("mobile")
+ 24167	                              ? "9876543210"
+ 24168	                              : doc.toLowerCase().includes("bank")
+ 24169	                                ? "98765432101 (IFSC: SBIN0001234)"
+ 24170	                                : "Sample Value",
+ 24171	                        })),
+ 24172	                      };
+ 24173	                      onStartSimulator(schemeForm);
+ 24174	                    }}
+ 24175	                    className="flex-1 py-4 bg-[#008069] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#005c4b] transition-colors flex items-center justify-center gap-2 border-l border-white/10"
+ 24176	                  >
+ 24177	                    Practice
+ 24178	                    <LayoutDashboard className="w-3.5 h-3.5" />
+ 24179	                  </button>
+ 24180	                )}
+ 24181	              </div>
+ 24182	            </div>
+ 24183	          );
+ 24184	        })}
+ 24185	      </div>
+ 24186	
+ 24187	      <PersonalizedRecommendations userProfile={userProfile} />
+ 24188	
+ 24189	      {/* Persistent Bottom Comparison Bar */}
+ 24190	      <AnimatePresence>
+ 24191	        {showSaveInfoId && (
+ 24192	          <motion.div
+ 24193	            initial={{ opacity: 0 }}
+ 24194	            animate={{ opacity: 1 }}
+ 24195	            exit={{ opacity: 0 }}
+ 24196	            onClick={() => setShowSaveInfoId(null)}
+ 24197	            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-6"
+ 24198	          >
+ 24199	            <motion.div
+ 24200	              initial={{ scale: 0.9, y: 20 }}

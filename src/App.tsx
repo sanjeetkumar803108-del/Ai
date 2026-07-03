@@ -22,6 +22,7 @@ import {
   Search,
   Settings,
   Camera,
+  X,
   Paperclip,
   Home as HomeIcon,
   Mic,
@@ -31,11 +32,10 @@ import {
   LogOut,
   Globe,
   AlertCircle,
-  AlertTriangle,
+  AlertTriangle, RotateCcw,
   Info,
   CheckCircle,
   CheckCircle2,
-  X,
   ArrowRight,
   ChevronDown,
   ChevronUp,
@@ -323,7 +323,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
         actionableStep: "Link state domicile on Digilocker app first.",
         impactCode: "Doc Auto-Approved",
         category: "Exams Prep",
-        icon: "💼",
+        icon: "",
       },
       normal: {
         title: "DBT Bihar Agriculture Active Bank Status check",
@@ -332,7 +332,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
         actionableStep: "Check NPCI status on UIDAI portal before linking.",
         impactCode: "Avoid Payment Failure",
         category: "Subsidy Hack",
-        icon: "🌾",
+        icon: "",
       },
     },
     up: {
@@ -353,7 +353,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
           "Login to sewayojan.up.nic.in to apply for Buffer Extension before expiry.",
         impactCode: "Protect Seniority",
         category: "Government Jobs",
-        icon: "💼",
+        icon: "",
       },
       normal: {
         title: "e-Sathi UP App Early Morning Slot",
@@ -362,7 +362,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
         actionableStep: "Use e-Sathi UP app during low-traffic offhours.",
         impactCode: "Zero Payment Lag",
         category: "Certificate Tool",
-        icon: "📱",
+        icon: "",
       },
     },
     default: {
@@ -374,7 +374,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
           "Ask college clerk: 'AISHE profile block and verification portal updated hai?'",
         impactCode: "No Scheme Rejection",
         category: "NSP Process",
-        icon: "🎓",
+        icon: "",
       },
       jobs: {
         title: "NCS-Aadhaar National Job Match",
@@ -384,7 +384,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
           "Link your verified Aadhaar onto the National NCS database.",
         impactCode: "Direct Employer Call",
         category: "Employability Bonus",
-        icon: "💼",
+        icon: "",
       },
       normal: {
         title: "Name Spelling Normalization Blueprint",
@@ -394,7 +394,7 @@ const getProTip = (state?: string, community?: string): ProTip => {
           "Get minor spelling changes done online via Aadhaar Self-Service Portal first.",
         impactCode: "99% Success Rate",
         category: "Rejection Protection",
-        icon: "🛡️",
+        icon: "",
       },
     },
   };
@@ -466,7 +466,7 @@ const ProTipsWidget = ({
   const handleNativeShare = async () => {
     const shareData = {
       title: `Form Mitra Pro-Tip: ${tip.title}`,
-      text: `💡 *Form Mitra Pro-Tip!*\n\n🔥 *${tip.title}*\n👉 ${tip.hindiTitle || ""}\n✍️ ${tip.body}\n\n🎯 *Tips Action:* ${tip.actionableStep}\n\n*Form Mitra AI - Aapka AI Sathi!* 📱`,
+      text: ` *Form Mitra Pro-Tip!*\n\n *${tip.title}*\n ${tip.hindiTitle || ""}\n✍ ${tip.body}\n\n *Tips Action:* ${tip.actionableStep}\n\n*Form Mitra AI - Aapka AI Sathi!* `,
       url: window.location.href,
     };
 
@@ -555,7 +555,7 @@ const ProTipsWidget = ({
             <div className="p-3 bg-white/90 border border-amber-200/50 rounded-2xl flex items-center gap-3 shadow-xs">
               <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
               <p className="text-[10px] text-amber-950 font-extrabold leading-tight">
-                <span className="font-black uppercase mr-1 text-amber-600">🎯 TIPS ACTION:</span>
+                <span className="font-black uppercase mr-1 text-amber-600"> TIPS ACTION:</span>
                 {tip.actionableStep}
               </p>
             </div>
@@ -640,7 +640,7 @@ const ProTipsWidget = ({
           {/* WhatsApp Share Link */}
           <a
             href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-              `💡 *Form Mitra Pro-Tip!*\n\n🔥 *${tip.title}*\n👉 ${tip.body}\n\n🎯 *Tips Action:* ${tip.actionableStep}\n\n*Form Mitra AI - Aapka AI Sathi!* 📱`
+              ` *Form Mitra Pro-Tip!*\n\n *${tip.title}*\n ${tip.body}\n\n *Tips Action:* ${tip.actionableStep}\n\n*Form Mitra AI - Aapka AI Sathi!* `
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -653,7 +653,7 @@ const ProTipsWidget = ({
           {/* Twitter / X Share Link */}
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `💡 Mitra Pro-Tip: "${tip.title}"\n${tip.body}\n\nJoin @FormMitra AI Sathi! 📱`
+              ` Mitra Pro-Tip: "${tip.title}"\n${tip.body}\n\nJoin @FormMitra AI Sathi! `
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -747,7 +747,7 @@ const NewsSlider = ({
             Latest for your Community
           </h3>
           <p className="text-[9px] text-[#008069] font-black uppercase tracking-tight leading-none mt-1 animate-pulse">
-            Aapke profile ke anusar auto-personalized updates ✨
+            Aapke profile ke anusar auto-personalized updates 
           </p>
         </div>
         
@@ -780,9 +780,9 @@ const NewsSlider = ({
       </div>
 
       {filteredNews.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-850 rounded-[2rem] text-center gap-2">
+        <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-850 rounded-2xl text-center gap-2">
           <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
-            Sanjeet bhai, aapke profile criteria ke matching abhi koi updates nahi hain! 🔍
+            Sanjeet bhai, aapke profile criteria ke matching abhi koi updates nahi hain! 
           </p>
         </div>
       ) : (
@@ -798,7 +798,7 @@ const NewsSlider = ({
                 key={i}
                 onClick={() => onSelectNews(item)}
                 className={cn(
-                  "w-[280px] p-4 rounded-[2rem] border shadow-sm flex flex-col gap-3 transition-all hover:shadow-md hover:border-emerald-300 cursor-pointer active:scale-[0.98] snap-start bg-white",
+                  "w-[280px] p-4 rounded-2xl border shadow-sm flex flex-col gap-3 transition-all hover:shadow-md hover:border-emerald-300 cursor-pointer active:scale-[0.98] snap-start bg-white",
                   getTheme(),
                   i === activeIndex ? "ring-2 ring-emerald-500/20 border-emerald-400 bg-emerald-50/10 shadow-md" : ""
                 )}
@@ -839,10 +839,10 @@ const NewsSlider = ({
                   </div>
                 </div>
                 <div className="text-left">
-                  <h4 className="text-xs font-black text-gray-900 leading-tight line-clamp-2">
+                  <h4 className="text-xs font-black text-gray-900 leading-tight">
                     {item.title}
                   </h4>
-                  <p className="text-[10px] text-gray-500 font-medium mt-1 line-clamp-1 italic">
+                  <p className="text-[10px] text-gray-500 font-medium mt-1 italic">
                     {item.summary}
                   </p>
                 </div>
@@ -899,7 +899,7 @@ const AILoader = ({
 }) => (
   <div className="flex flex-col items-center justify-center py-12 gap-6 w-full">
     <div className="relative">
-      <div className="w-20 h-20 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center text-emerald-600 animate-pulse relative overflow-hidden ring-4 ring-emerald-50/50">
+      <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 animate-pulse relative overflow-hidden ring-4 ring-emerald-50/50">
         <Sparkles className="w-8 h-8 z-10" />
         <motion.div
           animate={{ x: ["100%", "-100%"] }}
@@ -933,18 +933,18 @@ const AILoader = ({
 
 const ThinkingStepsRenderer = () => {
   const [steps, setSteps] = useState<{ text: string; status: "loading" | "complete" }[]>([
-    { text: "Initializing Form Mitra AI Model... 🧠", status: "loading" },
+    { text: "Initializing Form Mitra AI Model... ", status: "loading" },
   ]);
 
   useEffect(() => {
     const allSteps = [
-      "Analyzing active profile community & state rules... 👤",
-      "Connecting to official government NIC servers... 📡",
-      "Searching latest active/open schemes & competitive exam updates... 🌐",
-      "Filtering unauthorized third-party links & outdated listings... 🛡️",
-      "Reasoning the absolute best guidance plan for you... 📝",
-      "Formatting details in clear Hinglish & Devanagari script... 🗣️",
-      "Adding final form rejection prevention tips... 👍"
+      "Analyzing active profile community & state rules... ",
+      "Connecting to official government NIC servers... ",
+      "Searching latest active/open schemes & competitive exam updates... ",
+      "Filtering unauthorized third-party links & outdated listings... ",
+      "Reasoning the absolute best guidance plan for you... ",
+      "Formatting details in clear Hinglish & Devanagari script... ",
+      "Adding final form rejection prevention tips... "
     ];
 
     let currentIdx = 0;
@@ -966,11 +966,11 @@ const ThinkingStepsRenderer = () => {
   }, []);
 
   return (
-    <div className="w-full bg-slate-50 border border-gray-200/60 rounded-3xl p-4 flex flex-col gap-3 text-left shadow-xs mt-2">
+    <div className="w-full bg-slate-50 border border-gray-200/60 rounded-2xl p-4 flex flex-col gap-3 text-left shadow-xs mt-2">
       <div className="flex items-center gap-2 border-b border-gray-100 pb-2 mb-1">
         <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" />
         <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider">
-          Mitra AI Thoughts (सोचने की प्रक्रिया) 🧠
+          Mitra AI Thoughts (सोचने की प्रक्रिया) 
         </span>
       </div>
       <div className="flex flex-col gap-2.5 max-h-[160px] overflow-y-auto pr-1">
@@ -1078,7 +1078,7 @@ const CostEvaluator = ({
     advocacyMsg: string;
   };
 }) => (
-  <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 relative overflow-hidden group">
+  <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl border border-emerald-100 shadow-xl shadow-emerald-900/5 relative overflow-hidden group">
     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/30 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-emerald-100/50 transition-all duration-700" />
 
     <div className="relative z-10">
@@ -1097,7 +1097,7 @@ const CostEvaluator = ({
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white/60 backdrop-blur-sm p-4 rounded-3xl border border-emerald-100/50">
+        <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl border border-emerald-100/50">
           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">
             Typical Offline Cost
           </p>
@@ -1105,7 +1105,7 @@ const CostEvaluator = ({
             {costInfo.offlineCost}
           </p>
         </div>
-        <div className="bg-emerald-600 p-4 rounded-3xl shadow-lg shadow-emerald-100">
+        <div className="bg-emerald-600 p-4 rounded-2xl shadow-lg shadow-emerald-100">
           <p className="text-[8px] font-black text-emerald-100 uppercase tracking-widest mb-1">
             Mitra Online Cost
           </p>
@@ -1114,7 +1114,7 @@ const CostEvaluator = ({
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between bg-white p-4 rounded-3xl border border-emerald-100">
+        <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-gray-100 border border-emerald-100">
           <div className="flex items-center gap-2">
             <div className="w-2 h-10 bg-emerald-500 rounded-full" />
             <div>
@@ -1160,7 +1160,7 @@ const MitraPitch = ({
   return (
     <div
       className={cn(
-        "p-8 rounded-[2.5rem] border shadow-xl relative overflow-hidden group mb-6",
+        "p-8 rounded-2xl border shadow-xl relative overflow-hidden group mb-6",
         pitch.isOnlinePossible
           ? "bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-xl shadow-indigo-900/5 text-indigo-900"
           : "bg-gradient-to-br from-orange-50 to-white border-orange-100 shadow-xl shadow-orange-900/5 text-orange-900",
@@ -1214,7 +1214,7 @@ const MitraPitch = ({
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-[2rem] border border-white/40 shadow-sm flex flex-col gap-3">
+          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl border border-white/40 shadow-sm flex flex-col gap-3">
             <p className="text-sm font-bold leading-relaxed">
               {pitch.pitchMsg}
             </p>
@@ -1229,7 +1229,7 @@ const MitraPitch = ({
           </div>
 
           {!pitch.isOnlinePossible && pitch.offlineGuide && (
-            <div className="bg-white/40 backdrop-blur-sm p-6 rounded-[2rem] border border-orange-100/50 space-y-3">
+            <div className="bg-white/40 backdrop-blur-sm p-6 rounded-2xl border border-orange-100/50 space-y-3">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-900/60">
                 How to handle this offline:
               </h4>
@@ -1301,7 +1301,7 @@ const ConfidenceEvaluator = ({
     finalVerdict: string;
   };
 }) => (
-  <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-[2.5rem] border border-blue-100 shadow-xl shadow-blue-900/5 relative overflow-hidden group">
+  <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl border border-blue-100 shadow-xl shadow-blue-900/5 relative overflow-hidden group">
     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-blue-100/50 transition-all duration-700" />
 
     <div className="relative z-10">
@@ -1320,7 +1320,7 @@ const ConfidenceEvaluator = ({
       </div>
 
       <div className="space-y-4">
-        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-blue-100/50 flex gap-4">
+        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-blue-100/50 flex gap-4">
           <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
             <Zap className="w-5 h-5" />
           </div>
@@ -1334,7 +1334,7 @@ const ConfidenceEvaluator = ({
           </div>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-blue-100/50 flex gap-4">
+        <div className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-blue-100/50 flex gap-4">
           <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
@@ -1348,7 +1348,7 @@ const ConfidenceEvaluator = ({
           </div>
         </div>
 
-        <div className="bg-blue-600 p-5 rounded-3xl shadow-lg shadow-blue-100 flex items-center gap-4">
+        <div className="bg-blue-600 p-5 rounded-2xl shadow-lg shadow-blue-100 flex items-center gap-4">
           <div className="flex-1">
             <p className="text-[8px] font-black text-blue-100 uppercase tracking-widest mb-1 text-center">
               Confidence Verdict
@@ -1366,9 +1366,31 @@ const ConfidenceEvaluator = ({
 const OfflineBanner = () => {
   const isOnline = useOnlineStatus();
 
+  const [justOnline, setJustOnline] = useState(false);
+  useEffect(() => {
+    if (isOnline) {
+      setJustOnline(true);
+      const timer = setTimeout(() => setJustOnline(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline]);
+
   return (
     <AnimatePresence>
-      {!isOnline && (
+      {justOnline && (
+        <motion.div
+          key="online-banner"
+          initial={{ y: -60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -60, opacity: 0 }}
+          className="fixed top-0 left-0 right-0 z-[120] bg-[#10B981] text-white py-3 px-4 flex items-center justify-center gap-3 shadow-xl backdrop-blur-md"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black tracking-widest leading-none">🟢 Wapas connected! Sab features available hain</span>
+          </div>
+        </motion.div>
+      )}
+      {!isOnline && !justOnline && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
@@ -1444,7 +1466,7 @@ const FeedbackModal = ({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
+      <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
         <header className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 shrink-0">
           <div>
             <h2 className="text-xl font-black text-gray-900 tracking-tight">
@@ -1466,7 +1488,7 @@ const FeedbackModal = ({
 
         {success ? (
           <div className="p-12 flex flex-col items-center justify-center text-center gap-4">
-            <div className="w-20 h-20 bg-green-50 rounded-[2.5rem] flex items-center justify-center border border-green-100 mb-2">
+            <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center border border-green-100 mb-2">
               <Check className="w-10 h-10 text-green-600" />
             </div>
             <h3 className="text-2xl font-black text-gray-900">Shukriya!</h3>
@@ -1548,7 +1570,7 @@ const FeedbackModal = ({
                         ? "Scheme ke baare mein kya lagta hai?"
                         : "Aapka anubhav kaisa raha?"
                 }
-                className="w-full bg-gray-50 border border-gray-100 rounded-3xl p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#008069]/20 resize-none min-h-[120px]"
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#008069]/20 resize-none min-h-[120px]"
                 required
               />
             </div>
@@ -1556,7 +1578,7 @@ const FeedbackModal = ({
             <button
               type="submit"
               disabled={submitting || !content.trim()}
-              className="w-full py-5 bg-[#008069] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full py-5 bg-[#008069] text-white rounded-2xl text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {submitting ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -1671,7 +1693,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
@@ -1706,7 +1728,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
                   placeholder="https://example.com"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="w-full p-6 pl-14 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 placeholder:text-gray-300"
+                  className="w-full p-6 pl-14 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 placeholder:text-gray-300"
                 />
                 <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
@@ -1784,7 +1806,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
             <button
               onClick={handleScrape}
               disabled={!url || loading}
-              className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-100 active:scale-95 transition-all disabled:opacity-50"
+              className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-100 active:scale-95 transition-all disabled:opacity-50"
             >
               {loading ? "Extracting Data..." : "Start Extraction"}
             </button>
@@ -1796,7 +1818,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
             {result && (
               <div className="flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-500">
                 {isSmartPreview && (
-                  <div className="bg-amber-500/[0.04] p-5 rounded-[2rem] border border-amber-500/15 flex items-start gap-3">
+                  <div className="bg-amber-500/[0.04] p-5 rounded-2xl border border-amber-500/15 flex items-start gap-3">
                     <span className="text-xl">⚡</span>
                     <div>
                       <h4 className="text-xs font-black text-amber-900 uppercase tracking-wider leading-none">
@@ -1825,7 +1847,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-[2.5rem] border border-gray-100 overflow-hidden">
+                <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
                   <div className="max-h-[400px] overflow-y-auto p-6 flex flex-col gap-6">
                     {result.headings && result.headings.length > 0 && (
                       <div className="flex flex-col gap-3">
@@ -1913,7 +1935,7 @@ const ScraperProModal = ({ onClose }: { onClose: () => void }) => {
                         <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest bg-purple-50 self-start px-2 py-0.5 rounded">
                           Text Content
                         </h4>
-                        <div className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm text-xs text-gray-600 leading-relaxed max-h-[300px] overflow-y-auto whitespace-pre-wrap">
+                        <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-xs text-gray-600 leading-relaxed max-h-[300px] overflow-y-auto whitespace-pre-wrap">
                           {result.text}
                         </div>
                       </div>
@@ -1985,7 +2007,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
@@ -2022,7 +2044,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
 
               <div
                 className={cn(
-                  "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
+                  "aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
                   image && "border-emerald-200 bg-emerald-50/10",
                 )}
               >
@@ -2054,7 +2076,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                   </>
                 ) : (
                   <>
-                    <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
                       <Upload className="w-8 h-8" />
                     </div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -2081,7 +2103,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
               <button
                 onClick={handleEnhance}
                 disabled={!image || analyzing}
-                className="w-full bg-[#008069] text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50"
               >
                 {analyzing
                   ? "Analyzing Quality..."
@@ -2094,7 +2116,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 flex flex-col gap-6">
+              <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-6">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex flex-col items-center gap-2 flex-1">
                     <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center relative overflow-hidden">
@@ -2166,7 +2188,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                   </div>
                 </div>
 
-                <div className="text-center bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-2">
+                <div className="text-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-2">
                   <h3 className="text-base font-black text-gray-900 tracking-tight leading-snug">
                     {qualityReport?.verdict || result.verdict}
                   </h3>
@@ -2180,7 +2202,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
 
               {qualityReport && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center gap-1">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                       Brightness
                     </p>
@@ -2194,7 +2216,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                       />
                     </div>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center gap-1">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                       Contrast
                     </p>
@@ -2208,7 +2230,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                       />
                     </div>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center gap-1">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                       Sharpness
                     </p>
@@ -2222,7 +2244,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                       />
                     </div>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center gap-1">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center gap-1">
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
                       Alignment
                     </p>
@@ -2250,7 +2272,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                       return (
                         <div
                           key={idx}
-                          className="p-4 bg-white border border-gray-100 rounded-3xl shadow-sm flex items-center gap-3"
+                          className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-3"
                         >
                           <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                             <CheckCircle className="w-5 h-5" />
@@ -2270,7 +2292,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
                 </div>
               </div>
 
-              <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100">
+              <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
                 <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Info className="w-3.5 h-3.5" /> Mitra's Pro Tips
                 </h4>
@@ -2288,7 +2310,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
               </div>
 
               {result.needsRetake && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-3xl flex items-center gap-3">
+                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3">
                   <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
                   <p className="text-[10px] text-red-700 font-bold leading-tight uppercase tracking-tight">
                     Advice: Image quality bahut low hai. Rejection se bachne ke
@@ -2299,7 +2321,7 @@ const DocumentEnhancerModal = ({ onClose }: { onClose: () => void }) => {
 
               <button
                 onClick={() => setResult(null)}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
               >
                 Test Another Document
               </button>
@@ -2415,7 +2437,7 @@ const PdfUtilityModal = ({
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
-      showToast("PDF documents successfully merge aur compile ho gaye hain! 📂📄", "info");
+      showToast("PDF documents successfully merge aur compile ho gaye hain! ", "info");
     } catch (err) {
       console.error("PDF generation error:", err);
       alert("Error generating PDF. Please try again.");
@@ -2432,7 +2454,7 @@ const PdfUtilityModal = ({
     const filename = cleanName.toLowerCase().endsWith(".pdf") ? cleanName : `${cleanName}.pdf`;
     link.download = filename;
     link.click();
-    showToast(`Merged PDF "${filename}" download ho gaya hai! 📥📄`, "info");
+    showToast(`Merged PDF "${filename}" download ho gaya hai! `, "info");
   };
 
   // Split PDF operation
@@ -2484,7 +2506,7 @@ const PdfUtilityModal = ({
         }
 
         setSplitPages(individualPages);
-        showToast(`PDF success ke sath split ho gaya hai! (${individualPages.length} Pages alag kiye gaye hain) ✂️📄`, "info");
+        showToast(`PDF success ke sath split ho gaya hai! (${individualPages.length} Pages alag kiye gaye hain) ✂`, "info");
       } catch (err) {
         console.error("PDF load/split error:", err);
         alert(
@@ -2504,7 +2526,7 @@ const PdfUtilityModal = ({
     link.href = page.blobUrl;
     link.download = page.filename;
     link.click();
-    showToast(`Page "${page.filename}" download ho gaya hai! 📄📥`, "info");
+    showToast(`Page "${page.filename}" download ho gaya hai! `, "info");
   };
 
   const handleDownloadAllPages = () => {
@@ -2514,7 +2536,7 @@ const PdfUtilityModal = ({
         handleDownloadSinglePage(p);
       }, idx * 250); // Stagger downloads to avoid browser block
     });
-    showToast("Sabhi split pages download ho rahe hain! 📥✨", "info");
+    showToast("Sabhi split pages download ho rahe hain! ", "info");
   };
 
   const handleIsolateAndAudit = (pageName: string) => {
@@ -2543,7 +2565,7 @@ const PdfUtilityModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         {/* Header content with Navigation Tabs */}
         <header className="p-8 pb-3 border-b border-gray-100 flex flex-col gap-5 bg-gray-50/50">
           <div className="flex justify-between items-start">
@@ -2617,7 +2639,7 @@ const PdfUtilityModal = ({
                   {files.map((f, i) => (
                     <div
                       key={i}
-                      className="group relative aspect-square bg-gray-50 rounded-3xl border border-gray-100 overflow-hidden shadow-sm"
+                      className="group relative aspect-square bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
                     >
                       <img
                         src={URL.createObjectURL(f)}
@@ -2632,7 +2654,7 @@ const PdfUtilityModal = ({
                       </button>
                     </div>
                   ))}
-                  <label className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-all border-dashed-custom">
+                  <label className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-100 transition-all border-dashed-custom">
                     <Plus className="w-6 h-6 text-gray-300" />
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                       Add Image
@@ -2649,11 +2671,11 @@ const PdfUtilityModal = ({
               </div>
 
               {/* Filename & Scheme Auto-Suggest Section */}
-              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 flex flex-col gap-4 shadow-sm">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col gap-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-[#008069] uppercase tracking-widest flex items-center gap-1.5 font-sans">
-                      <FileCheck className="w-3.5 h-3.5" /> Filename Optimizer 🏷️
+                      <FileCheck className="w-3.5 h-3.5" /> Filename Optimizer 
                     </span>
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight mt-0.5 font-sans">
                       Suggest name based on Date & Target Scheme
@@ -2749,7 +2771,7 @@ const PdfUtilityModal = ({
               </div>
 
               {pdfUrl && (
-                <div className="p-6 bg-green-50 rounded-[2.5rem] border border-green-100 flex flex-col gap-4 items-center animate-fade-in">
+                <div className="p-6 bg-green-50 rounded-2xl border border-green-100 flex flex-col gap-4 items-center animate-fade-in">
                   <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-green-600 shadow-sm border border-green-50 mb-2">
                     <FileText className="w-8 h-8" />
                   </div>
@@ -2781,7 +2803,7 @@ const PdfUtilityModal = ({
               <button
                 onClick={generatePdf}
                 disabled={files.length === 0 || generating}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 mt-auto cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 mt-auto cursor-pointer flex items-center justify-center gap-2"
               >
                 {generating ? (
                   <>
@@ -2798,8 +2820,8 @@ const PdfUtilityModal = ({
               {/* PDF Splitter Mode */}
               <div className="flex flex-col gap-5 h-full">
                 {!splitFile ? (
-                  <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[2.5rem] p-8 bg-slate-50/50 hover:bg-slate-50 transition-all border-dashed-custom min-h-[250px]">
-                    <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-[#008069] border border-gray-100 shadow-md mb-4">
+                  <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 bg-slate-50/50 hover:bg-slate-50 transition-all border-dashed-custom min-h-[250px]">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#008069] border border-gray-100 shadow-md mb-4">
                       <Scissors className="w-7 h-7" />
                     </div>
                     <h3 className="text-sm font-black text-gray-900 mb-1 text-center">
@@ -2824,13 +2846,13 @@ const PdfUtilityModal = ({
                 ) : (
                   <div className="flex flex-col gap-4">
                     {/* Selected File Card */}
-                    <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-between shadow-xs">
+                    <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between shadow-xs">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-white border border-indigo-200/50 text-[#008069] flex items-center justify-center font-bold font-mono">
                           PDF
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black text-gray-900 line-clamp-1 leading-tight">
+                          <span className="text-xs font-black text-gray-900 leading-tight">
                             {splitFile.name}
                           </span>
                           <span className="text-[9px] text-[#008069] font-black uppercase tracking-wider mt-0.5">
@@ -2866,14 +2888,14 @@ const PdfUtilityModal = ({
                       {splitPages.map((page, idx) => (
                         <div
                           key={idx}
-                          className="p-4 bg-white border border-gray-100 rounded-3xl/2 shadow-xs hover:border-emerald-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                          className="p-4 bg-white border border-gray-100 rounded-2xl/2 shadow-xs hover:border-emerald-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-black text-xs border border-emerald-100/50 shadow-inner">
                               P{idx + 1}
                             </div>
                             <div>
-                              <p className="text-xs font-black text-gray-900 line-clamp-1 leading-none">
+                              <p className="text-xs font-black text-gray-900 leading-none">
                                 {page.filename}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
@@ -2908,7 +2930,7 @@ const PdfUtilityModal = ({
                                 onClick={() =>
                                   handleIsolateAndAudit(page.filename)
                                 }
-                                className="px-3 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-[#008069] transition-all cursor-pointer flex items-center gap-1 hover:shadow-md"
+                                className="px-3 py-2.5 bg-[#008069] text-white rounded-xl text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-[#008069] transition-all cursor-pointer flex items-center gap-1 hover:shadow-md"
                                 title="Analyze this isolated page with Chat Mitra AI"
                               >
                                 <MessageSquare className="w-3.5 h-3.5" />
@@ -3005,7 +3027,7 @@ const HandwrittenAuditModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
@@ -3042,7 +3064,7 @@ const HandwrittenAuditModal = ({
 
               <div
                 className={cn(
-                  "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
+                  "aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
                   image && "border-orange-200 bg-orange-50/10",
                 )}
               >
@@ -3054,7 +3076,7 @@ const HandwrittenAuditModal = ({
                   />
                 ) : (
                   <>
-                    <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
                       <Upload className="w-8 h-8" />
                     </div>
                     <div className="text-center">
@@ -3078,7 +3100,7 @@ const HandwrittenAuditModal = ({
               <button
                 onClick={handleAudit}
                 disabled={!image || analyzing}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
               >
                 {analyzing ? "Analyzing Handwriting..." : "Analyze Application"}
               </button>
@@ -3089,7 +3111,7 @@ const HandwrittenAuditModal = ({
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 italic transition-all hover:bg-blue-50">
+              <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 italic transition-all hover:bg-blue-50">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-4 h-4 text-blue-600" />
                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
@@ -3102,7 +3124,7 @@ const HandwrittenAuditModal = ({
               </div>
 
               {result.technicalQuality && (
-                <div className="p-6 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm space-y-6">
+                <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Camera className="w-4 h-4 text-orange-600" />
@@ -3252,7 +3274,7 @@ const HandwrittenAuditModal = ({
                     </span>
                   </button>
                 </div>
-                <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 text-sm text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
+                <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 text-sm text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
                   {result.transcribedText}
                 </div>
               </div>
@@ -3297,14 +3319,14 @@ const HandwrittenAuditModal = ({
               )}
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest ml-1">
+                <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
                   Friendly Suggestions
                 </h4>
                 <div className="flex flex-col gap-3">
                   {result.suggestions?.map((s: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-5 bg-emerald-50/30 border border-emerald-100 rounded-[2rem] flex flex-col gap-2"
+                      className="p-5 bg-emerald-50/30 border border-emerald-100 rounded-2xl flex flex-col gap-2"
                     >
                       <div className="flex items-center gap-2">
                         {s.type === "wordChoice" ? (
@@ -3346,7 +3368,7 @@ const HandwrittenAuditModal = ({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col gap-1">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-1">
                   <p className="text-[8px] font-black text-gray-400 uppercase">
                     Tone Analysis
                   </p>
@@ -3354,7 +3376,7 @@ const HandwrittenAuditModal = ({
                     {result.audits?.tone}
                   </p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-3xl border border-gray-100 flex flex-col gap-1">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-1">
                   <p className="text-[8px] font-black text-gray-400 uppercase">
                     Formatting
                   </p>
@@ -3366,7 +3388,7 @@ const HandwrittenAuditModal = ({
 
               <button
                 onClick={() => setResult(null)}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
               >
                 Audit Another Page
               </button>
@@ -3482,7 +3504,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
@@ -3520,7 +3542,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                 <select
                   value={targetExam}
                   onChange={(e) => setTargetExam(e.target.value)}
-                  className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-100 font-bold text-sm text-gray-700 appearance-none cursor-pointer"
+                  className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-100 font-bold text-sm text-gray-700 appearance-none cursor-pointer"
                 >
                   <option value="">Select Government Req / Exam</option>
                   <option value="NEET">NEET UG (10KB-200KB, White BG)</option>
@@ -3543,7 +3565,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
 
               <div
                 className={cn(
-                  "aspect-[4/3] rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group transition-all w-full bg-gray-50",
+                  "aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group transition-all w-full bg-gray-50",
                   image && "border-indigo-200",
                 )}
               >
@@ -3576,7 +3598,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-indigo-400 transition-colors">
+                    <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-indigo-400 transition-colors">
                       <Upload className="w-8 h-8" />
                     </div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
@@ -3601,7 +3623,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-4 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex items-start gap-4"
+                  className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-start gap-4"
                 >
                   <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shrink-0">
                     <Sparkles className="w-5 h-5" />
@@ -3625,7 +3647,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
               <button
                 onClick={handleProcess}
                 disabled={!image || processing || analyzing || !targetExam}
-                className="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full bg-[#008069] text-white py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 {processing ? (
                   <>
@@ -3642,7 +3664,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                    <Zap className="w-4 h-4 text-emerald-600 fill-emerald-400" />
                     Optimize & Format
                   </>
                 )}
@@ -3651,7 +3673,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
           ) : (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
               <div className="flex flex-col items-center gap-6">
-                <div className="w-56 h-64 bg-white rounded-[2.5rem] shadow-2xl border-4 border-emerald-500 p-2 overflow-hidden flex items-center justify-center relative">
+                <div className="w-56 h-64 bg-white rounded-2xl shadow-2xl border-4 border-emerald-500 p-2 overflow-hidden flex items-center justify-center relative">
                   <img
                     src={result}
                     className="max-w-full max-h-full object-contain"
@@ -3673,7 +3695,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col gap-1">
+                <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-1">
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
                     Dimensions
                   </p>
@@ -3682,7 +3704,7 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                     {analysis?.officialSpecs?.heightPx || 450} px
                   </p>
                 </div>
-                <div className="p-5 bg-gray-50 rounded-[2rem] border border-gray-100 flex flex-col gap-1">
+                <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-1">
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
                     Result File Size
                   </p>
@@ -3698,13 +3720,13 @@ const ImageAutoFitterModal = ({ onClose }: { onClose: () => void }) => {
                     setResult(null);
                     setAnalysis(null);
                   }}
-                  className="flex-1 bg-gray-100 text-gray-600 py-5 rounded-3xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                  className="flex-1 bg-gray-100 text-gray-600 py-5 rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
                 >
                   Reset
                 </button>
                 <button
                   onClick={downloadImage}
-                  className="flex-[2] bg-emerald-600 text-white py-5 rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+                  className="flex-[2] bg-[#008069] text-white py-5 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
                 >
                   <Download className="w-5 h-5" /> Download for {targetExam}
                 </button>
@@ -3739,18 +3761,18 @@ const DocumentScannerModal = ({
     }
 
     const steps = [
-      { progress: 12, text: "Aapka ID design confirm kiya ja raha hai... 🪪" },
-      { progress: 25, text: "Official government guidelines check ho rahi hain... 📡" },
-      { progress: 42, text: "Applying auto-contrast and brightness boosters... 🎛️" },
-      { progress: 61, text: "Scanning text character-by-character (OCR)... 🔎" },
-      { progress: 78, text: "Mitra AI validating details accurately... 🧠" },
-      { progress: 92, text: "Formulating safe profile details to prevent rejection... 📝" },
-      { progress: 97, text: "Saari details safe database me pack ho rahi hain... 🔒" }
+      { progress: 12, text: "Aapka ID design confirm kiya ja raha hai... " },
+      { progress: 25, text: "Official government guidelines check ho rahi hain... " },
+      { progress: 42, text: "Applying auto-contrast and brightness boosters... " },
+      { progress: 61, text: "Scanning text character-by-character (OCR)... " },
+      { progress: 78, text: "Mitra AI validating details accurately... " },
+      { progress: 92, text: "Formulating safe profile details to prevent rejection... " },
+      { progress: 97, text: "Saari details safe database me pack ho rahi hain... " }
     ];
 
     let currentStep = 0;
     setScanProgress(4);
-    setScanStateText("Initial securing check... 🔐");
+    setScanStateText("Initial securing check... ");
 
     const timer = setInterval(() => {
       if (currentStep < steps.length) {
@@ -3825,13 +3847,13 @@ const DocumentScannerModal = ({
     const updated = scanHistory.filter((item) => item.id !== id);
     localStorage.setItem("mitra_quick_scan_history", JSON.stringify(updated));
     setScanHistory(updated);
-    showToast("Scanned document item history se delete kiya gaya! 🗑️", "info");
+    showToast("Scanned document item history se delete kiya gaya! ", "info");
   };
 
   const clearAllHistory = () => {
     localStorage.removeItem("mitra_quick_scan_history");
     setScanHistory([]);
-    showToast("Saara scanner history clear ho gaya! 🗑️✨", "info");
+    showToast("Saara scanner history clear ho gaya! ", "info");
   };
 
   const saveAsDraft = async () => {
@@ -3905,9 +3927,9 @@ const DocumentScannerModal = ({
       window.dispatchEvent(new CustomEvent("mitra-drafts-sync"));
 
       if (savedToFirestore) {
-        showToast("Quick Scan Draft Cloud me secure ho gaya! 🌐💾", "info");
+        showToast("Quick Scan Draft Cloud me secure ho gaya! ", "info");
       } else {
-        showToast("Guest Draft browser me secure ho gaya! 💻📱", "info");
+        showToast("Guest Draft browser me secure ho gaya! ", "info");
       }
       onClose();
     } catch (err: any) {
@@ -4056,7 +4078,7 @@ const DocumentScannerModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <style>{`
           @keyframes scan-laser {
             0% { transform: translateY(0); }
@@ -4140,7 +4162,7 @@ const DocumentScannerModal = ({
                             : "bg-white border-gray-100 text-gray-400 hover:text-gray-800",
                         )}
                       >
-                        🪪 Aadhar Card Profile
+                         Aadhar Card Profile
                       </button>
                       <button
                         type="button"
@@ -4152,7 +4174,7 @@ const DocumentScannerModal = ({
                             : "bg-white border-gray-100 text-gray-400 hover:text-gray-800",
                         )}
                       >
-                        💳 PAN Card Profile
+                         PAN Card Profile
                       </button>
                     </div>
 
@@ -4163,16 +4185,16 @@ const DocumentScannerModal = ({
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-[#008069] bg-[#008069]/5 border border-[#008069]/10 cursor-pointer hover:bg-[#008069]/10 transition-all active:scale-95 shadow-sm shrink-0"
                         title="Scan tips guide dobara dekhein"
                       >
-                        💡 View Guide
+                        View Guide
                       </button>
                     )}
                   </div>
 
                   {showTips ? (
-                    <div className="flex flex-col gap-5 bg-slate-50/60 p-5 rounded-[2.5rem] border border-slate-100/80">
+                    <div className="flex flex-col gap-5 bg-slate-50/60 p-5 rounded-2xl border border-slate-100/80">
                       {/* Tips Header */}
-                      <div className="bg-amber-500/[0.04] p-4 rounded-3xl border border-amber-500/10 flex items-start gap-3">
-                        <span className="text-xl shrink-0 mt-0.5">💡</span>
+                      <div className="bg-amber-500/[0.04] p-4 rounded-2xl border border-amber-500/10 flex items-start gap-3">
+                        <span className="text-xl shrink-0 mt-0.5"></span>
                         <div>
                           <h4 className="text-xs font-black text-amber-900 uppercase tracking-wider leading-none">
                             AI Document Scan Guide (सटीक स्कैन गाइड)
@@ -4186,10 +4208,10 @@ const DocumentScannerModal = ({
                       {/* Side-by-side Visual comparison */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Good scan card representation */}
-                        <div className="p-4 bg-emerald-500/[0.01] border-2 border-emerald-500/10 rounded-[2rem] flex flex-col gap-3 relative">
+                        <div className="p-4 bg-emerald-500/[0.01] border-2 border-emerald-500/10 rounded-2xl flex flex-col gap-3 relative">
                           <div className="flex items-center justify-between">
                             <span className="px-2 py-0.5 bg-emerald-50 rounded-lg text-[9px] font-extrabold uppercase tracking-wide text-emerald-700 border border-emerald-100">
-                              👍 SAHI TARIKA (Sunder & Saaf)
+                               SAHI TARIKA (Sunder & Saaf)
                             </span>
                             <span className="text-[8px] text-emerald-600 font-black tracking-widest">PASSED</span>
                           </div>
@@ -4198,7 +4220,7 @@ const DocumentScannerModal = ({
                           <div className="bg-white rounded-2xl border-2 border-emerald-500/40 shadow-xs p-3.5 relative aspect-video flex flex-col justify-between overflow-hidden">
                             <div className="absolute inset-1.5 border border-dashed border-emerald-400 rounded-xl pointer-events-none opacity-40" />
                             <div className="flex gap-2.5 items-center z-10">
-                              <div className="w-7 h-7 bg-emerald-50 border border-emerald-100 rounded-lg shrink-0 flex items-center justify-center text-xs">👤</div>
+                              <div className="w-7 h-7 bg-emerald-50 border border-emerald-100 rounded-lg shrink-0 flex items-center justify-center text-xs"></div>
                               <div className="flex-1 flex flex-col gap-1.5">
                                 <span className="h-2 w-16 bg-slate-200 rounded" />
                                 <span className="h-1.5 w-24 bg-slate-100 rounded" />
@@ -4213,7 +4235,7 @@ const DocumentScannerModal = ({
                               <span className="w-6 h-3 bg-slate-200 rounded" />
                             </div>
                             <span className="absolute top-2.5 right-2.5 text-[8px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-200 shadow-2xs">
-                              🟩 WELL-LIT
+                               WELL-LIT
                             </span>
                           </div>
 
@@ -4234,10 +4256,10 @@ const DocumentScannerModal = ({
                         </div>
 
                         {/* Bad scan card representation */}
-                        <div className="p-4 bg-rose-500/[0.01] border-2 border-rose-500/10 rounded-[2rem] flex flex-col gap-3 relative">
+                        <div className="p-4 bg-rose-500/[0.01] border-2 border-rose-500/10 rounded-2xl flex flex-col gap-3 relative">
                           <div className="flex items-center justify-between">
                             <span className="px-2 py-0.5 bg-rose-50 rounded-lg text-[9px] font-extrabold uppercase tracking-wide text-rose-700 border border-rose-100">
-                              ⚠️ GALAT TARIKA (Rejection Warning)
+                              ⚠ GALAT TARIKA (Rejection Warning)
                             </span>
                             <span className="text-[8px] text-rose-600 font-black tracking-widest">REJECTED</span>
                           </div>
@@ -4260,7 +4282,7 @@ const DocumentScannerModal = ({
                               <span className="h-2 w-24 bg-slate-400 rounded" />
                             </div>
                             <span className="absolute top-2.5 right-2.5 text-[8px] font-black bg-rose-100 text-rose-850 px-1.5 py-0.5 rounded border border-rose-200 z-30 shadow-2xs">
-                              🟥 REFLECTION / SHADOW
+                               REFLECTION / SHADOW
                             </span>
                           </div>
 
@@ -4297,7 +4319,7 @@ const DocumentScannerModal = ({
                       </div>
                     </div>
                   ) : cameraPermissionError ? (
-                    <div className="p-6 bg-amber-50 rounded-[2.5rem] border border-amber-100 text-amber-800 text-xs font-bold text-center flex flex-col items-center gap-3">
+                    <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 text-amber-800 text-xs font-bold text-center flex flex-col items-center gap-3">
                       <AlertCircle className="w-8 h-8 text-amber-500" />
                       <p>{cameraPermissionError}</p>
                       <button
@@ -4309,7 +4331,7 @@ const DocumentScannerModal = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="relative aspect-video rounded-[2.5rem] overflow-hidden bg-slate-950 border-2 border-indigo-500/20 shadow-2xl flex items-center justify-center">
+                    <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border-2 border-indigo-500/20 shadow-2xl flex items-center justify-center">
                       {cameraLoading && (
                         <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/80">
                           <Loader2 className="w-8 h-8 text-white animate-spin" />
@@ -4334,7 +4356,7 @@ const DocumentScannerModal = ({
                             type="button"
                             onClick={() => {
                               setAutoBrightness(!autoBrightness);
-                              showToast(autoBrightness ? "Auto-Brightness Band Kiya!" : "Auto-Brightness Chalu Kiya! 🔆", "info");
+                              showToast(autoBrightness ? "Auto-Brightness Band Kiya!" : "Auto-Brightness Chalu Kiya! ", "info");
                             }}
                             className={cn(
                               "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all border cursor-pointer select-none",
@@ -4343,7 +4365,7 @@ const DocumentScannerModal = ({
                                 : "bg-slate-900/80 border-slate-700/80 text-gray-300 backdrop-blur-md"
                             )}
                           >
-                            <span>🔆 Auto-Brightness</span>
+                            <span> Auto-Brightness</span>
                             <span className="w-2 h-2 rounded-full bg-current animate-pulse shrink-0"></span>
                           </button>
 
@@ -4351,7 +4373,7 @@ const DocumentScannerModal = ({
                             type="button"
                             onClick={() => {
                               setAutoContrast(!autoContrast);
-                              showToast(autoContrast ? "Auto-Contrast Band Kiya!" : "Auto-Contrast Chalu Kiya! 🌗", "info");
+                              showToast(autoContrast ? "Auto-Contrast Band Kiya!" : "Auto-Contrast Chalu Kiya! ", "info");
                             }}
                             className={cn(
                               "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all border cursor-pointer select-none",
@@ -4360,7 +4382,7 @@ const DocumentScannerModal = ({
                                 : "bg-slate-900/80 border-slate-700/80 text-gray-300 backdrop-blur-md"
                             )}
                           >
-                            <span>🌗 Auto-Contrast</span>
+                            <span> Auto-Contrast</span>
                             <span className="w-2 h-2 rounded-full bg-current animate-pulse shrink-0"></span>
                           </button>
 
@@ -4368,7 +4390,7 @@ const DocumentScannerModal = ({
                             type="button"
                             onClick={() => {
                               setShowCameraGrid(!showCameraGrid);
-                              showToast(showCameraGrid ? "Align Grid Band Kiya! 📴" : "Align Grid Chalu Kiya! 🔲", "info");
+                              showToast(showCameraGrid ? "Align Grid Band Kiya! " : "Align Grid Chalu Kiya! ", "info");
                             }}
                             className={cn(
                               "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all border cursor-pointer select-none",
@@ -4378,7 +4400,7 @@ const DocumentScannerModal = ({
                             )}
                           >
                             <LayoutGrid className="w-3 h-3 text-current" />
-                            <span>📏 3x3 Grid Align</span>
+                            <span> 3x3 Grid Align</span>
                           </button>
                         </div>
                       )}
@@ -4469,7 +4491,7 @@ const DocumentScannerModal = ({
               ) : (
                 <div
                   className={cn(
-                    "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group transition-all w-full bg-gray-50",
+                    "aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group transition-all w-full bg-gray-50",
                     image && "border-blue-200",
                   )}
                 >
@@ -4481,7 +4503,7 @@ const DocumentScannerModal = ({
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-blue-400 transition-colors">
+                      <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-blue-400 transition-colors">
                         <Plus className="w-8 h-8" />
                       </div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
@@ -4499,11 +4521,11 @@ const DocumentScannerModal = ({
               )}
 
               {scanning && (
-                <div className="flex flex-col items-center justify-center p-8 bg-slate-50/80 rounded-[2.5rem] border border-blue-100/50 shadow-inner flex-1 gap-5">
+                <div className="flex flex-col items-center justify-center p-8 bg-slate-50/80 rounded-2xl border border-blue-100/50 shadow-inner flex-1 gap-5">
                   <div className="relative flex items-center justify-center w-16 h-16">
                     {/* Pulsing glow background */}
                     <div className="absolute inset-0 bg-blue-500/10 rounded-full animate-ping opacity-40"></div>
-                    <div className="relative bg-white p-4.5 rounded-3xl border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center">
+                    <div className="relative bg-white p-4.5 rounded-2xl border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center">
                       <ScanLine className="w-7 h-7 animate-pulse text-blue-600" />
                     </div>
                   </div>
@@ -4511,7 +4533,7 @@ const DocumentScannerModal = ({
                   <div className="w-full max-w-sm flex flex-col gap-2.5">
                     <div className="flex justify-between items-center px-1">
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                        AI Scanning Progress ⚙️
+                        AI Scanning Progress ⚙
                       </span>
                       <span className="text-xs font-black text-blue-600 font-mono bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
                         {scanProgress}%
@@ -4534,14 +4556,14 @@ const DocumentScannerModal = ({
               )}
 
               {error && (
-                <div className="p-5 bg-red-50 text-red-600 text-xs font-black rounded-3xl border border-red-100 flex items-center gap-3">
+                <div className="p-5 bg-red-50 text-red-600 text-xs font-black rounded-2xl border border-red-100 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5" />
                   {error}
                 </div>
               )}
 
               {scanHistory.length > 0 && (
-                <div className="bg-slate-50/70 rounded-[2.5rem] border border-slate-150 p-6 flex flex-col gap-4 mt-2">
+                <div className="bg-slate-50/70 rounded-2xl border border-slate-150 p-6 flex flex-col gap-4 mt-2">
                   <div className="flex justify-between items-center px-1">
                     <div className="flex items-center gap-2">
                       <History className="w-4 h-4 text-slate-500" />
@@ -4633,7 +4655,7 @@ const DocumentScannerModal = ({
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100/50">
+              <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100/50">
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-blue-100 shadow-sm">
                     {result.docType} Card
@@ -4668,7 +4690,7 @@ const DocumentScannerModal = ({
                 </div>
               </div>
 
-              <div className="p-6 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 flex items-start gap-4">
+              <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-start gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
@@ -4692,7 +4714,7 @@ const DocumentScannerModal = ({
                     setResult(null);
                     setImage(null);
                   }}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 px-4 rounded-3xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all text-center cursor-pointer"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 px-4 rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all text-center cursor-pointer"
                 >
                   Scan New
                 </button>
@@ -4700,7 +4722,7 @@ const DocumentScannerModal = ({
                   type="button"
                   disabled={isSavingDraft}
                   onClick={saveAsDraft}
-                  className="bg-[#008069]/10 hover:bg-[#008069]/15 text-[#008069] border border-[#008069]/20 py-4 px-4 rounded-3xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="bg-[#008069]/10 hover:bg-[#008069]/15 text-[#008069] border border-[#008069]/20 py-4 px-4 rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSavingDraft ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -4712,7 +4734,7 @@ const DocumentScannerModal = ({
                 <button
                   type="button"
                   onClick={applyData}
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
                 >
                   <Zap className="w-4 h-4 text-yellow-400 fill-current" />{" "}
                   Pre-fill Profile
@@ -4777,14 +4799,14 @@ const MultiPagePdfScannerModal = ({
       const remainingPages = capturedPages.filter((_, idx) => !selectedScannerPageIndices.includes(idx));
       setCapturedPages(remainingPages);
       setSelectedScannerPageIndices([]);
-      showToast("Selected pages ko kamyabi se hata diya gaya! 🗑️", "info");
+      showToast("Selected pages ko kamyabi se hata diya gaya! ", "info");
     }
   };
 
   const autoEnhanceAllPages = async () => {
     if (capturedPages.length === 0) return;
     setIsEnhancingAll(true);
-    showToast(`Saari pages ko brightness (${brightnessLevel}%) aur contrast (${contrastLevel}%) settings se enhance kiya ja raha hai... ✨`, "info");
+    showToast(`Saari pages ko brightness (${brightnessLevel}%) aur contrast (${contrastLevel}%) settings se enhance kiya ja raha hai... `, "info");
     try {
       const bVal = `${brightnessLevel / 100}`;
       const cVal = `${contrastLevel / 100}`;
@@ -4821,7 +4843,7 @@ const MultiPagePdfScannerModal = ({
       const processed = await Promise.all(capturedPages.map((url) => processImage(url)));
       setCapturedPages(processed);
       setPdfUrl(null);
-      showToast("Badhai ho! Saari pages aapki choose ki gayi settings se automatically enhance ho chuki hain! 🎉📖", "info");
+      showToast("Badhai ho! Saari pages aapki choose ki gayi settings se automatically enhance ho chuki hain! ", "info");
     } catch (err) {
       console.error("Enhance all error:", err);
       showToast("Enhance karne mein dikkat aayi.", "error");
@@ -4858,7 +4880,7 @@ const MultiPagePdfScannerModal = ({
 
   useEffect(() => {
     if (capturedPages.length > 0) {
-      showToast(`Pichla multi-page scanner session automatically restore kiya gaya hai! (${capturedPages.length} Pages) 🔄`, "info");
+      showToast(`Pichla multi-page scanner session automatically restore kiya gaya hai! (${capturedPages.length} Pages) `, "info");
     }
   }, []);
   const [generating, setGenerating] = useState(false);
@@ -5154,7 +5176,7 @@ const MultiPagePdfScannerModal = ({
           setCapturedPages(updated);
           setPdfUrl(null);
           setCroppingIndex(null);
-          showToast("Aapki page image successfully crop ho gayi hai! ✂️", "info");
+          showToast("Aapki page image successfully crop ho gayi hai! ✂", "info");
         } catch (e) {
           console.error("Failed to generate cropped image:", e);
         }
@@ -5314,7 +5336,7 @@ const MultiPagePdfScannerModal = ({
           const base64 = canvas.toDataURL("image/jpeg", 0.9);
           setCapturedPages((prev) => [...prev, base64]);
           setPdfUrl(null);
-          showToast("Document edges recognize karke warp transformation se ekdum straight flat document generate kar diya hai! 📄⚡", "info");
+          showToast("Document edges recognize karke warp transformation se ekdum straight flat document generate kar diya hai! ⚡", "info");
         }
       } else {
         // Fallback: Use standard full screen
@@ -5398,7 +5420,7 @@ const MultiPagePdfScannerModal = ({
     );
     setDraggedIndex(null);
     setDragOverIndex(null);
-    showToast("Sequence reordered successfully! 🔄", "info");
+    showToast("Sequence reordered successfully! ", "info");
   };
 
   const deletePage = (index: number) => {
@@ -5464,7 +5486,7 @@ const MultiPagePdfScannerModal = ({
       const pdfBlob = doc.output("blob");
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
-      showToast(`Scanned PDF "${filename}" successfully compile aur download ho gaya hai! 🎉📄`, "info");
+      showToast(`Scanned PDF "${filename}" successfully compile aur download ho gaya hai! `, "info");
     } catch (err) {
       console.error("PDF engine crash during compile:", err);
       alert("PDF banane mein thodi dikkat aayi. Kripya dobara koshish karein.");
@@ -5501,7 +5523,7 @@ const MultiPagePdfScannerModal = ({
       link.download = `${cleanName}_Images.zip`;
       link.click();
       URL.revokeObjectURL(url);
-      showToast("ZIP of high-quality page images downloaded! 📦", "info");
+      showToast("ZIP of high-quality page images downloaded! ", "info");
     } catch (err) {
       console.error("ZIP creation error:", err);
       showToast("ZIP archive banane mein dikkat aayi.", "info");
@@ -5521,7 +5543,7 @@ const MultiPagePdfScannerModal = ({
         className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div id="multi-page-pdf-scanner-modal" className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div id="multi-page-pdf-scanner-modal" className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         {/* Header Options */}
         <header className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
@@ -5574,7 +5596,7 @@ const MultiPagePdfScannerModal = ({
               </div>
 
               {/* Crop visual frame containing the image and absolute viewport guide */}
-              <div className="relative flex-1 w-full my-4 min-h-[220px] max-h-[45vh] rounded-[2rem] overflow-hidden border border-white/10 bg-slate-900 flex items-center justify-center p-4 select-none">
+              <div className="relative flex-1 w-full my-4 min-h-[220px] max-h-[45vh] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 flex items-center justify-center p-4 select-none">
                 <div className="relative max-w-full max-h-full flex items-center justify-center bg-slate-900 rounded-2xl overflow-hidden box-border">
                   <img
                     src={capturedPages[croppingIndex]}
@@ -5595,9 +5617,9 @@ const MultiPagePdfScannerModal = ({
               </div>
 
               {/* Slider Controller inputs block */}
-              <div className="w-full flex flex-col gap-2.5 bg-slate-900/65 p-4 rounded-3xl border border-white/5 z-10 mt-auto select-none">
+              <div className="w-full flex flex-col gap-2.5 bg-slate-900/65 p-4 rounded-2xl border border-white/5 z-10 mt-auto select-none">
                 <span className="text-[9px] font-black tracking-widest text-[#008069] uppercase select-none flex items-center gap-1">
-                  <span>✂️ Adjust Cutting Margins (Sliders)</span>
+                  <span>✂ Adjust Cutting Margins (Sliders)</span>
                 </span>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   <div className="flex flex-col gap-0.5">
@@ -5674,7 +5696,7 @@ const MultiPagePdfScannerModal = ({
                   }}
                   className="text-[9px] font-extrabold uppercase tracking-wider text-gray-400 hover:text-white transition-all cursor-pointer"
                 >
-                  Full Page Reset 🔄
+                  Full Page Reset 
                 </button>
 
                 <button
@@ -5682,7 +5704,7 @@ const MultiPagePdfScannerModal = ({
                   onClick={applyCrop}
                   className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-[9.5px] uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1 border-none"
                 >
-                  <span>Crop Photo ✂️</span>
+                  <span>Crop Photo ✂</span>
                 </button>
               </div>
             </div>
@@ -5702,11 +5724,11 @@ const MultiPagePdfScannerModal = ({
                     className={cn(
                       "px-3 py-1.5 active:scale-95 transition-all text-[9.5px] uppercase font-black tracking-wider rounded-xl backdrop-blur-md border flex items-center gap-1.5 cursor-pointer",
                       autoEdgeDetect
-                        ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
+                        ? "bg-emerald-500/10 border-emerald-500 text-emerald-600"
                         : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
                     )}
                   >
-                    <span>{autoEdgeDetect ? "🤖 Edge Auto-Crop: ON" : "🤖 Edge Auto-Crop: OFF"}</span>
+                    <span>{autoEdgeDetect ? " Edge Auto-Crop: ON" : " Edge Auto-Crop: OFF"}</span>
                   </button>
 
                   <button
@@ -5714,13 +5736,13 @@ const MultiPagePdfScannerModal = ({
                     onClick={() => setFacingMode((prev) => (prev === "environment" ? "user" : "environment"))}
                     className="px-3 py-1.5 bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-[9.5px] uppercase font-black tracking-wider rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-gray-200 cursor-pointer"
                   >
-                    🔄 Flip Camera
+                     Flip Camera
                   </button>
                 </div>
               </div>
 
               {/* Simulated overlay / real stream video element */}
-              <div className="relative flex-1 w-full my-4 min-h-[220px] max-h-[45vh] rounded-[2rem] overflow-hidden border-2 border-dashed border-white/10 bg-slate-900 flex items-center justify-center">
+              <div className="relative flex-1 w-full my-4 min-h-[220px] max-h-[45vh] rounded-2xl overflow-hidden border-2 border-dashed border-white/10 bg-slate-900 flex items-center justify-center">
                 {cameraActive ? (
                   <video
                     ref={videoRef}
@@ -5734,12 +5756,12 @@ const MultiPagePdfScannerModal = ({
                   />
                 ) : cameraPermissionError ? (
                   <div className="p-8 text-center flex flex-col items-center gap-4 max-w-sm">
-                    <span className="text-3xl text-amber-500">⚠️</span>
+                    <span className="text-3xl text-amber-500">⚠</span>
                     <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wide leading-relaxed">
                       {cameraPermissionError}
                     </p>
                     <label className="px-5 py-3 bg-white/10 hover:bg-white/15 border border-white/10 text-[10px] font-black uppercase tracking-widest rounded-2xl cursor-pointer shadow-md text-white transition-all active:scale-95">
-                      📂 Browse Image Files
+                       Browse Image Files
                       <input
                         type="file"
                         ref={fileInputRef}
@@ -5808,7 +5830,7 @@ const MultiPagePdfScannerModal = ({
                 {cameraActive && !autoEdgeDetect && (
                   <div className="absolute inset-8 border-2 border-dashed border-white/20 rounded-2xl pointer-events-none flex items-center justify-center">
                     <span className="text-[9px] text-white/50 bg-black/60 px-3 py-1.5 font-bold uppercase tracking-widest rounded-lg border border-white/5 backdrop-blur-xs">
-                      📄 Keep document steady (Manual mode)
+                       Keep document steady (Manual mode)
                     </span>
                   </div>
                 )}
@@ -5840,7 +5862,7 @@ const MultiPagePdfScannerModal = ({
                       : "bg-black/40 border-white/10 text-gray-400"
                   )}
                 >
-                  🔆 Brightness Preset ({brightnessLevel}%)
+                   Brightness Preset ({brightnessLevel}%)
                 </button>
                 <button
                   type="button"
@@ -5858,7 +5880,7 @@ const MultiPagePdfScannerModal = ({
                       : "bg-black/40 border-white/10 text-gray-400"
                   )}
                 >
-                  🌗 Contrast Preset ({contrastLevel}%)
+                   Contrast Preset ({contrastLevel}%)
                 </button>
               </div>
 
@@ -5870,7 +5892,7 @@ const MultiPagePdfScannerModal = ({
                       onClick={() => fileInputRef.current?.click()}
                       className="flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-wider text-white/50 hover:text-white transition-all cursor-pointer"
                     >
-                      📂 Browse Files
+                       Browse Files
                     </button>
                   )}
                 </div>
@@ -5971,7 +5993,7 @@ const MultiPagePdfScannerModal = ({
               )}
 
               {capturedPages.length > 0 && (
-                <div className="flex flex-col gap-3 p-4 bg-gradient-to-br from-amber-50 to-orange-50/40 rounded-[2rem] border border-orange-100/60 shadow-xs shrink-0 text-slate-900">
+                <div className="flex flex-col gap-3 p-4 bg-gradient-to-br from-amber-50 to-orange-50/40 rounded-2xl border border-orange-100/60 shadow-xs shrink-0 text-slate-900">
                   <div className="flex items-center justify-between border-b border-orange-100/50 pb-2">
                     <span className="text-[10px] font-black uppercase tracking-wider text-orange-950 flex items-center gap-1">
                       <span>⚡ Mass Filter Tool</span>
@@ -6029,8 +6051,8 @@ const MultiPagePdfScannerModal = ({
 
               {/* Dynamic Pages Grid preview */}
               {capturedPages.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 rounded-[2rem] border-2 border-dashed border-gray-200 bg-white gap-3 text-center min-h-0">
-                  <span className="text-3xl">🗂️</span>
+                <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 rounded-2xl border-2 border-dashed border-gray-200 bg-white gap-3 text-center min-h-0">
+                  <span className="text-3xl"></span>
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">
                     Scan Bowl Empty Hai
                   </h4>
@@ -6038,7 +6060,7 @@ const MultiPagePdfScannerModal = ({
                     Camera se page photos click karein ya manual folders se PDF banane ke liye choose karein!
                   </p>
                   <label className="mt-2 px-4 py-2.5 bg-[#008069]/10 text-[#008069] text-[9.5px] font-black uppercase tracking-wider rounded-xl cursor-pointer hover:bg-[#008069]/15 transition-all">
-                    📂 Browse Files
+                     Browse Files
                     <input
                       type="file"
                       multiple
@@ -6051,7 +6073,7 @@ const MultiPagePdfScannerModal = ({
               ) : (
                 <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
                   <p className="text-[9px] text-[#008069] font-black uppercase tracking-wider bg-[#008069]/5 rounded-xl px-3 py-1.5 border border-[#008069]/10 flex items-center gap-1.5 shrink-0 select-none">
-                    <span>💡 Pro Tip: Drag & drop cards or use ◀ ▶ below to reorder sequence!</span>
+                    <span> Pro Tip: Drag & drop cards or use ◀ ▶ below to reorder sequence!</span>
                   </p>
                   
                   {/* Dedicated scroll container for the grid to handle overflow perfectly */}
@@ -6087,7 +6109,7 @@ const MultiPagePdfScannerModal = ({
                             }
                           }}
                           className={cn(
-                            "group relative bg-white border p-2.5 rounded-3xl shadow-xs flex flex-col gap-2 transition-all duration-300 cursor-grab active:cursor-grabbing select-none",
+                            "group relative bg-white border p-2.5 rounded-2xl shadow-xs flex flex-col gap-2 transition-all duration-300 cursor-grab active:cursor-grabbing select-none",
                             draggedIndex === idx ? "opacity-30 border-dashed border-gray-300" : "opacity-100",
                             selectedScannerPageIndices.includes(idx)
                               ? "border-[#008069] bg-[#008069]/5 shadow-sm"
@@ -6154,7 +6176,7 @@ const MultiPagePdfScannerModal = ({
                                 className="px-2 h-6 rounded-lg border border-amber-200 bg-amber-50 text-[9.5px] font-extrabold text-amber-800 flex items-center justify-center hover:bg-amber-100 active:scale-95 cursor-pointer shadow-xs gap-0.5"
                                 title="Crop or Trim Page"
                               >
-                                ✂️ Crop
+                                ✂ Crop
                               </button>
                             </div>
 
@@ -6182,7 +6204,7 @@ const MultiPagePdfScannerModal = ({
                   {/* File naming block */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      ✏️ PDF Name (File Name Type Karein)
+                      ✏ PDF Name (File Name Type Karein)
                     </label>
                     <input
                       type="text"
@@ -6197,7 +6219,7 @@ const MultiPagePdfScannerModal = ({
                   </div>
 
                   {pdfUrl && (
-                    <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-[2rem] flex flex-col gap-2 items-center text-center animate-fade-in duration-300">
+                    <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-2xl flex flex-col gap-2 items-center text-center animate-fade-in duration-300">
                       <div className="w-10 h-10 rounded-2xl bg-white border border-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
                         <Check className="w-5 h-5" />
                       </div>
@@ -6214,7 +6236,7 @@ const MultiPagePdfScannerModal = ({
                           onClick={() => window.open(pdfUrl, "_blank")}
                           className="flex-1 bg-white text-gray-800 font-extrabold text-[9.5px] uppercase tracking-wider py-2.5 border border-emerald-150 shadow-2xs rounded-xl hover:bg-emerald-50/20 active:scale-95 transition-all text-center"
                         >
-                          👁 Live Preview
+                           Live Preview
                         </button>
                         <button
                           onClick={() => {
@@ -6226,7 +6248,7 @@ const MultiPagePdfScannerModal = ({
                           }}
                           className="flex-1 bg-[#008069] hover:bg-[#006e5a] text-white font-extrabold text-[9.5px] uppercase tracking-wider py-2.5 shadow-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-1 text-center"
                         >
-                          📥 Download
+                           Download
                         </button>
                       </div>
                     </div>
@@ -6316,7 +6338,7 @@ const MitraSmartQrModal = ({
           console.error("Failed to parse QR code history", err);
         }
       }
-      showToast("Local memory reloaded successfully! 📱🧹", "info");
+      showToast("Local memory reloaded successfully! ", "info");
       return;
     }
 
@@ -6334,7 +6356,7 @@ const MitraSmartQrModal = ({
       list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setQrHistory(list);
       localStorage.setItem("mitra_smart_qr_history", JSON.stringify(list));
-      showToast("Cloud Firestore se latest QR record metadata sync ho gaya! 🔄⚡", "info");
+      showToast("Cloud Firestore se latest QR record metadata sync ho gaya! ⚡", "info");
     } catch (err: any) {
       console.error("[Force Sync Error]:", err);
       showToast("Latest files status sync karne me dikkat aayi bhai.", "error");
@@ -6457,7 +6479,7 @@ const MitraSmartQrModal = ({
         setCustomName(latestInfo.fileName);
         setStep("result");
         setModalTab("create");
-        showToast(`"${latestInfo.fileName}" loaded with latest files from Cloud Database! ⚡📂`, "info");
+        showToast(`"${latestInfo.fileName}" loaded with latest files from Cloud Database! ⚡`, "info");
       } else {
         // Doc might be deleted or we try the test collection
         const testRef = doc(db, "test", item.id);
@@ -6477,7 +6499,7 @@ const MitraSmartQrModal = ({
           setCustomName(testInfo.fileName);
           setStep("result");
           setModalTab("create");
-          showToast(`"${testInfo.fileName}" loaded with latest files! ⚡📁`, "info");
+          showToast(`"${testInfo.fileName}" loaded with latest files! ⚡`, "info");
         } else {
           // Local fallback
           if (item.fileData || item.base64) {
@@ -6744,7 +6766,7 @@ const MitraSmartQrModal = ({
         console.error("Error saving QR history item", innerErr);
       }
 
-      showToast("Mitra Qr Code generated successfully! 🪄✨", "info");
+      showToast("Mitra Qr Code generated successfully! ", "info");
     } catch (err: any) {
       console.error("QR Code Generation failed", err);
       setError("QR generate karne me error aaya bhai. Kripya bad me try karein.");
@@ -6761,7 +6783,7 @@ const MitraSmartQrModal = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast("QR code gallery me save ho gaya hai! 📥📱", "info");
+    showToast("QR code gallery me save ho gaya hai! ", "info");
   };
 
   const shareViaWhatsApp = () => {
@@ -6777,7 +6799,7 @@ const MitraSmartQrModal = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden shadow-slate-900/40"
+        className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden shadow-slate-900/40"
       >
         {isUploading && (
           <div className="absolute inset-0 bg-white/95 backdrop-blur-xs z-50 flex flex-col items-center justify-center p-8 animate-fade-in">
@@ -6785,14 +6807,14 @@ const MitraSmartQrModal = ({
               {/* Spinning/pulsing animation graphic */}
               <div className="relative">
                 <div className="absolute -inset-4 bg-[#008069]/10 rounded-full animate-ping opacity-75"></div>
-                <div className="relative w-16 h-16 bg-emerald-50 border border-emerald-100 rounded-3xl flex items-center justify-center text-[#008069] shadow-sm">
+                <div className="relative w-16 h-16 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-[#008069] shadow-sm">
                   <QrCode className="w-8 h-8 animate-pulse text-[#008069]" />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest animate-pulse">
-                  Generating Secure QR... 🪄✨
+                  Generating Secure QR... 
                 </h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
                   Mitra AI details ko safe-pack aur QR code build kar raha hai bhai
@@ -6848,7 +6870,7 @@ const MitraSmartQrModal = ({
 
         <div className="bg-gradient-to-r from-[#008069] to-[#046A55] px-6 py-5 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🪄</span>
+            <span className="text-xl"></span>
             <div>
               <h2 className="text-sm font-black uppercase tracking-wider">
                 MITRA SMART QR (DOC-SCANNER)
@@ -6953,7 +6975,7 @@ const MitraSmartQrModal = ({
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-                        showToast("CSV history download ho gaya! 📄📥", "info");
+                        showToast("CSV history download ho gaya! ", "info");
                       }}
                       className="text-[9px] font-black uppercase tracking-wider text-[#008069] hover:text-emerald-700 cursor-pointer flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100/80 px-2 py-1 rounded-lg border border-emerald-150 transition-colors"
                     >
@@ -6977,7 +6999,7 @@ const MitraSmartQrModal = ({
                         }
                         localStorage.removeItem("mitra_smart_qr_history");
                         setQrHistory([]);
-                        showToast("QR scanner history empty ho gaya! 🧹✨", "info");
+                        showToast("QR scanner history empty ho gaya! ", "info");
                       }}
                       className="text-[9px] font-black uppercase tracking-wider text-rose-600 hover:text-rose-700 cursor-pointer bg-rose-50 hover:bg-rose-100/80 px-2 py-1 rounded-lg border border-rose-150 transition-colors text-center"
                     >
@@ -6988,7 +7010,7 @@ const MitraSmartQrModal = ({
               </div>
 
               {qrHistory.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   <div className="w-12 h-12 bg-[#008069]/10 rounded-2xl flex items-center justify-center text-[#008069] mb-3">
                     <History className="w-6 h-6" />
                   </div>
@@ -7003,7 +7025,7 @@ const MitraSmartQrModal = ({
                     onClick={() => setModalTab("create")}
                     className="mt-4 bg-[#008069] text-white font-black text-[9px] uppercase tracking-widest py-2.5 px-4 rounded-xl active:scale-95 transition-all cursor-pointer"
                   >
-                    Generate QR Now 🚀
+                    Generate QR Now 
                   </button>
                 </div>
               ) : (
@@ -7071,7 +7093,7 @@ const MitraSmartQrModal = ({
                               {item.fileName}
                             </h4>
                             {item.notes && (
-                              <p className="text-[10px] font-bold text-slate-500 line-clamp-2 mt-0.5 leading-snug lowercase first-letter:uppercase normal-case">
+                              <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug lowercase first-letter:uppercase normal-case">
                                 {item.notes}
                               </p>
                             )}
@@ -7112,7 +7134,7 @@ const MitraSmartQrModal = ({
                               document.body.appendChild(link);
                               link.click();
                               document.body.removeChild(link);
-                              showToast("QR code gallery me save ho gaya! 📥📱", "info");
+                              showToast("QR code gallery me save ho gaya! ", "info");
                             }}
                             className="p-1 hover:bg-slate-50 text-slate-400 hover:text-[#008069] rounded-lg transition-colors cursor-pointer disabled:opacity-55"
                             title="Download QR"
@@ -7142,7 +7164,7 @@ const MitraSmartQrModal = ({
                                 const updated = qrHistory.filter((x) => x.id !== item.id);
                                 localStorage.setItem("mitra_smart_qr_history", JSON.stringify(updated));
                                 setQrHistory(updated);
-                                showToast("QR item history se delete kiya gaya! 🗑️", "info");
+                                showToast("QR item history se delete kiya gaya! ", "info");
                               } catch (err: any) {
                                 console.error("Error deleting document record", err);
                                 showToast("Delete karne me error aaya bhai.", "error");
@@ -7170,7 +7192,7 @@ const MitraSmartQrModal = ({
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                      Document Alias / Title 🏷️
+                      Document Alias / Title 
                     </label>
                     <input
                       type="text"
@@ -7183,7 +7205,7 @@ const MitraSmartQrModal = ({
 
                   <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                      Short Note / Description 📝
+                      Short Note / Description 
                     </label>
                     <textarea
                       placeholder="Add a small note e.g., 'For UPSC registration verification' or 'Useful class reference'."
@@ -7215,7 +7237,7 @@ const MitraSmartQrModal = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-3xl p-8 py-10 flex flex-col items-center justify-center gap-4 text-center cursor-pointer transition-all ${
+                    className={`border-2 border-dashed rounded-2xl p-8 py-10 flex flex-col items-center justify-center gap-4 text-center cursor-pointer transition-all ${
                       file
                         ? "border-emerald-300 bg-emerald-50/25"
                         : "border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300"
@@ -7245,7 +7267,7 @@ const MitraSmartQrModal = ({
                       </>
                     ) : (
                       <>
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg transform rotate-2">
+                        <div className="w-12 h-12 rounded-2xl bg-[#008069] text-white flex items-center justify-center shadow-lg transform rotate-2">
                           <FileCheck className="w-6 h-6" />
                         </div>
                         <div className="flex flex-col gap-1 max-w-xs">
@@ -7274,7 +7296,7 @@ const MitraSmartQrModal = ({
 
                   {error && (
                     <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-[11px] font-bold text-rose-600 text-center uppercase tracking-tight leading-normal">
-                      ⚠️ {error}
+                      ⚠ {error}
                     </div>
                   )}
 
@@ -7282,7 +7304,7 @@ const MitraSmartQrModal = ({
                     type="button"
                     onClick={generateSecureQr}
                     disabled={isUploading || !file}
-                    className="w-full bg-[#008069] hover:bg-[#006e59] text-white py-5 rounded-3xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all shadow-xl disabled:bg-slate-300 disabled:shadow-none cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full bg-[#008069] hover:bg-[#006e59] text-white py-5 rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all shadow-xl disabled:bg-slate-300 disabled:shadow-none cursor-pointer flex items-center justify-center gap-2"
                   >
                     {isUploading ? (
                       <>
@@ -7291,18 +7313,18 @@ const MitraSmartQrModal = ({
                       </>
                     ) : (
                       <>
-                        GENERATE SECURE QR 🚀
+                        GENERATE SECURE QR 
                       </>
                     )}
                   </button>
 
-                  <div className="bg-emerald-50 rounded-[2rem] border border-emerald-100 p-5 mt-2">
+                  <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5 mt-2">
                     <p className="text-[10px] font-black text-[#008069] uppercase tracking-widest flex items-center gap-1">
-                      💡 Smart Qr Guide & Benefits:
+                      Smart Qr Guide & Benefits:
                     </p>
                     <div className="text-[11px] font-medium text-slate-700 leading-relaxed mt-2.5 space-y-2">
                       <p>
-                        "Bhai, ye toh ekdum magic hai! Is tool se tum apne heavy PDFs, 10th/12th high school/intermediate marksheets, ya college class notes ko sirf ek 1-click single scan-able QR Code mein badal sakte ho! 🪄✨"
+                        "Bhai, ye toh ekdum magic hai! Is tool se tum apne heavy PDFs, 10th/12th high school/intermediate marksheets, ya college class notes ko sirf ek 1-click single scan-able QR Code mein badal sakte ho! "
                       </p>
                       <p>
                         "Bhai, apna resume banate waqt is QR ko kone mein laga do. HR jaise hi scan karega, tumhare saare original certificates uske phone mein khul jayenge. Yeh tumhe baaki candidates se 10x aage kar dega!"
@@ -7311,7 +7333,7 @@ const MitraSmartQrModal = ({
                         "Doston ko WhatsApp par 50 MB ki file bhejne ki zaroorat nahi. Bas apna QR share karo, aur poori class notes download kar legi."
                       </p>
                       <p className="text-[10px] text-[#008069] font-bold uppercase tracking-wider mt-1">
-                        🔒 Security Reassurance: Chinta mat karna bhai, tumhari documents ekdum secure server pe hosted hain. Jab tak koi is exact QR code ko scan nahi karega, tab tak koi bhi ise access nahi kar sakta! Ekdum safe aur private.
+                         Security Reassurance: Chinta mat karna bhai, tumhari documents ekdum secure server pe hosted hain. Jab tak koi is exact QR code ko scan nahi karega, tab tak koi bhi ise access nahi kar sakta! Ekdum safe aur private.
                       </p>
                     </div>
                   </div>
@@ -7319,10 +7341,10 @@ const MitraSmartQrModal = ({
               ) : (
                 <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in-95">
                   <p className="text-xs font-black text-[#008069] bg-emerald-50 px-4 py-2 border border-emerald-100 rounded-full uppercase tracking-wider text-center">
-                    ✨ Aapka Secure QR Code taiyar hai! ✨
+                    Aapka Secure QR Code taiyar hai! 
                   </p>
 
-                  <div className="p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex flex-col items-center justify-center relative shadow-inner">
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center relative shadow-inner">
                     {qrCodeUrl && (
                       <img
                         src={qrCodeUrl}
@@ -7378,7 +7400,7 @@ const MitraSmartQrModal = ({
                       ← Convert Another
                     </button>
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest italic">
-                      🛡️ Mitra Secured Document
+                      Mitra Secured Document
                     </span>
                   </div>
                 </div>
@@ -7393,11 +7415,11 @@ const MitraSmartQrModal = ({
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100 p-6 flex flex-col gap-5 text-left text-slate-800"
+            className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-100 p-6 flex flex-col gap-5 text-left text-slate-800"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-black text-[#008069] uppercase tracking-wider flex items-center gap-1">
-                💼 RESUME / CV GUIDE
+                RESUME / CV GUIDE
               </h3>
               <button
                 onClick={() => setShowCvTips(false)}
@@ -7429,7 +7451,7 @@ const MitraSmartQrModal = ({
                 <span className="w-6 h-6 rounded-full bg-emerald-50 text-[#008069] flex items-center justify-center shrink-0 border border-emerald-100 text-[10px] font-black">3</span>
                 <div>
                   <span className="text-slate-900 font-extrabold uppercase text-[10px] block">Stand Out 10x:</span>
-                  HR managers ke paas time nahi hota. Phone camera se sirf ek click karte hi tumhari high school marksheet ya certificates instant load honge — automatic selection calls 10x badhenge, guaranteed! 🚀
+                  HR managers ke paas time nahi hota. Phone camera se sirf ek click karte hi tumhari high school marksheet ya certificates instant load honge — automatic selection calls 10x badhenge, guaranteed! 
                 </div>
               </div>
             </div>
@@ -7438,7 +7460,7 @@ const MitraSmartQrModal = ({
               onClick={() => setShowCvTips(false)}
               className="w-full bg-[#008069] text-white rounded-xl py-3 font-black text-[10px] uppercase tracking-wider active:scale-95 transition-all mt-2 cursor-pointer"
             >
-              Samajh Gaya, Bade Bhai! 👍
+              Samajh Gaya, Bade Bhai! 
             </button>
           </motion.div>
         </div>
@@ -7541,7 +7563,7 @@ const PublicDocViewer = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast("Downloaded original file successfully! 📥🚀", "info");
+    showToast("Downloaded original file successfully! ", "info");
   };
 
   return (
@@ -7554,7 +7576,7 @@ const PublicDocViewer = ({
           <div className="text-left">
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-black uppercase text-teal-400 bg-teal-900/40 px-2 py-0.5 rounded border border-teal-800/30 tracking-widest leading-none">
-                🔒 Verified Scanned Doc
+                 Verified Scanned Doc
               </span>
             </div>
             <h1 className="text-xs font-black uppercase tracking-tight text-white mt-1">
@@ -7579,8 +7601,8 @@ const PublicDocViewer = ({
             </p>
           </div>
         ) : error ? (
-          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-[2rem] p-8 text-center flex flex-col items-center gap-5">
-            <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-lg">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center flex flex-col items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-lg">
               <AlertTriangle className="w-8 h-8" />
             </div>
             <div className="flex flex-col gap-2">
@@ -7600,7 +7622,7 @@ const PublicDocViewer = ({
           </div>
         ) : (
           <div className="max-w-4xl w-full flex flex-col gap-6 h-full max-h-[85vh]">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shrink-0">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shrink-0">
               <div className="flex items-center gap-3 overflow-hidden text-left w-full sm:w-auto">
                 <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20 shadow-md">
                   <FileText className="w-5 h-5 text-[#008069]" />
@@ -7613,7 +7635,7 @@ const PublicDocViewer = ({
                     {docData?.fileName}
                   </h3>
                   <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest mt-0.5 block">
-                    Size: {docData?.fileSize ? (docData.fileSize / 1024 / 1024).toFixed(2) : "0.00"} MB • Cloud Secured 🛡️
+                    Size: {docData?.fileSize ? (docData.fileSize / 1024 / 1024).toFixed(2) : "0.00"} MB • Cloud Secured 
                   </span>
                 </div>
               </div>
@@ -7627,7 +7649,7 @@ const PublicDocViewer = ({
                   className="bg-[#008069] hover:bg-[#006e59] text-white font-black uppercase text-[11px] tracking-widest py-3 px-5 rounded-2xl shadow-lg shadow-teal-500/20 duration-150 transition-all active:scale-95 flex items-center gap-2 cursor-pointer border border-[#009277]"
                 >
                   <Eye className="w-4 h-4 text-white" />
-                  Direct Full Screen View 👁️
+                  Direct Full Screen View 
                 </a>
 
                 <button
@@ -7642,7 +7664,7 @@ const PublicDocViewer = ({
             </div>
 
             {/* Main Interactive Screen Viewport */}
-            <div className="flex-1 bg-slate-900 border border-slate-800 rounded-[2rem] p-4 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl min-h-[350px]">
+            <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl min-h-[350px]">
               {docData?.fileType?.includes("pdf") ? (
                 <div className="w-full h-full flex flex-col items-center justify-between gap-4 p-1">
                   <div className="w-full flex-1 min-h-[300px] rounded-2xl overflow-hidden bg-slate-800 shadow-inner flex flex-col">
@@ -7684,7 +7706,7 @@ const PublicDocViewer = ({
 
             <div className="text-center pb-2 shrink-0">
               <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest animate-pulse">
-                🛡️ Verified via Mitra Secure Hash Technology.
+                Verified via Mitra Secure Hash Technology.
               </p>
             </div>
           </div>
@@ -7822,7 +7844,7 @@ const PersonalizedAIRecommendations = ({
 
         <button
           onClick={fetchRecommendations}
-          className="w-full bg-[#008069] text-white py-4.5 rounded-[2rem] font-black uppercase text-[11px] tracking-widest hover:bg-[#006653] active:scale-95 transition-all shadow-md shadow-emerald-100/30 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full bg-[#008069] text-white py-4.5 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-[#006653] active:scale-95 transition-all shadow-md shadow-emerald-100/30 flex items-center justify-center gap-2 cursor-pointer"
         >
           <Sparkles className="w-4 h-4 text-yellow-300 fill-yellow-300 animate-pulse" />{" "}
           Find My Best Schemes with AI
@@ -7865,7 +7887,7 @@ const PersonalizedAIRecommendations = ({
               key={scheme.id}
               whileHover={{ y: -4 }}
               onClick={() => onNavigateToScheme(scheme.id)}
-              className="flex-shrink-0 w-80 bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-100 overflow-hidden group cursor-pointer"
+              className="flex-shrink-0 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-100 overflow-hidden group cursor-pointer"
             >
               <div className="h-40 relative">
                  <img
@@ -7909,7 +7931,7 @@ const PersonalizedAIRecommendations = ({
                   <h3 className="text-sm font-black text-white leading-tight mb-1">
                     {scheme.hindiName || scheme.name}
                   </h3>
-                  <p className="text-[10px] text-white/80 font-bold line-clamp-1">
+                  <p className="text-[10px] text-white/80 font-bold">
                     {scheme.name}
                   </p>
                 </div>
@@ -7939,7 +7961,7 @@ const PersonalizedAIRecommendations = ({
       </div>
 
       {insight && (
-        <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-[2.5rem] flex items-start gap-4">
+        <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl flex items-start gap-4">
           <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-blue-50 shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
@@ -7992,7 +8014,7 @@ const EligibilityMatcherModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
@@ -8020,7 +8042,7 @@ const EligibilityMatcherModal = ({
             <AILoader message="Mitra is scanning official rulebooks to find your matches..." />
           ) : result ? (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="p-6 bg-amber-50/50 rounded-[2.5rem] border border-amber-100">
+              <div className="p-6 bg-amber-50/50 rounded-2xl border border-amber-100">
                 <p className="text-sm font-medium text-gray-700 leading-relaxed italic">
                   "{result.mitraAdvice}"
                 </p>
@@ -8035,7 +8057,7 @@ const EligibilityMatcherModal = ({
                     (opp: any, idx: number) => (
                       <div
                         key={idx}
-                        className="p-6 bg-white border border-gray-100 rounded-[2rem] shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:border-amber-200 transition-colors"
+                        className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:border-amber-200 transition-colors"
                       >
                         {opp.priority === "high" && (
                           <div className="absolute top-0 right-0 p-2 bg-amber-500 text-white rounded-bl-2xl">
@@ -8079,7 +8101,7 @@ const EligibilityMatcherModal = ({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center text-center py-8 px-4 gap-6 animate-in fade-in slide-in-from-bottom-4">
-              <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center text-amber-500 shadow-sm border border-amber-100">
+              <div className="w-20 h-20 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 shadow-sm border border-amber-100">
                 <Sparkles className="w-10 h-10 animate-pulse text-amber-600" />
               </div>
               <div className="space-y-2">
@@ -8093,7 +8115,7 @@ const EligibilityMatcherModal = ({
                 </p>
               </div>
 
-              <div className="w-full bg-amber-50/50 p-5 rounded-[2rem] border border-amber-100 text-left max-w-md">
+              <div className="w-full bg-amber-50/50 p-5 rounded-2xl border border-amber-100 text-left max-w-md">
                 <span className="text-[9px] font-black text-amber-800 uppercase tracking-wider block mb-2 font-black">
                   Analyzing Profile Core:
                 </span>
@@ -8181,7 +8203,7 @@ const SchemeDiscoveryModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
@@ -8207,7 +8229,7 @@ const SchemeDiscoveryModal = ({
         <div className="flex-1 overflow-y-auto p-8">
           {isProfileIncomplete ? (
             <div className="flex flex-col items-center justify-center py-10 gap-6 text-center">
-              <div className="w-20 h-20 bg-orange-50 rounded-[2rem] flex items-center justify-center text-orange-600">
+              <div className="w-20 h-20 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
                 <AlertTriangle className="w-10 h-10" />
               </div>
               <div>
@@ -8242,7 +8264,7 @@ const SchemeDiscoveryModal = ({
                 <ReactMarkdown>{data.markdownResponse}</ReactMarkdown>
               </div>
 
-              <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 flex flex-col gap-4">
+              <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-blue-600" />
                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
@@ -8274,7 +8296,7 @@ const SchemeDiscoveryModal = ({
               </p>
               <button
                 onClick={fetchRecommendations}
-                className="w-full max-w-xs bg-[#008069] hover:bg-[#006653] text-white py-4 rounded-3xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="w-full max-w-xs bg-[#008069] hover:bg-[#006653] text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-yellow-300 fill-yellow-300" />{" "}
                 Discover My State Schemes
@@ -8358,7 +8380,7 @@ const MasterProfileModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 pb-4 bg-gray-50/50">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-4">
@@ -8388,7 +8410,7 @@ const MasterProfileModal = ({
               className={cn(
                 "px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
                 activeTab === "profile"
-                  ? "bg-emerald-600 text-white shadow-lg"
+                  ? "bg-[#008069] text-white shadow-lg"
                   : "bg-white text-gray-400 hover:bg-gray-100",
               )}
             >
@@ -8414,8 +8436,8 @@ const MasterProfileModal = ({
               {extracting ? (
                 <AILoader message="Mitra is extracting your identity from documents..." />
               ) : !extractedData ? (
-                <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2.5rem] flex flex-col items-center gap-4 text-center">
-                  <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300">
+                <div className="p-8 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center gap-4 text-center">
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300">
                     <Camera className="w-8 h-8" />
                   </div>
                   <div>
@@ -8426,7 +8448,7 @@ const MasterProfileModal = ({
                       Build profile from your 10th/12th certificate
                     </p>
                   </div>
-                  <label className="w-full bg-emerald-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer text-center shadow-lg hover:bg-emerald-700 transition-colors">
+                  <label className="w-full bg-[#008069] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer text-center shadow-lg hover:bg-emerald-700 transition-colors">
                     Scan Marksheet
                     <input
                       type="file"
@@ -8439,7 +8461,7 @@ const MasterProfileModal = ({
               ) : (
                 <div className="flex flex-col gap-6 animate-in zoom-in-95">
                   {/* Community Selection Section */}
-                  <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100 shadow-sm relative overflow-hidden group">
+                  <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                       <Users className="w-12 h-12" />
                     </div>
@@ -8472,7 +8494,7 @@ const MasterProfileModal = ({
                     </p>
                   </div>
 
-                  <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100">
+                  <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100">
                     <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">
                       Extracted Identity
                     </p>
@@ -8563,7 +8585,7 @@ const MasterProfileModal = ({
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in slide-in-from-right-4">
-              <div className="p-6 bg-orange-50 border border-orange-100 rounded-3xl flex items-center gap-4">
+              <div className="p-6 bg-orange-50 border border-orange-100 rounded-2xl flex items-center gap-4">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm shrink-0">
                   <AlertTriangle className="w-6 h-6" />
                 </div>
@@ -8586,7 +8608,7 @@ const MasterProfileModal = ({
                   {requiredDocs.map((doc, idx) => (
                     <div
                       key={idx}
-                      className="p-5 bg-white border border-gray-100 rounded-[2rem] flex justify-between items-center shadow-sm"
+                      className="p-5 bg-white border border-gray-100 rounded-2xl flex justify-between items-center shadow-sm"
                     >
                       <div className="flex items-center gap-4">
                         <div
@@ -8674,7 +8696,7 @@ const CounselingGuideModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
@@ -8708,7 +8730,7 @@ const CounselingGuideModal = ({
                   <select
                     value={examName}
                     onChange={(e) => setExamName(e.target.value)}
-                    className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 font-bold text-sm text-gray-700"
+                    className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 font-bold text-sm text-gray-700"
                   >
                     <option value="">Choose Exam...</option>
                     <option value="NEET">NEET UG</option>
@@ -8728,7 +8750,7 @@ const CounselingGuideModal = ({
                     placeholder="e.g. 45000"
                     value={rank}
                     onChange={(e) => setRank(e.target.value)}
-                    className="w-full p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-blue-100 font-black text-sm text-gray-900"
+                    className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 font-black text-sm text-gray-900"
                   />
                 </div>
               </div>
@@ -8736,7 +8758,7 @@ const CounselingGuideModal = ({
               <button
                 onClick={getGuide}
                 disabled={!examName || !rank || loading}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
               >
                 {loading ? "Generating Roadmap..." : "Get Counseling Roadmap"}
               </button>
@@ -8747,7 +8769,7 @@ const CounselingGuideModal = ({
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in zoom-in-95">
-              <div className="p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100">
+              <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
                 <p className="text-sm font-medium text-gray-700 leading-relaxed italic">
                   "{result.roadmapSummary}"
                 </p>
@@ -8801,7 +8823,7 @@ const CounselingGuideModal = ({
                     {result.precautions.map((p: any, i: number) => (
                       <div
                         key={i}
-                        className="p-4 bg-orange-50/30 border border-orange-100 rounded-3xl flex gap-3"
+                        className="p-4 bg-orange-50/30 border border-orange-100 rounded-2xl flex gap-3"
                       >
                         <AlertCircle className="w-5 h-5 text-orange-500 shrink-0" />
                         <p className="text-xs font-bold text-orange-900 leading-tight py-0.5">
@@ -8821,7 +8843,7 @@ const CounselingGuideModal = ({
                   {result.requiredDocuments?.map((d: any, i: number) => (
                     <div
                       key={i}
-                      className="p-4 bg-gray-50/50 border border-gray-100 rounded-3xl flex items-center justify-between"
+                      className="p-4 bg-gray-50/50 border border-gray-100 rounded-2xl flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500">
@@ -8845,7 +8867,7 @@ const CounselingGuideModal = ({
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-900 rounded-[2.5rem] shadow-xl">
+              <div className="p-6 bg-slate-900 rounded-2xl shadow-xl">
                 <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5" /> Mitra's Strategy
                 </p>
@@ -8856,7 +8878,7 @@ const CounselingGuideModal = ({
 
               <button
                 onClick={() => setResult(null)}
-                className="w-full bg-gray-100 text-gray-500 py-4 rounded-[2rem] font-black uppercase text-[10px] tracking-widest"
+                className="w-full bg-gray-100 text-gray-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest"
               >
                 Check Other Exam
               </button>
@@ -8984,14 +9006,14 @@ const WhatsAppNotificationGenerator = ({
               value={customDetail}
               onChange={(e) => setCustomDetail(e.target.value)}
               placeholder="e.g. Income Certificate missing, or 'PM Kisan' scheme name..."
-              className="w-full bg-gray-50 p-4 rounded-3xl border border-gray-100 text-sm font-medium outline-none h-24 resize-none transition-all focus:border-[#25D366]/30"
+              className="w-full bg-gray-50 p-4 rounded-2xl border border-gray-100 text-sm font-medium outline-none h-24 resize-none transition-all focus:border-[#25D366]/30"
             />
           </div>
 
           <button
             onClick={generate}
             disabled={generating}
-            className="w-full py-4 bg-[#25D366] text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+            className="w-full py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
           >
             {generating ? (
               <>
@@ -9008,7 +9030,7 @@ const WhatsAppNotificationGenerator = ({
 
           {message && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="bg-[#E5DDD5] chat-pattern p-4 rounded-3xl border border-gray-200 relative">
+              <div className="bg-[#E5DDD5] chat-pattern p-4 rounded-2xl border border-gray-200 relative">
                 <div className="absolute top-4 left-[-8px] w-4 h-4 bg-[#DCF8C6] rotate-45 border-l border-b border-gray-200 hidden" />
                 <div className="bg-[#DCF8C6] p-4 rounded-2xl rounded-tr-none shadow-sm border border-[#C7E9B0] text-sm whitespace-pre-wrap font-medium text-gray-800 leading-relaxed tabular-nums">
                   {message}
@@ -9100,10 +9122,10 @@ const FormAuditModal = ({
   };
 
   const handleAudit = async () => {
-    if (!imageFile || !selectedScheme) return;
+    if (!imageFile) return;
     setAuditing(true);
     try {
-      const auditResult = await analyzeFilledForm(imageFile, selectedScheme);
+      const auditResult = await analyzeFilledForm(imageFile);
       setResult(auditResult);
     } catch (err) {
       console.error("Audit error:", err);
@@ -9124,7 +9146,7 @@ const FormAuditModal = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-[2.5rem] md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
+      <div className="relative bg-white w-full h-full md:max-w-md md:h-[92vh] md:rounded-2xl md:shadow-2xl md:border-4 md:border-slate-800 flex flex-col overflow-hidden relative shadow-slate-900/40">
         <header className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
@@ -9161,7 +9183,7 @@ const FormAuditModal = ({
 
               <div
                 className={cn(
-                  "aspect-video rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
+                  "aspect-video rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 relative overflow-hidden group transition-all",
                   (image || imageFile) && "border-indigo-200 bg-indigo-50/10",
                 )}
               >
@@ -9180,7 +9202,7 @@ const FormAuditModal = ({
                   </div>
                 ) : (
                   <>
-                    <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300 group-hover:scale-110 transition-transform">
                       <Upload className="w-8 h-8" />
                     </div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -9191,7 +9213,6 @@ const FormAuditModal = ({
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  capture="environment"
                   onChange={handleImageUpload}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
@@ -9211,7 +9232,7 @@ const FormAuditModal = ({
               <button
                 onClick={handleAudit}
                 disabled={(!image && !imageFile) || auditing}
-                className="w-full bg-[#008069] text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-green-100 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 <Upload className="w-4 h-4" />
                 {auditing
@@ -9225,7 +9246,7 @@ const FormAuditModal = ({
             </div>
           ) : (
             <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 flex flex-col items-center gap-4 text-center">
+              <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center gap-4 text-center">
                 <div className="relative">
                   <svg className="w-32 h-32 transform -rotate-90">
                     <circle
@@ -9296,7 +9317,7 @@ const FormAuditModal = ({
               )}
 
               {result.photoAudit && (
-                <div className="p-6 bg-indigo-50/50 rounded-[2.5rem] border border-indigo-100 flex flex-col gap-4">
+                <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col gap-4">
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
@@ -9390,7 +9411,7 @@ const FormAuditModal = ({
                     {result.majorIssues.map((issue: any, idx: number) => (
                       <div
                         key={idx}
-                        className="p-5 bg-white border border-red-100 rounded-3xl shadow-sm flex flex-col gap-3 relative overflow-hidden"
+                        className="p-5 bg-white border border-red-100 rounded-2xl shadow-sm flex flex-col gap-3 relative overflow-hidden"
                       >
                         <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
                         <div className="flex justify-between items-start">
@@ -9458,7 +9479,7 @@ const FormAuditModal = ({
               )}
 
               {result.actionPlan?.length > 0 && (
-                <div className="space-y-4 bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
+                <div className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" /> Clear
                     Action Plan
@@ -9480,7 +9501,7 @@ const FormAuditModal = ({
 
               <button
                 onClick={() => setResult(null)}
-                className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
+                className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all mt-4"
               >
                 Audit New Form
               </button>
@@ -9529,7 +9550,7 @@ const NotificationCenter = ({
   const handleCopyDigest = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    showToast("Digest successfully copied to clipboard! 📋✨", "info");
+    showToast("Digest successfully copied to clipboard! ", "info");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -9641,7 +9662,7 @@ const NotificationCenter = ({
 
   const handleManualRefreshFeed = () => {
     setIsRefreshingFeeding(true);
-    showToast("Form Mitra sarkaari server alerts check kar raha hai... 📡", "info");
+    showToast("Form Mitra sarkaari server alerts check kar raha hai... ", "info");
     
     setTimeout(() => {
       setIsRefreshingFeeding(false);
@@ -9659,11 +9680,11 @@ const NotificationCenter = ({
         
         const possibleAlerts = [
           {
-            title: `📡 Sarkaari Alert: ${selected.hindiName || selected.name} Notice`,
+            title: ` Sarkaari Alert: ${selected.hindiName || selected.name} Notice`,
             body: `Chhatron/Kisano dhyan dein! Government ne ${selected.name} application database servers optimize kiye hain. Ab form fill karna aur asan hai!`
           },
           {
-            title: `💰 DBT Fund Released: ${selected.hindiName || selected.name}`,
+            title: ` DBT Fund Released: ${selected.hindiName || selected.name}`,
             body: `Mubarak ho! ${selected.name} scheme ke direct benefit payouts aapke bank account me transfer hona shuru ho chuke hain. Apna status check karein.`
           },
           {
@@ -9686,7 +9707,7 @@ const NotificationCenter = ({
         };
         
         setNotifications((prev) => [newNotif, ...prev]);
-        showToast("Dynamic Live Update Feed successfully fetch ho gaya hai! 🔔✨", "info");
+        showToast("Dynamic Live Update Feed successfully fetch ho gaya hai! ", "info");
         showLocalNotification(template.title, { body: template.body });
       } else {
         showToast("Naye scheme updates are currently fully sync-to-date! ✅", "info");
@@ -9720,13 +9741,13 @@ const NotificationCenter = ({
           className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-          <span>AI Daily Digest 🤖</span>
+          <span>AI Daily Digest </span>
         </button>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         {/* Board & State Education Updates Hub */}
-        <div className="bg-gradient-to-br from-[#008069]/[0.08] via-emerald-600/[0.01] to-transparent p-5 rounded-[2.5rem] border border-[#008069]/10 flex flex-col gap-4 shadow-sm mb-4">
+        <div className="bg-gradient-to-br from-[#008069]/[0.08] via-emerald-600/[0.01] to-transparent p-5 rounded-2xl border border-[#008069]/10 flex flex-col gap-4 shadow-sm mb-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-2xl bg-[#008069]/10 flex items-center justify-center text-[#008069] shrink-0 border border-[#008069]/10 hover:rotate-6 transition-transform">
@@ -9767,7 +9788,7 @@ const NotificationCenter = ({
                   type="button"
                   onClick={() => {
                     onUpdateProfile({ schoolBoard: board.id });
-                    showToast(`${board.name} Board Alerts Activated! 🎓`, "info");
+                    showToast(`${board.name} Board Alerts Activated! `, "info");
                   }}
                   className={cn(
                     "px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer text-center",
@@ -9784,7 +9805,7 @@ const NotificationCenter = ({
             {/* Manage Multiple Boards Toggles */}
             <div className="mt-1 pt-1.5 border-t border-dashed border-emerald-500/10 flex items-center justify-between gap-3 bg-[#008069]/[0.02] p-2.5 rounded-2xl">
               <span className="text-[9px] text-slate-500 font-extrabold uppercase">
-                🔔 Multiple Boards Follow Karein?
+                 Multiple Boards Follow Karein?
               </span>
               <button
                 type="button"
@@ -9792,7 +9813,7 @@ const NotificationCenter = ({
                 className="flex items-center gap-1 bg-[#008069] hover:bg-[#005e4d] text-white font-black text-[9px] uppercase tracking-wider py-1.5 px-3 rounded-lg shadow-xs transition-all cursor-pointer active:scale-95"
               >
                 <Settings className="w-3 h-3 animate-spin-slow" />
-                <span>Follow Multiple Boards ⚙️</span>
+                <span>Follow Multiple Boards ⚙</span>
               </button>
             </div>
           </div>
@@ -9816,7 +9837,7 @@ const NotificationCenter = ({
               onChange={(e) => {
                 const newState = e.target.value;
                 onUpdateProfile({ state: newState });
-                showToast(`Primary region updated to ${newState}! 📍`, "info");
+                showToast(`Primary region updated to ${newState}! `, "info");
               }}
               className="bg-emerald-50/50 hover:bg-emerald-50 text-slate-700 font-extrabold text-[11px] px-3 py-1.5 rounded-xl border border-emerald-100 outline-none focus:ring-2 focus:ring-[#008069] transition-all cursor-pointer"
             >
@@ -9844,9 +9865,9 @@ const NotificationCenter = ({
           </div>
 
           {/* Render Customized Board & State Notices List */}
-          <div className="flex flex-col gap-2.5 mt-1 bg-white p-3 rounded-3xl border border-slate-100 max-h-[250px] overflow-y-auto scrollbar-hide">
+          <div className="flex flex-col gap-2.5 mt-1 bg-white p-3 rounded-2xl border border-slate-100 max-h-[250px] overflow-y-auto scrollbar-hide">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between border-b border-slate-50 pb-2 mb-1">
-              <span>📌 OFFICIAL BULLETINS BOARD</span>
+              <span> OFFICIAL BULLETINS BOARD</span>
               <span className="text-emerald-600 animate-pulse flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                 Live Sync
@@ -9859,19 +9880,19 @@ const NotificationCenter = ({
 
               const boardNoticesList = [
                 {
-                  title: "CBSE Class 10/12 Board Registration Date Extended 📝",
+                  title: "CBSE Class 10/12 Board Registration Date Extended ",
                   desc: "Mukhya update! Central board exam fees aur regular application submission antim tithi bina penalty badha di gayi hai. Form Mitra portal se guidelines verify karein.",
                   type: "CBSE Board",
                   date: "Today"
                 },
                 {
-                  title: "Single Girl Child Scholarship eligibility guidelines live 🌟",
+                  title: "Single Girl Child Scholarship eligibility guidelines live ",
                   desc: "CBSE board Class 10 me 60% se adhik marks wale female candidates ke liye standard monthly scholarship registration open. Aadhar payment mapping active.",
                   type: "Scholarship",
                   date: "2 days ago"
                 },
                 {
-                  title: "New Digital Sample Paper Syllabus guidelines available 📚",
+                  title: "New Digital Sample Paper Syllabus guidelines available ",
                   desc: "Naye academic curriculum change ke anusaar experimental questions and practical syllabus is released on the central education database.",
                   type: "Syllabus Update",
                   date: "1 week ago"
@@ -9880,19 +9901,19 @@ const NotificationCenter = ({
 
               const bsebNoticesList = [
                 {
-                  title: "BSEB Matric & Inter dummy registration card updates 🚨",
+                  title: "BSEB Matric & Inter dummy registration card updates ",
                   desc: "Bihar Board matric-inter chhatro ke liye portal open ho chuka hai. Dummy registration card me spelling, dob ya gender errors turant school se verify karein.",
                   type: "BSEB Bihar",
                   date: "Today"
                 },
                 {
-                  title: "Bihar Board 10th Pass Balak/Balika Protsahan Yojana 💰",
+                  title: "Bihar Board 10th Pass Balak/Balika Protsahan Yojana ",
                   desc: "Matriculation (1st division) pass pass chhatro ke liye Rs. 10,000 protshahan scholarship form Medhasoft portal par shuru ho raha hai. DB/Aadhar match optional.",
                   type: "Bihar Scholarship",
                   date: "Today"
                 },
                 {
-                  title: "BSEB Free Bicycle Scheme payout list updates 🚲",
+                  title: "BSEB Free Bicycle Scheme payout list updates ",
                   desc: "Class 9th and 10th chhatro ke liye cycle yojana DBT distribution camps state reports ke anusaar clear ho gye hain. Status bank links se match karein.",
                   type: "Bihar Benefit",
                   date: "4 days ago"
@@ -9901,19 +9922,19 @@ const NotificationCenter = ({
 
               const upmspNoticesList = [
                 {
-                  title: "UPMSP Board Exams Exam Center lists and Roll Number Verify 📄",
+                  title: "UPMSP Board Exams Exam Center lists and Roll Number Verify ",
                   desc: "UP Board ne practical exams aur high-school roll alignment process official webservice par chalu kar di hai. Pre-matching complete karein.",
                   type: "UP Board UPMSP",
                   date: "Today"
                 },
                 {
-                  title: "UP Kanya Sumangala Board Scholarship Merit criteria live 🌸",
+                  title: "UP Kanya Sumangala Board Scholarship Merit criteria live ",
                   desc: "Uttar Pradesh female chhatro ke educational tier transition support ke rules update. Rs. 15,000 cash milne ke rules guidelines click krein.",
                   type: "UP Yojana",
                   date: "3 days ago"
                 },
                 {
-                  title: "UP Board digital marksheet integration with DigiLocker system 📑",
+                  title: "UP Board digital marksheet integration with DigiLocker system ",
                   desc: "Ab secondary and senior-secondary results DigiLocker par digitally verify aur authenticate ho sakte hain. Apply fast.",
                   type: "UP Education",
                   date: "2 weeks ago"
@@ -9922,13 +9943,13 @@ const NotificationCenter = ({
 
               const icseNoticesList = [
                 {
-                  title: "CISCE Class 10/12 Marksheets directly integrated on DigiLocker 📁",
+                  title: "CISCE Class 10/12 Marksheets directly integrated on DigiLocker ",
                   desc: "ICSE board previous year transcripts verified migration and degree certificates can be fetched safely securely anywhere.",
                   type: "ICSE CISCE",
                   date: "Yesterday"
                 },
                 {
-                  title: "CISCE Merit & Sports Recognition Scholarship application live 🏆",
+                  title: "CISCE Merit & Sports Recognition Scholarship application live ",
                   desc: "Board outstanding performers nominated directly through registered institutional logins. Guidelines apply active.",
                   type: "CISCE Talent",
                   date: "5 days ago"
@@ -9937,13 +9958,13 @@ const NotificationCenter = ({
 
               const otherNoticesList = [
                 {
-                  title: "National Scholarship Portal (NSP) Unified lists update 🎓",
+                  title: "National Scholarship Portal (NSP) Unified lists update ",
                   desc: "Naye session state merit and other minor categories registrations verify timeline list open. Please re-validate block files.",
                   type: "National Portal",
                   date: "Today"
                 },
                 {
-                  title: "State Board Free Laptop checklist guidelines updated 🎯",
+                  title: "State Board Free Laptop checklist guidelines updated ",
                   desc: "Affiliated boards ke high percentiles holding chhatro ka state-wise merit details list distribution release setup online.",
                   type: "State Yojana",
                   date: "3 days ago"
@@ -9952,13 +9973,13 @@ const NotificationCenter = ({
 
               const biharStateNotices = [
                 {
-                  title: "Bihar Student Credit Card Yojana Upgraded Limit 💳",
+                  title: "Bihar Student Credit Card Yojana Upgraded Limit ",
                   desc: "DRCC guidelines verification start: Higher technical courses ke liye Rs. 4 Lakhs tak zero-guarantee credit lines. Ladkiyo ke liye vyaj dar 1%!",
                   type: "Bihar DRCC",
                   date: "Today"
                 },
                 {
-                  title: "Post-Matric OBC/SC/ST Bihar Scholarship registration active 🏆",
+                  title: "Post-Matric OBC/SC/ST Bihar Scholarship registration active ",
                   desc: "National portal ke sath state scholarship Bihar student validation verify starts list on pmsonline.bih.nic.in. Family income check mandatory.",
                   type: "Bihar PMS",
                   date: "2 days ago"
@@ -9967,13 +9988,13 @@ const NotificationCenter = ({
 
               const upStateNotices = [
                 {
-                  title: "UP Swami Vivekanand Yuva Sashaktikaran technological aid lists 📱",
+                  title: "UP Swami Vivekanand Yuva Sashaktikaran technological aid lists ",
                   desc: "Final years holding board students ke liye state high tier government tablet and smartphone target releases verification check stats open.",
                   type: "UP Tablet distribution",
                   date: "Today"
                 },
                 {
-                  title: "UP Scholarship pre & post matric renewal guidelines 🎓",
+                  title: "UP Scholarship pre & post matric renewal guidelines ",
                   desc: "Underprivileged, OBC & General metrics students portal registration and category income guidelines live.",
                   type: "UP scholarship renewal",
                   date: "3 days ago"
@@ -9982,7 +10003,7 @@ const NotificationCenter = ({
 
               const fallbackStateNotices = [
                 {
-                  title: `Unified State Scholastic Schemes active for ${myState} Board 🎒`,
+                  title: `Unified State Scholastic Schemes active for ${myState} Board `,
                   desc: `Pradesh ke chatro ke liye local education grant policies, books help, aur digital dynamic benefits state criteria verify lists are sync-verified for ${myState}.`,
                   type: "State Policy",
                   date: "Yesterday"
@@ -10027,11 +10048,11 @@ const NotificationCenter = ({
                         setChatContext(cleanQuery);
                         setActiveTab("chat");
                         onClose();
-                        showToast("Mitra AI is preparing tailored answers from government board bulletins! 🤖🧠", "info");
+                        showToast("Mitra AI is preparing tailored answers from government board bulletins! ", "info");
                       }}
                       className="px-2.5 py-1 bg-white hover:bg-[#008069] border border-slate-200 hover:border-[#008069] text-slate-600 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0"
                     >
-                      <span>Ask Mitra Details 🤖</span>
+                      <span>Ask Mitra Details </span>
                       <ArrowRight className="w-2.5 h-2.5" />
                     </button>
                   </div>
@@ -10073,7 +10094,7 @@ const NotificationCenter = ({
         </div>
 
         {/* 'My Boards' customized updates section in the feed */}
-        <div className="bg-gradient-to-br from-[#008069]/[0.05] via-transparent to-transparent p-5 rounded-[2.5rem] border border-emerald-500/10 flex flex-col gap-4 shadow-xs">
+        <div className="bg-gradient-to-br from-[#008069]/[0.05] via-transparent to-transparent p-5 rounded-2xl border border-emerald-500/10 flex flex-col gap-4 shadow-xs">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-[#008069]/10 flex items-center justify-center text-[#008069]">
@@ -10094,7 +10115,7 @@ const NotificationCenter = ({
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-[#008069]/10 text-[#008069] border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
             >
               <Settings className="w-3 h-3" />
-              <span>Customize ⚙️</span>
+              <span>Customize ⚙</span>
             </button>
           </div>
 
@@ -10106,7 +10127,7 @@ const NotificationCenter = ({
               {
                 boardId: "CBSE",
                 boardName: "CBSE Board",
-                title: "CBSE Class 10/12 Board Registration Date Extended 📝",
+                title: "CBSE Class 10/12 Board Registration Date Extended ",
                 desc: "Mukhya update! Central board exam fees aur regular application submission antim tithi bina penalty badha di gayi hai. Form Mitra portal se guidelines verify karein.",
                 type: "CBSE Board",
                 date: "Today"
@@ -10114,7 +10135,7 @@ const NotificationCenter = ({
               {
                 boardId: "CBSE",
                 boardName: "CBSE Board",
-                title: "Single Girl Child Scholarship eligibility guidelines live 🌟",
+                title: "Single Girl Child Scholarship eligibility guidelines live ",
                 desc: "CBSE board Class 10 me 60% se adhik marks wale female candidates ke liye standard monthly scholarship registration open. Aadhar payment mapping active.",
                 type: "Scholarship",
                 date: "2 days ago"
@@ -10122,7 +10143,7 @@ const NotificationCenter = ({
               {
                 boardId: "CBSE",
                 boardName: "CBSE Board",
-                title: "New Digital Sample Paper Syllabus guidelines available 📚",
+                title: "New Digital Sample Paper Syllabus guidelines available ",
                 desc: "Naye academic curriculum change ke anusaar experimental questions and practical syllabus is released on the central education database.",
                 type: "Syllabus Update",
                 date: "1 week ago"
@@ -10130,7 +10151,7 @@ const NotificationCenter = ({
               {
                 boardId: "BSEB",
                 boardName: "Bihar Board",
-                title: "BSEB Matric & Inter dummy registration card updates 🚨",
+                title: "BSEB Matric & Inter dummy registration card updates ",
                 desc: "Bihar Board matric-inter chhatro ke liye portal open ho chuka hai. Dummy registration card me spelling, dob ya gender errors turant school se verify karein.",
                 type: "BSEB Bihar",
                 date: "Today"
@@ -10138,7 +10159,7 @@ const NotificationCenter = ({
               {
                 boardId: "BSEB",
                 boardName: "Bihar Board",
-                title: "Bihar Board 10th Pass Balak/Balika Protsahan Yojana 💰",
+                title: "Bihar Board 10th Pass Balak/Balika Protsahan Yojana ",
                 desc: "Matriculation (1st division) pass pass chhatro ke liye Rs. 10,000 protshahan scholarship form Medhasoft portal par shuru ho raha hai. DB/Aadhar match optional.",
                 type: "Bihar Scholarship",
                 date: "Today"
@@ -10146,7 +10167,7 @@ const NotificationCenter = ({
               {
                 boardId: "BSEB",
                 boardName: "Bihar Board",
-                title: "BSEB Free Bicycle Scheme payout list updates 🚲",
+                title: "BSEB Free Bicycle Scheme payout list updates ",
                 desc: "Class 9th and 10th chhatro ke liye cycle yojana DBT distribution camps state reports ke anusaar clear ho gye hain. Status bank links se match karein.",
                 type: "Bihar Benefit",
                 date: "4 days ago"
@@ -10154,7 +10175,7 @@ const NotificationCenter = ({
               {
                 boardId: "UPMSP",
                 boardName: "UP Board",
-                title: "UPMSP Board Exams Exam Center lists and Roll Number Verify 📄",
+                title: "UPMSP Board Exams Exam Center lists and Roll Number Verify ",
                 desc: "UP Board ne practical exams aur high-school roll alignment process official webservice par chalu kar di hai. Pre-matching complete karein.",
                 type: "UP Board UPMSP",
                 date: "Today"
@@ -10162,7 +10183,7 @@ const NotificationCenter = ({
               {
                 boardId: "UPMSP",
                 boardName: "UP Board",
-                title: "UP Kanya Sumangala Board Scholarship Merit criteria live 🌸",
+                title: "UP Kanya Sumangala Board Scholarship Merit criteria live ",
                 desc: "Uttar Pradesh female chhatro ke educational tier transition support ke rules update. Rs. 15,000 cash milne ke rules guidelines click krein.",
                 type: "UP Yojana",
                 date: "3 days ago"
@@ -10170,7 +10191,7 @@ const NotificationCenter = ({
               {
                 boardId: "UPMSP",
                 boardName: "UP Board",
-                title: "UP Board digital marksheet integration with DigiLocker system 📑",
+                title: "UP Board digital marksheet integration with DigiLocker system ",
                 desc: "Ab secondary and senior-secondary results DigiLocker par digitally verify aur authenticate ho sakte hain. Apply fast.",
                 type: "UP Education",
                 date: "2 weeks ago"
@@ -10178,7 +10199,7 @@ const NotificationCenter = ({
               {
                 boardId: "CISCE",
                 boardName: "ICSE Board",
-                title: "CISCE Class 10/12 Marksheets directly integrated on DigiLocker 📁",
+                title: "CISCE Class 10/12 Marksheets directly integrated on DigiLocker ",
                 desc: "ICSE board previous year transcripts verified migration and degree certificates can be fetched safely securely anywhere.",
                 type: "ICSE CISCE",
                 date: "Yesterday"
@@ -10186,7 +10207,7 @@ const NotificationCenter = ({
               {
                 boardId: "CISCE",
                 boardName: "ICSE Board",
-                title: "CISCE Merit & Sports Recognition Scholarship application live 🏆",
+                title: "CISCE Merit & Sports Recognition Scholarship application live ",
                 desc: "Board outstanding performers nominated directly through registered institutional logins. Guidelines apply active.",
                 type: "CISCE Talent",
                 date: "5 days ago"
@@ -10194,7 +10215,7 @@ const NotificationCenter = ({
               {
                 boardId: "Other",
                 boardName: "State Boards",
-                title: "National Scholarship Portal (NSP) Unified lists update 🎓",
+                title: "National Scholarship Portal (NSP) Unified lists update ",
                 desc: "Naye session state merit and other minor categories registrations verify timeline list open. Please re-validate block files.",
                 type: "National Portal",
                 date: "Today"
@@ -10202,7 +10223,7 @@ const NotificationCenter = ({
               {
                 boardId: "Other",
                 boardName: "State Boards",
-                title: "State Board Free Laptop checklist guidelines updated 🎯",
+                title: "State Board Free Laptop checklist guidelines updated ",
                 desc: "Affiliated boards ke high percentiles holding chhatro ka state-wise merit details list distribution release setup online.",
                 type: "State Yojana",
                 date: "3 days ago"
@@ -10213,7 +10234,7 @@ const NotificationCenter = ({
 
             if (activeBulletins.length === 0) {
               return (
-                <div className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                <div className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                   <span className="text-slate-400 text-[10px] font-bold leading-relaxed mb-2">
                     Aapne abhi tak koi board updates follow nahi kiye hain bhai.
                   </span>
@@ -10222,7 +10243,7 @@ const NotificationCenter = ({
                     onClick={() => setIsBoardsModalOpen(true)}
                     className="px-3.5 py-1.5 bg-[#008069] text-white rounded-xl text-[9px] font-black uppercase tracking-wider cursor-pointer shadow-xs active:scale-95"
                   >
-                    Select Boards to Follow 🔔
+                    Select Boards to Follow 
                   </button>
                 </div>
               );
@@ -10273,11 +10294,11 @@ const NotificationCenter = ({
                             setChatContext(cleanQuery);
                             setActiveTab("chat");
                             onClose();
-                            showToast("Mitra AI is preparing tailored answers from government board bulletins! 🤖🧠", "info");
+                            showToast("Mitra AI is preparing tailored answers from government board bulletins! ", "info");
                           }}
                           className="px-2.5 py-1 bg-white hover:bg-[#008069] border border-slate-200 hover:border-[#008069] text-slate-600 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0"
                         >
-                          <span>Ask Mitra Details 🤖</span>
+                          <span>Ask Mitra Details </span>
                           <ArrowRight className="w-2.5 h-2.5" />
                         </button>
                       </div>
@@ -10410,7 +10431,7 @@ const NotificationCenter = ({
 
               {/* Dynamic Notification list content mapping */}
               {filteredNotifs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
                   {activeFeedTab === "saved" ? (
                     <>
                       <Star className="w-10 h-10 mb-2.5 text-slate-300" />
@@ -10465,7 +10486,7 @@ const NotificationCenter = ({
                         transition={{ type: "spring", stiffness: 450, damping: 38 }}
                         onClick={() => onMarkRead(n.id)}
                         className={cn(
-                          "p-4 rounded-3xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-2xs mb-3",
+                          "p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group hover:shadow-2xs mb-3",
                           n.read
                             ? "bg-white border-gray-100 opacity-60"
                             : "bg-green-50/30 border-green-100 shadow-sm",
@@ -10565,7 +10586,7 @@ const NotificationCenter = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-[2.5rem] w-full max-w-md p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden"
+              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -10664,7 +10685,7 @@ const NotificationCenter = ({
                   type="button"
                   onClick={() => {
                     onUpdateProfile({ followedBoards: ["CBSE", "BSEB", "UPMSP", "CISCE", "Other"] });
-                    showToast("Sabhi Boards update alerts successfully toggled on! 🎓📡", "info");
+                    showToast("Sabhi Boards update alerts successfully toggled on! ", "info");
                   }}
                   className="flex-1 py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 font-extrabold text-[11px] uppercase tracking-wider rounded-2xl border border-slate-100 transition-all cursor-pointer text-center"
                 >
@@ -10674,7 +10695,7 @@ const NotificationCenter = ({
                   type="button"
                   onClick={() => {
                     setIsBoardsModalOpen(false);
-                    showToast("Board tracking options saved successfully! 🚀🌸", "info");
+                    showToast("Board tracking options saved successfully! ", "info");
                   }}
                   className="flex-1 py-3 bg-[#008069] hover:bg-[#005e4d] text-white font-extrabold text-[11px] uppercase tracking-wider rounded-2xl shadow-sm transition-all cursor-pointer text-center"
                 >
@@ -10696,7 +10717,7 @@ const NotificationCenter = ({
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-[2.5rem] w-full max-w-lg p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden"
+              className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
@@ -10730,7 +10751,7 @@ const NotificationCenter = ({
                 {isGeneratingDigest ? (
                   <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
                     <div className="relative mb-6">
-                      <div className="w-16 h-16 rounded-3xl bg-[#008069]/10 flex items-center justify-center border border-[#008069]/10 animate-spin-slow">
+                      <div className="w-16 h-16 rounded-2xl bg-[#008069]/10 flex items-center justify-center border border-[#008069]/10 animate-spin-slow">
                         <Sparkles className="w-8 h-8 text-[#008069]" />
                       </div>
                       <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
@@ -10747,7 +10768,7 @@ const NotificationCenter = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-slate-50/50 p-5 rounded-[2rem] border border-slate-150 shadow-inner flex-1 overflow-y-auto">
+                  <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-150 shadow-inner flex-1 overflow-y-auto">
                     {digestText ? (
                       <div className="prose max-w-none text-slate-800">
                         {formatDigestContent(digestText)}
@@ -11228,7 +11249,7 @@ const VaultScreen = ({
 
     if (successCount > 0) {
       showLocalNotification("Batch Upload Complete", {
-        body: `Safaltapurvak ${successCount} documents Vault mein save ho chuke hain! 🎉`,
+        body: `Safaltapurvak ${successCount} documents Vault mein save ho chuke hain! `,
       });
     }
 
@@ -11297,7 +11318,7 @@ const VaultScreen = ({
           if (newPin === userProfile.vaultPinCode) {
             setIsUnlocked(true);
             setPinInput("");
-            showToast("Document Vault unlocked successfully! 🔓", "info");
+            showToast("Document Vault unlocked successfully! ", "info");
             if (onUpdateProfile) {
               const nowIso = new Date().toISOString();
               const currentLogs = userProfile.vaultAccessLogs || [];
@@ -11319,8 +11340,8 @@ const VaultScreen = ({
     };
 
     return (
-      <div className="flex flex-col items-center justify-center p-8 py-14 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm max-w-sm mx-auto text-center animate-fade-in my-6">
-        <div className="w-16 h-16 rounded-3xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center mb-6 shadow-xs">
+      <div className="flex flex-col items-center justify-center p-8 py-14 bg-white rounded-2xl border border-gray-100 shadow-sm max-w-sm mx-auto text-center animate-fade-in my-6">
+        <div className="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center mb-6 shadow-xs">
           <Lock className="w-7 h-7" />
         </div>
         
@@ -11415,7 +11436,7 @@ const VaultScreen = ({
       {/* New Master Profile Card */}
       <div
         onClick={onShowMasterProfile}
-        className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl flex flex-col gap-6 cursor-pointer border border-white/10 hover:border-emerald-500/50 transition-all group"
+        className="bg-slate-900 p-6 rounded-2xl shadow-xl flex flex-col gap-6 cursor-pointer border border-white/10 hover:border-emerald-500/50 transition-all group"
       >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform">
@@ -11525,7 +11546,7 @@ const VaultScreen = ({
                 !batchUploading && batchFileInputRef.current?.click()
               }
               className={cn(
-                "border-2 border-dashed border-slate-200 hover:border-[#008069] rounded-[2rem] p-8 text-center flex flex-col items-center gap-3 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group",
+                "border-2 border-dashed border-slate-200 hover:border-[#008069] rounded-2xl p-8 text-center flex flex-col items-center gap-3 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer group",
                 batchUploading &&
                   "opacity-40 cursor-not-allowed border-gray-100 hover:bg-transparent",
               )}
@@ -11758,10 +11779,10 @@ const VaultScreen = ({
       <div className="flex flex-col gap-3">
         {loading ? (
           [1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-3xl" />
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
           ))
         ) : docs.length === 0 ? (
-          <div className="py-12 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center gap-3">
+          <div className="py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center gap-3">
             <FileCheck className="w-10 h-10 text-gray-200" />
             <p className="text-xs text-gray-400 font-black uppercase tracking-widest text-center">
               No documents saved.
@@ -11787,7 +11808,7 @@ const VaultScreen = ({
                   }
                 }}
                 className={cn(
-                  "p-4 bg-white rounded-3xl border shadow-sm flex items-center justify-between group transition-all select-none",
+                  "p-4 bg-white rounded-2xl border shadow-sm flex items-center justify-between group transition-all select-none",
                   isBatchMode && "cursor-pointer hover:border-amber-400 hover:bg-amber-50/10 active:scale-[0.99]",
                   isBatchMode && isSelected ? "border-amber-400 bg-amber-50/20 ring-1 ring-amber-400/20" : "border-gray-100",
                   !isBatchMode && userDoc.url && "cursor-pointer hover:border-emerald-300 hover:shadow-md hover:bg-emerald-50/5 active:scale-[0.99]"
@@ -11891,7 +11912,7 @@ const VaultScreen = ({
 
       {/* Floating Batch Actions Sticky Bar */}
       {isBatchMode && selectedDocIds.length > 0 && (
-        <div className="sticky bottom-4 z-40 bg-slate-900 text-white p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-slide-up">
+        <div className="sticky bottom-4 z-40 bg-[#008069] text-white p-5 rounded-2xl border border-white/10 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-slide-up">
           <div className="flex items-center gap-2">
             <span className="bg-amber-400 text-slate-950 font-black text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {selectedDocIds.length} Selected
@@ -12244,7 +12265,7 @@ const ToolsScreen = ({
   }
 
   return (
-    <div className="p-6 pb-32 flex flex-col gap-6">
+    <div className="p-6 pb-40 flex flex-col gap-6">
       <header className="flex flex-col gap-1">
         <div className="flex justify-between items-center">
           <div>
@@ -12264,7 +12285,7 @@ const ToolsScreen = ({
         </div>
       </header>
 
-      <div className="flex gap-2 p-1.5 bg-gray-100 rounded-[2rem]">
+      <div className="flex gap-2 p-1.5 bg-gray-100 rounded-2xl">
         {(["studio", "vault", "links"] as const).map((t) => (
           <button
             key={t}
@@ -12286,12 +12307,12 @@ const ToolsScreen = ({
           {/* Scan & Smart QR Tools (Scan aur QR tools) */}
           <div className="flex flex-col gap-3">
             <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest px-1">
-              ✨ Scan & QR Code Tools (स्कैन और क्यूआर टूल्स)
+              Scan & QR Code Tools (स्कैन और क्यूआर टूल्स)
             </h3>
             
             <div
               onClick={() => setShowQuickScan(true)}
-              className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 p-6 rounded-[2.5rem] border border-emerald-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-300 transition-all active:scale-[0.98]"
+              className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 p-6 rounded-2xl min-h-[48px] border border-emerald-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-300 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4 max-w-[70%]">
                 <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-50 flex items-center justify-center text-emerald-600 shadow-xs group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shrink-0">
@@ -12313,7 +12334,7 @@ const ToolsScreen = ({
 
             <div
               onClick={() => setShowSmartQR(true)}
-              className="bg-gradient-to-r from-teal-50/50 to-[#008069]/10 p-6 rounded-[2.5rem] border border-[#008069]/20 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-300 transition-all active:scale-[0.98]"
+              className="bg-gradient-to-r from-teal-50/50 to-[#008069]/10 p-6 rounded-2xl min-h-[48px] border border-[#008069]/20 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-300 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4 max-w-[70%]">
                 <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-50 flex items-center justify-center text-[#008069] shadow-xs group-hover:bg-[#008069] group-hover:text-white transition-all duration-300 shrink-0">
@@ -12349,7 +12370,7 @@ const ToolsScreen = ({
                     );
                     onNavigate("chat");
                   }}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-100 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-100 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
@@ -12369,7 +12390,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowSopEngine}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-150 hover:shadow-md hover:shadow-orange-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-150 hover:shadow-md hover:shadow-orange-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-505 shadow-xs">
@@ -12392,7 +12413,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowCSRScanner}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-150 hover:shadow-md hover:shadow-emerald-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-150 hover:shadow-md hover:shadow-emerald-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-xs">
@@ -12401,7 +12422,7 @@ const ToolsScreen = ({
                     <div>
                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
                         Mitra CSR Scanner
-                        <span className="text-[7.5px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                        <span className="text-[7.5px] font-black bg-[#008069] text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider">
                           Premium
                         </span>
                       </h3>
@@ -12415,7 +12436,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowGlobalGuide}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-150 hover:shadow-md hover:shadow-indigo-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-150 hover:shadow-md hover:shadow-indigo-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-xs">
@@ -12438,7 +12459,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowJobGuide}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-teal-150 hover:shadow-md hover:shadow-teal-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-teal-150 hover:shadow-md hover:shadow-teal-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 shadow-xs">
@@ -12447,7 +12468,7 @@ const ToolsScreen = ({
                     <div>
                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
                         Mitra Job Guide
-                        <span className="text-[7.5px] font-black bg-teal-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-teal-200">
+                        <span className="text-[7.5px] font-black bg-[#008069] text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-teal-200">
                           Naukri
                         </span>
                       </h3>
@@ -12465,7 +12486,7 @@ const ToolsScreen = ({
               <>
                 <div
                   onClick={() => onNavigate("chat")}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -12485,7 +12506,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowInterviewCoach}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-150 hover:shadow-md hover:shadow-blue-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-150 hover:shadow-md hover:shadow-blue-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-xs">
@@ -12508,7 +12529,7 @@ const ToolsScreen = ({
 
                 <div
                   onClick={onShowJobGuide}
-                  className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-teal-150 hover:shadow-md hover:shadow-teal-50/50 transition-all active:scale-[0.98]"
+                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-teal-150 hover:shadow-md hover:shadow-teal-50/50 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 shadow-xs">
@@ -12517,7 +12538,7 @@ const ToolsScreen = ({
                     <div>
                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
                         Mitra Job Guide
-                        <span className="text-[7.5px] font-black bg-teal-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-teal-200">
+                        <span className="text-[7.5px] font-black bg-[#008069] text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-teal-200">
                           Naukri
                         </span>
                       </h3>
@@ -12540,7 +12561,7 @@ const ToolsScreen = ({
 
             <div
               onClick={() => onNavigate("tracker")}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-[#008069]">
@@ -12560,7 +12581,7 @@ const ToolsScreen = ({
 
             <div
               onClick={() => onNavigate("letters")}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-green-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-green-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-[#008069]">
@@ -12580,7 +12601,7 @@ const ToolsScreen = ({
 
             <div
               onClick={() => onNavigate("news")}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -12600,7 +12621,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowDocumentEnhancer}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -12625,7 +12646,7 @@ const ToolsScreen = ({
                 );
                 onNavigate("chat");
               }}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-purple-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-purple-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
@@ -12652,7 +12673,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowDocumentScanner}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-100 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -12677,7 +12698,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowFormAudit}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
             >
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                 <ShieldCheck className="w-6 h-6" />
@@ -12704,7 +12725,7 @@ const ToolsScreen = ({
                   );
                 }, 800);
               }}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-orange-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-orange-100 transition-colors"
             >
               <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
                 <LayoutGrid className="w-6 h-6" />
@@ -12726,7 +12747,7 @@ const ToolsScreen = ({
           <div className="grid grid-cols-2 gap-4">
             <div
               onClick={onShowImageAutoFitter}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-indigo-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                 <Maximize2 className="w-5 h-5" />
@@ -12743,7 +12764,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowEligibilityMatcher}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-amber-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-amber-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
                 <Sparkles className="w-5 h-5 text-amber-600" />
@@ -12760,7 +12781,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowCounselingGuide}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
                 <Award className="w-5 h-5 text-blue-600" />
@@ -12777,7 +12798,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowScraperPro}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-blue-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
                 <Globe className="w-5 h-5" />
@@ -12794,7 +12815,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowPdfUtility}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-red-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-red-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
                 <FileText className="w-5 h-5" />
@@ -12811,7 +12832,7 @@ const ToolsScreen = ({
 
             <div
               onClick={onShowMultiPageScanner}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-orange-100 transition-colors"
+              className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-orange-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
                 <Camera className="w-5 h-5" />
@@ -12830,10 +12851,10 @@ const ToolsScreen = ({
           <div
             onClick={() => onActivateGuru(true)}
             className={cn(
-              "bg-slate-900 p-6 rounded-[2.5rem] shadow-xl flex flex-col gap-6 cursor-pointer transition-all border border-transparent",
+              "bg-gradient-to-br from-[#E6F4F1] to-white p-6 rounded-2xl min-h-[48px] shadow-sm flex flex-col gap-6 cursor-pointer transition-all border border-[#008069]/20 min-h-[48px] group",
               isGuruActive
                 ? "border-[#008069] ring-2 ring-[#008069]/20"
-                : "hover:border-white/10",
+                : "hover:border-[#008069]/40 hover:shadow-md",
             )}
           >
             <div className="flex items-center gap-4">
@@ -12842,7 +12863,7 @@ const ToolsScreen = ({
                   "w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden",
                   isGuruActive
                     ? "bg-[#008069] text-white"
-                    : "bg-white/10 text-[#008069]",
+                    : "bg-white text-[#008069] shadow-sm",
                 )}
               >
                 <Cpu
@@ -12853,9 +12874,7 @@ const ToolsScreen = ({
                 )}
               </div>
               <div>
-                <h3 className="font-black text-sm uppercase tracking-widest text-white leading-tight">
-                  AI Screen Guru
-                </h3>
+                <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight"><div className="flex items-center gap-2">AI Screen Guru <span className="text-[8px] font-black bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm">Premium</span></div></h3>
                 <p className="text-[10px] text-gray-400 font-medium">
                   {isGuruActive
                     ? "Session Active"
@@ -12871,7 +12890,7 @@ const ToolsScreen = ({
                     </span>
                   </div>
                 ) : (
-                  <ChevronRight className="w-5 h-5 text-white/20" />
+                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#008069]" />
                 )}
               </div>
             </div>
@@ -12881,7 +12900,7 @@ const ToolsScreen = ({
 
           <div
             onClick={onOpenCSCHub}
-            className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6 cursor-pointer hover:border-blue-100 transition-colors"
+            className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-6 cursor-pointer hover:border-blue-100 transition-colors"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -12903,7 +12922,7 @@ const ToolsScreen = ({
 
           <div
             onClick={onShowSchemeDiscovery}
-            className="bg-[#008069] p-6 rounded-[2.5rem] shadow-xl flex flex-col gap-6 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all border-none relative overflow-hidden group"
+            className="bg-[#008069] p-6 rounded-2xl min-h-[48px] shadow-xl flex flex-col gap-6 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all border-none relative overflow-hidden group"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 transition-transform duration-1000 group-hover:scale-150" />
             <div className="flex items-center gap-4 relative z-10">
@@ -13232,7 +13251,7 @@ const PhotoStudio = ({
         docData,
       );
       showLocalNotification("Doc Vault Saved ☑", {
-        body: "Aapki processed photo successfully Document Vault mein save ho chuki hai! 📂",
+        body: "Aapki processed photo successfully Document Vault mein save ho chuki hai! ",
       });
     } catch (error) {
       console.error(error);
@@ -13246,7 +13265,7 @@ const PhotoStudio = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
             <Camera className="w-6 h-6" />
@@ -13272,7 +13291,7 @@ const PhotoStudio = ({
         <div
           onClick={!photo && !processing ? handleTriggerUpload : undefined}
           className={cn(
-            "aspect-[4/3] bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 relative overflow-hidden group transition-all",
+            "aspect-[4/3] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 relative overflow-hidden group transition-all",
             !photo &&
               !processing &&
               "cursor-pointer hover:border-purple-400 hover:bg-purple-50/10",
@@ -13500,7 +13519,7 @@ const PhotoStudio = ({
             />
             {format === "png" && (
               <p className="text-[8px] text-amber-600 font-bold leading-tight mt-1">
-                ⚠️ PNG format uses lossless compression. Select JPG format for maximum size benefits if you need to hit low size targets.
+                ⚠ PNG format uses lossless compression. Select JPG format for maximum size benefits if you need to hit low size targets.
               </p>
             )}
           </div>
@@ -13579,7 +13598,7 @@ const PhotoStudio = ({
           <div className="flex flex-col gap-2 pt-2">
             <button
               onClick={handleDownload}
-              className="shadow-xl flex cursor-pointer items-center justify-center gap-2 rounded-3xl bg-emerald-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-emerald-100 transition-all hover:bg-emerald-700 active:scale-95"
+              className="shadow-xl flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-emerald-100 transition-all hover:bg-emerald-700 active:scale-95"
             >
               <Download className="h-4 w-4" /> Download Processed
             </button>
@@ -13587,7 +13606,7 @@ const PhotoStudio = ({
             <button
               disabled={savingToVault}
               onClick={handleSaveToVault}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-3xl bg-[#008069] py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-md transition-all hover:bg-emerald-800 disabled:opacity-50 active:scale-95"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#008069] py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-md transition-all hover:bg-emerald-800 disabled:opacity-50 active:scale-95"
             >
               {savingToVault ? (
                 <>
@@ -13602,7 +13621,7 @@ const PhotoStudio = ({
 
             <button
               onClick={handleReset}
-              className="cursor-pointer rounded-3xl bg-slate-100 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:bg-slate-200"
+              className="cursor-pointer rounded-2xl bg-slate-100 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:bg-slate-200"
             >
               Upload Another Photo
             </button>
@@ -13612,9 +13631,9 @@ const PhotoStudio = ({
             disabled={!photo || processing}
             onClick={handleProcess}
             className={cn(
-              "shadow-xl w-full cursor-pointer rounded-3xl py-4 text-xs font-black uppercase tracking-[0.2em] shadow-slate-100 transition-all active:scale-95",
+              "shadow-xl w-full cursor-pointer rounded-2xl py-4 text-xs font-black uppercase tracking-[0.2em] shadow-slate-100 transition-all active:scale-95",
               photo
-                ? "bg-slate-900 text-white hover:bg-slate-800"
+                ? "bg-[#008069] text-white hover:bg-slate-800"
                 : "bg-slate-200 text-slate-400 cursor-not-allowed",
             )}
           >
@@ -13680,7 +13699,7 @@ const InteractiveTutorial = ({ onComplete }: { onComplete: () => void }) => {
         >
           <div
             className={cn(
-              "w-24 h-24 rounded-[2.5rem] flex items-center justify-center shadow-xl border border-white/50",
+              "w-24 h-24 rounded-2xl flex items-center justify-center shadow-xl border border-white/50",
               currentStep.bg,
             )}
           >
@@ -13714,7 +13733,7 @@ const InteractiveTutorial = ({ onComplete }: { onComplete: () => void }) => {
         onClick={() =>
           step < steps.length ? setStep((s) => s + 1) : onComplete()
         }
-        className="w-full max-w-xs bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-all"
+        className="w-full max-w-xs bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-all"
       >
         {step < steps.length ? "Agla Feature" : "Dashboard Shuru Karein"}
         <ChevronRight className="w-5 h-5" />
@@ -13756,7 +13775,7 @@ const Onboarding = ({
       hasCompletedTutorial: true,
     };
     onComplete(finalData);
-    showToast("Aapne onboarding skip kiya! Swagat hai Form Mitra mein. 🚀", "info");
+    showToast("Aapne onboarding skip kiya! Swagat hai Form Mitra mein. ", "info");
   };
 
   const handleFinish = () => {
@@ -13765,7 +13784,7 @@ const Onboarding = ({
       hasCompletedTutorial: true,
     };
     onComplete(finalData);
-    showToast(`Dost, aapka profile (${data.state}) ke sath set up ho gaya hai! 🎉`, "info");
+    showToast(`Dost, aapka profile (${data.state}) ke sath set up ho gaya hai! `, "info");
   };
 
   // Step 1: Welcome Screen
@@ -13795,14 +13814,14 @@ const Onboarding = ({
               <Sparkles className="w-12 h-12 text-white animate-pulse" />
             </div>
             <div className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full shadow border-2 border-white">
-              AI Sanyojak 🇮🇳
+              AI Sanyojak 
             </div>
           </div>
 
           <div className="space-y-3">
             <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-tight">
               Swagat Hai! <br />
-              <span className="text-[#008069]">Form Mitra AI</span> me 👇
+              <span className="text-[#008069]">Form Mitra AI</span> me 
             </h1>
             <p className="text-gray-500 text-xs font-semibold max-w-xs mx-auto leading-relaxed">
               Ab sarkari yojana ki details nikalna, eligibility check karna aur complex application forms ko bina kisi galti ke bharna hua bilkul safe aur asaan!
@@ -13817,7 +13836,7 @@ const Onboarding = ({
             onClick={nextStep}
             className="w-full bg-[#008069] hover:bg-[#006e5a] text-white py-4.5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2 h-14"
           >
-            <span>Chaliye Shuru Karein 👉</span>
+            <span>Chaliye Shuru Karein </span>
           </button>
           <div className="flex justify-center gap-1.5">
             {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
@@ -13862,7 +13881,7 @@ const Onboarding = ({
         <div className="my-auto max-w-sm mx-auto w-full flex flex-col gap-5 py-4">
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight">
-              Hum Kya Karte Hain? 🤔
+              Hum Kya Karte Hain? 
             </h2>
             <p className="text-gray-500 text-xs font-semibold leading-relaxed">
               Form Mitra AI aapka personal assistant hai jo in teen zaroori tariko se aapki help karta hai:
@@ -13950,7 +13969,7 @@ const Onboarding = ({
             ← Back
           </button>
           <span className="text-[10px] font-extrabold text-[#008069] uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full border border-green-100/50">
-            Language Select 🗣️
+            Language Select 
           </span>
           <button
             type="button"
@@ -13965,7 +13984,7 @@ const Onboarding = ({
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight flex items-center justify-center gap-2">
               <Languages className="w-6 h-6 text-[#008069]" />
-              <span>Language Chunein 🗣️</span>
+              <span>Language Chunein </span>
             </h2>
             <p className="text-gray-500 text-xs font-semibold leading-relaxed">
               Mera AI kis bhasha me baat karega? Select your comfortable tool language:
@@ -14050,7 +14069,7 @@ const Onboarding = ({
             ← Back
           </button>
           <span className="text-[10px] font-black text-[#008069] uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full border border-green-100/50">
-            Community Edition 👥
+            Community Edition 
           </span>
           <button
             type="button"
@@ -14065,7 +14084,7 @@ const Onboarding = ({
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight flex items-center justify-center gap-2">
               <Users className="w-6 h-6 text-[#008069]" />
-              <span>Apni Community Chunein 👥</span>
+              <span>Apni Community Chunein </span>
             </h2>
             <p className="text-gray-500 text-xs font-semibold leading-relaxed">
               Dost, aapko kis category ki schemes and news chahiye? Select your target group:
@@ -14171,7 +14190,7 @@ const Onboarding = ({
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all",
                         data.stream === s
-                          ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                          ? "bg-[#008069] text-white border-slate-900 shadow-sm"
                           : "bg-gray-50 text-gray-500 border-gray-150 hover:bg-gray-100"
                       )}
                     >
@@ -14206,7 +14225,7 @@ const Onboarding = ({
 
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="text-[9.5px] font-black text-[#008069] uppercase tracking-widest ml-1 block">
-                  Aapko kis tarah ki Jobs chahiye? 💼✨
+                  Aapko kis tarah ki Jobs chahiye? 
                 </label>
                 <p className="text-[9px] text-gray-400 font-extrabold uppercase leading-normal">
                   Neeche select karein ya khud type karein, AI usi ke hisab se schemes aur news dikhayega:
@@ -14222,13 +14241,13 @@ const Onboarding = ({
                 {/* Quick select tags */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {[
-                    "Railway 🚆",
-                    "Police / Defense 👮",
-                    "Clerk / Peon 📝",
-                    "Computer Operator 💻",
-                    "Banking 🏦",
-                    "Teacher / Teaching 🎓",
-                    "Security Guard 🛡️"
+                    "Railway ",
+                    "Police / Defense ",
+                    "Clerk / Peon ",
+                    "Computer Operator ",
+                    "Banking ",
+                    "Teacher / Teaching ",
+                    "Security Guard "
                   ].map((tag) => {
                     const cleanTag = tag.split(" ")[0];
                     const isSelected = data.desiredJob?.toLowerCase().includes(cleanTag.toLowerCase());
@@ -14303,7 +14322,7 @@ const Onboarding = ({
             ← Back
           </button>
           <span className="text-[10px] font-black text-[#008069] uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full border border-green-100/50">
-            State Selection 📍
+            State Selection 
           </span>
           <button
             type="button"
@@ -14318,7 +14337,7 @@ const Onboarding = ({
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight flex items-center justify-center gap-2">
               <MapPin className="w-6 h-6 text-orange-500" />
-              <span>Sarkari Rajya Chunein 📍</span>
+              <span>Sarkari Rajya Chunein </span>
             </h2>
             <p className="text-gray-500 text-xs font-semibold leading-relaxed">
               Dost, aapke rajya ki sabhi matching yojanaon ko explore aur prioritize karne ke liye state select karein:
@@ -14329,10 +14348,10 @@ const Onboarding = ({
             {/* Quick selectors for popular states with large easy visual blocks */}
             <div className="grid grid-cols-2 gap-2.5">
               {[
-                { name: "Bihar", emoji: "🌾", display: "Bihar" },
-                { name: "Uttar Pradesh", emoji: "🏛️", display: "Uttar Pradesh" },
-                { name: "Madhya Pradesh", emoji: "🦁", display: "Madhya Pradesh" },
-                { name: "Delhi", emoji: "🗼", display: "Delhi Capital" },
+                { name: "Bihar", emoji: "", display: "Bihar" },
+                { name: "Uttar Pradesh", emoji: "", display: "Uttar Pradesh" },
+                { name: "Madhya Pradesh", emoji: "", display: "Madhya Pradesh" },
+                { name: "Delhi", emoji: "", display: "Delhi Capital" },
               ].map((st) => {
                 const isSelected = data.state === st.name;
                 return (
@@ -14348,7 +14367,7 @@ const Onboarding = ({
                     )}
                   >
                     <span className="text-xl leading-none">{st.emoji}</span>
-                    <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide line-clamp-1">
+                    <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">
                       {st.display}
                     </span>
                   </button>
@@ -14385,7 +14404,7 @@ const Onboarding = ({
             disabled={!data.state}
             className="w-full bg-[#008069] hover:bg-[#006e5a] text-white py-4.5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-green-150 transition-all active:scale-98 disabled:opacity-40 cursor-pointer h-14 flex items-center justify-center gap-1.5"
           >
-            <span>Teiyaar Hoon! App Dekhein 🚀</span>
+            <span>Teiyaar Hoon! App Dekhein </span>
           </button>
           <div className="flex justify-center gap-1.5">
             {Array.from({ length: TOTAL_STEPS }).map((_, idx) => (
@@ -14433,7 +14452,7 @@ const OfflineNotice = () => {
 
   const handleSyncNow = useCallback(async () => {
     if (!auth.currentUser) {
-      showToast("Offline drafts cloud sync karne ke liye kripya log in karein! 👤", "warning");
+      showToast("Offline drafts cloud sync karne ke liye kripya log in karein! ", "warning");
       return;
     }
     const userId = auth.currentUser.uid;
@@ -14475,12 +14494,12 @@ const OfflineNotice = () => {
     } finally {
       setIsSyncing(false);
       if (success) {
-        showToast(`Saare offline drafts Cloud par sync ho gaye hain! 🌐🤝 (${count} Drafts)`, "info");
+        showToast(`Saare offline drafts Cloud par sync ho gaye hain!  (${count} Drafts)`, "info");
         setUnsyncedCount(0);
         // Dispatch event to make draft lists reload
         window.dispatchEvent(new CustomEvent("mitra-drafts-sync"));
       } else {
-        showToast("Sync fail ho gaya. Kripya dubara koshish karein. 📡", "error");
+        showToast("Sync fail ho gaya. Kripya dubara koshish karein. ", "error");
       }
     }
   }, []);
@@ -14533,9 +14552,9 @@ const OfflineNotice = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 flex-wrap">
-                <span>Aap Offline Hain</span>
+                <span>🔴 Internet nahi hai - Sirf basic features available hain</span>
                 <span className="bg-white/25 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full tracking-wider uppercase leading-none">
-                  offline-first active 📱
+                  offline-first active
                 </span>
               </span>
               <span className="text-[8.5px] font-bold opacity-90 uppercase tracking-tight mt-0.5">
@@ -15001,18 +15020,18 @@ const FormSimulator = ({
       if (savedToFirestore) {
         if (isOnline) {
           showToast(
-            "Draft secured & auto-saved to Firestore Cloud! 🌐💾",
+            "Draft secured & auto-saved to Firestore Cloud! ",
             "info",
           );
         } else {
           showToast(
-            "Offline Draft saved locally & queued for Firestore sync! 📡📱",
+            "Offline Draft saved locally & queued for Firestore sync! ",
             "info",
           );
         }
       } else {
         showToast(
-          "Guest Draft auto-saved locally to your browser! 💻📱",
+          "Guest Draft auto-saved locally to your browser! ",
           "info",
         );
       }
@@ -15080,7 +15099,7 @@ const FormSimulator = ({
 
       const filename = `${form.formName || "Form"}_Filled.pdf`;
       doc.save(filename);
-      showToast(`Aapka Form, "${filename}" successfully generate aur download ho gaya hai! 🎉📄`, "info");
+      showToast(`Aapka Form, "${filename}" successfully generate aur download ho gaya hai! `, "info");
     } catch (error) {
       console.error("PDF Export error:", error);
       alert("PDF download nahi ho saka.");
@@ -15125,7 +15144,7 @@ const FormSimulator = ({
       <div className="flex flex-col gap-4">
         {/* AI Screen Guru Integration Widget */}
         {onActivateGuru && !isGuruActive && (
-          <div className="bg-gradient-to-br from-[#008069] to-[#005c4b] p-6 rounded-[2rem] shadow-xl shadow-green-200 border border-white/20 relative overflow-hidden group">
+          <div className="bg-gradient-to-br from-[#008069] to-[#005c4b] p-6 rounded-2xl shadow-xl shadow-green-200 border border-white/20 relative overflow-hidden group">
             {/* Animated Background Elements */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full blur-xl" />
@@ -15181,7 +15200,7 @@ const FormSimulator = ({
         )}
 
         {isGuruActive && (
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-[2rem] flex items-center gap-4">
+          <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center gap-4">
             <div className="relative">
               <div className="w-10 h-10 rounded-2xl bg-blue-500 flex items-center justify-center text-white">
                 <Camera className="w-5 h-5" />
@@ -15210,7 +15229,7 @@ const FormSimulator = ({
           </div>
         )}
 
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-3">
           <div className="flex justify-between items-center px-1">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
               Form Filling Progress
@@ -15244,7 +15263,7 @@ const FormSimulator = ({
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start gap-4">
             <div className="flex flex-col">
               <h3 className="font-black text-sm uppercase tracking-widest text-[#008069]">
@@ -15364,7 +15383,7 @@ const FormSimulator = ({
                     "w-full px-4 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2",
                     isExporting
                       ? "bg-blue-50 text-blue-600 border-blue-100"
-                      : "bg-slate-900 text-white border-slate-900",
+                      : "bg-[#008069] text-white border-slate-900",
                   )}
                 >
                   {isExporting ? (
@@ -15378,7 +15397,7 @@ const FormSimulator = ({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-5 bg-gray-50 rounded-[2rem] border border-gray-100">
+          <div className="flex flex-col gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100">
             <div className="flex justify-between items-center pb-3 border-b border-gray-200">
               <div className="flex flex-col">
                 <h4 className="font-black text-xs text-gray-800 uppercase tracking-widest">
@@ -15718,7 +15737,7 @@ const FormSimulator = ({
                       : currentStep < totalSteps - 1
                   )
                     ? "bg-[#008069] text-white border-[#008069] shadow-green-100 hover:bg-[#005c4b]"
-                    : "bg-slate-900 text-white border-slate-900 shadow-slate-100 hover:bg-black",
+                    : "bg-[#008069] text-white border-slate-900 shadow-slate-100 hover:bg-black",
                 )}
               >
                 {hasSections
@@ -15807,7 +15826,7 @@ const FormSimulator = ({
               exit={{ opacity: 0, scale: 0.9, y: 50 }}
               className="fixed bottom-24 left-4 right-4 z-[90] pointer-events-none"
             >
-              <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md border-2 border-purple-200 p-5 rounded-[2.5rem] shadow-2xl pointer-events-auto flex flex-col gap-4">
+              <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md border-2 border-purple-200 p-5 rounded-2xl shadow-2xl pointer-events-auto flex flex-col gap-4">
                 <div className="flex justify-between items-center -mt-1">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-600 border border-purple-200">
@@ -15831,7 +15850,7 @@ const FormSimulator = ({
                 </div>
 
                 {allFields[focusedIndex].aiTip && (
-                  <div className="bg-purple-50/50 p-4 rounded-3xl border border-purple-100">
+                  <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
                     <div className="flex gap-3">
                       <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
                         <Lightbulb className="w-3.5 h-3.5 text-purple-600" />
@@ -15990,7 +16009,7 @@ const LiveAiScreenGuru = ({
 
       // 3. Connect to Live API
       const sessionPromise = ai.live.connect({
-        model: "gemini-3.1-flash-live-preview",
+        model: "gemini-3.5-flash",
         callbacks: {
           onopen: () => {
             console.log("Gemini Guru Live Connected");
@@ -16260,7 +16279,7 @@ const LiveAiScreenGuru = ({
     return (
       <motion.div
         layoutId="guru-panel"
-        className="fixed bottom-24 left-4 right-4 z-[70] bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden p-5 flex flex-col gap-4"
+        className="fixed bottom-24 left-4 right-4 z-[70] bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden p-5 flex flex-col gap-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -16401,7 +16420,7 @@ const LiveAiScreenGuru = ({
   return (
     <motion.div
       layoutId="guru-panel"
-      className="bg-slate-900 p-6 rounded-[2.5rem] text-white flex flex-col gap-6 shadow-xl overflow-hidden relative border border-white/5"
+      className="bg-slate-900 p-6 rounded-2xl text-white flex flex-col gap-6 shadow-xl overflow-hidden relative border border-white/5"
     >
       <div
         className={cn(
@@ -16450,7 +16469,7 @@ const LiveAiScreenGuru = ({
 
       {!isSharing ? (
         <div className="flex flex-col gap-5 z-10">
-          <div className="bg-white/5 p-5 rounded-3xl border border-white/5">
+          <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
             <p className="text-xs font-bold opacity-80 leading-relaxed mb-4">
               Aapke screen ko real-time analyze karke Mitra aapko live audio
               guidance dega.
@@ -16472,7 +16491,7 @@ const LiveAiScreenGuru = ({
           </div>
           <button
             onClick={startSharing}
-            className="w-full bg-[#008069] text-white py-4 rounded-3xl font-black uppercase tracking-widest text-xs shadow-lg shadow-[#008069]/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-[#008069] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-[#008069]/20 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             <Cpu className="w-4 h-4" />
             Activate Screen Guru
@@ -16480,7 +16499,7 @@ const LiveAiScreenGuru = ({
         </div>
       ) : (
         <div className="flex flex-col gap-4 z-10">
-          <div className="flex gap-3 bg-white/5 p-2 rounded-[2rem] border border-white/10">
+          <div className="flex gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
             <button
               onClick={() => setIsPaused(!isPaused)}
               className={cn(
@@ -16531,7 +16550,7 @@ const LiveAiScreenGuru = ({
             </button>
           </div>
 
-          <div className="relative w-full aspect-video bg-black/60 rounded-3xl overflow-hidden border border-white/10 group shadow-inner">
+          <div className="relative w-full aspect-video bg-black/60 rounded-2xl overflow-hidden border border-white/10 group shadow-inner">
             <video
               ref={videoRef}
               className="w-full h-full object-contain"
@@ -16563,7 +16582,7 @@ const LiveAiScreenGuru = ({
             )}
           </div>
 
-          <div className="flex flex-col gap-4 p-5 bg-white/5 rounded-3xl border border-white/10 min-h-[100px] shadow-sm">
+          <div className="flex flex-col gap-4 p-5 bg-white/5 rounded-2xl border border-white/10 min-h-[100px] shadow-sm">
             <div className="flex items-center gap-2 text-[#008069]">
               <Volume2
                 className={cn("w-4 h-4", isSpeaking && "animate-bounce")}
@@ -16659,7 +16678,7 @@ const NewsWidget = ({
   const [selectedNews, setSelectedNews] = useState<any | null>(null);
 
   return (
-    <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4">
+    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Volume2 className="w-5 h-5 text-orange-500" />
@@ -16696,7 +16715,7 @@ const NewsWidget = ({
             />
           ))
         ) : news.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center gap-3 bg-orange-50/10 border border-dashed border-orange-100 rounded-3xl">
+          <div className="flex flex-col items-center justify-center p-6 text-center gap-3 bg-orange-50/10 border border-dashed border-orange-100 rounded-2xl">
             <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-xs mx-auto">
               Dost, aapke category aur language ke rules ke according customized
               scheme news select karne ke liye tayyaar hai.
@@ -16720,7 +16739,7 @@ const NewsWidget = ({
               className="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group cursor-pointer hover:border-orange-100 transition-colors"
             >
               <div className="flex-1 mr-2">
-                <h4 className="font-bold text-xs text-gray-900 line-clamp-1">
+                <h4 className="font-bold text-xs text-gray-900">
                   {item.title}
                 </h4>
                 <p className="text-[10px] text-gray-400 font-medium">
@@ -16745,7 +16764,7 @@ const NewsWidget = ({
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 overflow-hidden relative shadow-2xl"
+              className="bg-white w-full max-w-sm rounded-2xl p-8 overflow-hidden relative shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-6">
@@ -16882,13 +16901,13 @@ const TargetTracker = ({
       <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6">
         {loading
           ? [1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-32 w-40 rounded-3xl shrink-0" />
+              <Skeleton key={i} className="h-32 w-40 rounded-2xl shrink-0" />
             ))
           : displayItems.map((d, i) => (
               <div
                 key={i}
                 onClick={() => setSelectedNews(d)}
-                className="shrink-0 w-40 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 relative overflow-hidden group cursor-pointer hover:border-orange-100 transition-all hover:-translate-y-1"
+                className="shrink-0 w-40 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 relative overflow-hidden group cursor-pointer hover:border-orange-100 transition-all hover:-translate-y-1"
               >
                 <div
                   className={cn(
@@ -16915,7 +16934,7 @@ const TargetTracker = ({
                     {d.category}
                   </span>
                 </div>
-                <h4 className="font-black text-xs text-gray-900 leading-tight line-clamp-2 h-8">
+                <h4 className="font-black text-xs text-gray-900 leading-tight h-8">
                   {d.title}
                 </h4>
                 <div className="flex items-center justify-between mt-auto">
@@ -16942,7 +16961,7 @@ const TargetTracker = ({
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 overflow-hidden relative shadow-2xl"
+              className="bg-white w-full max-w-sm rounded-2xl p-8 overflow-hidden relative shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-6">
@@ -17077,7 +17096,7 @@ const WeatherWidget = ({ state }: { state?: string }) => {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-[2.5rem] text-white animate-pulse flex flex-col gap-3">
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl text-white animate-pulse flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-blue-200" />
           <p className="text-[10px] font-black uppercase tracking-widest">
@@ -17090,7 +17109,7 @@ const WeatherWidget = ({ state }: { state?: string }) => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-[2.5rem] text-white flex justify-between items-center shadow-xl shadow-blue-100 relative overflow-hidden">
+    <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl text-white flex justify-between items-center shadow-xl shadow-blue-100 relative overflow-hidden">
       <div className="absolute top-[-10%] right-[-5%] w-32 h-32 bg-white/10 rounded-full blur-2xl" />
       <div className="flex flex-col gap-1 relative z-10">
         <div className="flex items-center gap-2">
@@ -17175,31 +17194,31 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
 
   const getEmoji = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("apple") || n.includes("seb")) return "🍎";
+    if (n.includes("apple") || n.includes("seb")) return "";
     if (n.includes("potato") || n.includes("aloo") || n.includes("aalu"))
-      return "🥔";
-    if (n.includes("onion") || n.includes("pyaj")) return "🧅";
-    if (n.includes("tomato") || n.includes("tamatar")) return "🍅";
-    if (n.includes("banana") || n.includes("kela")) return "🍌";
-    if (n.includes("mango") || n.includes("aam")) return "🥭";
-    if (n.includes("wheat") || n.includes("gehu")) return "🌾";
+      return "";
+    if (n.includes("onion") || n.includes("pyaj")) return "";
+    if (n.includes("tomato") || n.includes("tamatar")) return "";
+    if (n.includes("banana") || n.includes("kela")) return "";
+    if (n.includes("mango") || n.includes("aam")) return "";
+    if (n.includes("wheat") || n.includes("gehu")) return "";
     if (n.includes("rice") || n.includes("chawal") || n.includes("paddy"))
-      return "🍚";
-    if (n.includes("chilli") || n.includes("mirch")) return "🌶️";
-    if (n.includes("garlic") || n.includes("lahsun")) return "🧄";
-    if (n.includes("ginger") || n.includes("adrak")) return "🫚";
-    if (n.includes("carrot") || n.includes("gajar")) return "🥕";
-    if (n.includes("cabbage") || n.includes("patta gobi")) return "🥬";
-    if (n.includes("cauliflower") || n.includes("gobi")) return "🥦";
-    if (n.includes("brinjal") || n.includes("baingan")) return "🍆";
-    if (n.includes("lemon") || n.includes("nimbu")) return "🍋";
-    if (n.includes("grapes") || n.includes("angur")) return "🍇";
-    if (n.includes("papaya") || n.includes("pappita")) return "🍈";
-    if (n.includes("guava") || n.includes("amrud")) return "🍐";
-    if (n.includes("maize") || n.includes("makka")) return "🌽";
-    if (n.includes("pea") || n.includes("matar")) return "🫛";
-    if (n.includes("mustard") || n.includes("sarso")) return "🌼";
-    return "🍃";
+      return "";
+    if (n.includes("chilli") || n.includes("mirch")) return "";
+    if (n.includes("garlic") || n.includes("lahsun")) return "";
+    if (n.includes("ginger") || n.includes("adrak")) return "";
+    if (n.includes("carrot") || n.includes("gajar")) return "";
+    if (n.includes("cabbage") || n.includes("patta gobi")) return "";
+    if (n.includes("cauliflower") || n.includes("gobi")) return "";
+    if (n.includes("brinjal") || n.includes("baingan")) return "";
+    if (n.includes("lemon") || n.includes("nimbu")) return "";
+    if (n.includes("grapes") || n.includes("angur")) return "";
+    if (n.includes("papaya") || n.includes("pappita")) return "";
+    if (n.includes("guava") || n.includes("amrud")) return "";
+    if (n.includes("maize") || n.includes("makka")) return "";
+    if (n.includes("pea") || n.includes("matar")) return "";
+    if (n.includes("mustard") || n.includes("sarso")) return "";
+    return "";
   };
 
   if (loading) {
@@ -17216,14 +17235,14 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
             <span className="text-[9px] font-bold text-gray-400 uppercase italic">
               Mitra is checking prices...
             </span>
-            <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin" />
+            <RefreshCw className="w-4 h-4 text-emerald-600 animate-spin" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="bg-gray-50 h-20 rounded-[2rem] border border-gray-100"
+              className="bg-gray-50 h-20 rounded-2xl border border-gray-100"
             />
           ))}
         </div>
@@ -17257,7 +17276,7 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
       </div>
 
       {error && (
-        <div className="bg-red-50 p-4 rounded-3xl border border-red-100 text-center mb-2">
+        <div className="bg-red-50 p-4 rounded-2xl border border-red-100 text-center mb-2">
           <p className="text-[10px] font-bold text-red-700 italic">
             "Server se data nahi mil raha: {error}"
           </p>
@@ -17265,7 +17284,7 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
       )}
 
       {filteredItems.length === 0 && !error ? (
-        <div className="bg-orange-50 p-4 rounded-3xl border border-orange-100 text-center">
+        <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-center">
           <p className="text-[10px] font-bold text-orange-700 italic">
             {localSearch
               ? `"Maafi chahte hain, '${localSearch}' ka bhav nahi mila"`
@@ -17277,7 +17296,7 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
           {filteredItems.map((item, i) => (
             <div
               key={i}
-              className="bg-white p-3 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-3 group hover:border-emerald-100 transition-colors"
+              className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 group hover:border-emerald-100 transition-colors"
             >
               <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-50 shrink-0 bg-emerald-50 flex items-center justify-center text-xl">
                 {getEmoji(item.name)}
@@ -17320,7 +17339,7 @@ const MandiBhavWidget = ({ userState }: { userState?: string }) => {
 
 const JobFinderWidget = ({ onSearch }: { onSearch: (q: string) => void }) => {
   return (
-    <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white flex flex-col gap-4 shadow-xl shadow-indigo-100 relative overflow-hidden group">
+    <div className="bg-indigo-600 p-6 rounded-2xl text-white flex flex-col gap-4 shadow-xl shadow-indigo-100 relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-3">
@@ -17360,7 +17379,7 @@ const CareerGuideWidget = ({
   onAction: (action: string) => void;
 }) => {
   return (
-    <section className="p-6 bg-gradient-to-br from-[#008069] to-green-800 rounded-[2.5rem] shadow-xl shadow-green-100 flex flex-col gap-6 relative overflow-hidden">
+    <section className="p-6 bg-gradient-to-br from-[#008069] to-green-800 rounded-2xl shadow-xl shadow-green-100 flex flex-col gap-6 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10" />
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-3">
@@ -17470,8 +17489,8 @@ const HomeScreen = ({
     let schemeVirtualItems = schemes.map((s, idx) => ({
       id: `virtual-${s.id}`,
       title: s.hindiName 
-        ? `🔥 LIVE Portal: ${s.hindiName}` 
-        : `🔥 LIVE Portal: ${s.name} Active`,
+        ? ` LIVE Portal: ${s.hindiName}` 
+        : ` LIVE Portal: ${s.name} Active`,
       summary: `Labh uthayein! Is essential scheme/scholarship me apply karein. Benefits: ${s.benefits ? s.benefits[0] : "Financial support"}.`,
       category: s.category === "Education" || s.community === "Student" 
         ? "Scholarship" 
@@ -17519,7 +17538,7 @@ const HomeScreen = ({
           const capitalizedKw = kw.charAt(0).toUpperCase() + kw.slice(1);
           return {
             id: `virtual-desiredjob-${kw}-${i}`,
-            title: `💼 Vishesh AI-Alert: New ${capitalizedKw} Opening 2026 Active`,
+            title: ` Vishesh AI-Alert: New ${capitalizedKw} Opening 2026 Active`,
             summary: `Attention Jobs Seekers! Nayi ${capitalizedKw} opportunities and eligibility entry-points are now active for applicants in ${userState}. Apply safely via Form Mitra AI.`,
             category: "Jobs",
             analysis: `Dost, aapne apni preference me "${capitalizedKw}" jobs enter kiya tha, isliye humne aapke state (${userState}) ki active openings and registration entry points scan kiye hain. click "Ask Mitra AI" to auto-evaluate rules, fees, and syllabus details.`,
@@ -17740,7 +17759,7 @@ const HomeScreen = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-5 bg-red-50 rounded-[2.5rem] border border-red-100 flex items-center justify-between group cursor-pointer shadow-sm shadow-red-100/50"
+          className="p-5 bg-red-50 rounded-2xl border border-red-100 flex items-center justify-between group cursor-pointer shadow-sm shadow-red-100/50"
           onClick={() => onNavigate("settings")}
         >
           <div className="flex items-center gap-4">
@@ -17766,9 +17785,9 @@ const HomeScreen = ({
       <section className="grid grid-cols-2 gap-4 pt-2">
         <button
           onClick={() => onNavigate("schemes")}
-          className="aspect-square p-6 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 flex flex-col items-center justify-center gap-4 active:scale-95 transition-all shadow-sm group"
+          className="aspect-square p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center gap-4 active:scale-95 transition-all shadow-sm group"
         >
-          <div className="w-16 h-16 rounded-[2rem] bg-white flex items-center justify-center text-[#008069] shadow-md border border-emerald-50 group-hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-[#008069] shadow-md border border-emerald-50 group-hover:scale-110 transition-transform">
             <BookOpen className="w-8 h-8" />
           </div>
           <div className="text-center">
@@ -17783,9 +17802,9 @@ const HomeScreen = ({
 
         <button
           onClick={() => onNavigate("guide")}
-          className="aspect-square p-6 bg-indigo-50 rounded-[2.5rem] border border-indigo-100 flex flex-col items-center justify-center gap-4 active:scale-95 transition-all shadow-sm group"
+          className="aspect-square p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col items-center justify-center gap-4 active:scale-95 transition-all shadow-sm group"
         >
-          <div className="w-16 h-16 rounded-[2rem] bg-white flex items-center justify-center text-indigo-600 shadow-md border border-indigo-50 group-hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-indigo-600 shadow-md border border-indigo-50 group-hover:scale-110 transition-transform">
             <Camera className="w-8 h-8" />
           </div>
           <div className="text-center">
@@ -17809,16 +17828,16 @@ const HomeScreen = ({
       {/* SINGLE SKILL FINDER WITH RAINBOW COLOR HIGHLIGHT (Just above AI Recommendations) */}
       <div 
         onClick={() => onNavigate("skill-finder")}
-        className="relative group/rainbow p-[3px] rounded-[2.5rem] overflow-hidden shadow-md cursor-pointer active:scale-[0.98] transition-all duration-300"
+        className="relative group/rainbow p-[2px] rounded-2xl overflow-hidden shadow-sm cursor-pointer active:scale-[0.98] transition-all duration-300"
       >
         {/* Dynamic rotating glowing rainbow border */}
-        <div className="absolute -inset-20 bg-[conic-gradient(from_0deg,#ff453a,#ff9f0a,#ffd60a,#30d158,#0a84ff,#5e5ce6,#ff453a)] animate-[spin_8s_linear_infinite]" />
+        <div className="absolute -inset-20 bg-gradient-to-r from-[#008069] via-emerald-500 to-[#008069] animate-[spin_8s_linear_infinite]" />
         
         {/* Inner Content Card (Dark theme to make the rainbow pop beautifully) */}
-        <div className="relative bg-slate-900 p-5 rounded-[2.35rem] flex items-center justify-between text-white overflow-hidden">
+        <div className="relative bg-emerald-900 p-5 rounded-[15px] flex items-center justify-between text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 blur-2xl rounded-full -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10 text-left">
-            <div className="w-12 h-12 bg-gradient-to-tr from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center text-slate-950 shadow-sm shrink-0 group-hover/rainbow:scale-105 transition-transform">
+            <div className="w-12 h-12 bg-gradient-to-tr from-[#008069] to-emerald-400 text-white rounded-2xl flex items-center justify-center text-slate-950 shadow-sm shrink-0 group-hover/rainbow:scale-105 transition-transform">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div className="text-left">
@@ -17826,7 +17845,7 @@ const HomeScreen = ({
                 <Sparkles className="w-2.5 h-2.5 text-slate-950" /> BHAIYA'S AI RECOMMENDATION
               </span>
               <h3 className="text-sm font-black text-white leading-tight mt-1 flex items-center gap-1.5">
-                MITRA SKILL FINDER 🚀
+                MITRA SKILL FINDER
               </h3>
               <p className="text-[10px] font-bold text-zinc-300 mt-0.5 leading-tight">
                 Class {userProfile.stream || "Science/Commerce/Arts"} ke paths, high-earnings & roadmaps!
@@ -17842,13 +17861,13 @@ const HomeScreen = ({
       {/* MITRA GIG FINDER WITH EMERALD/GOLD GLOWING BORDER */}
       <div 
         onClick={() => onNavigate("gig-finder")}
-        className="relative group/gigs p-[3px] rounded-[2.5rem] overflow-hidden shadow-md cursor-pointer active:scale-[0.98] transition-all duration-300"
+        className="relative group/gigs p-[3px] rounded-2xl overflow-hidden shadow-md cursor-pointer active:scale-[0.98] transition-all duration-300"
       >
         {/* Dynamic rotating glowing teal-emerald border */}
-        <div className="absolute -inset-20 bg-[conic-gradient(from_0deg,#008069,#10b981,#fbbf24,#34d399,#008069)] animate-[spin_10s_linear_infinite]" />
+        <div className="absolute -inset-20 bg-gradient-to-r from-emerald-500 to-teal-400 animate-[spin_10s_linear_infinite]" />
         
         {/* Inner Content Card */}
-        <div className="relative bg-slate-900 p-5 rounded-[2.35rem] flex items-center justify-between text-white overflow-hidden">
+        <div className="relative bg-emerald-900 p-5 rounded-[15px] flex items-center justify-between text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/10 blur-2xl rounded-full -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10 text-left">
             <div className="w-12 h-12 bg-gradient-to-tr from-emerald-400 to-[#008069] rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0 group-hover/gigs:scale-105 transition-transform">
@@ -17859,7 +17878,7 @@ const HomeScreen = ({
                 <Sparkles className="w-2.5 h-2.5 text-yellow-300" /> STUDENT POCKET-MONEY
               </span>
               <h3 className="text-sm font-black text-white leading-tight mt-1 flex items-center gap-1.5">
-                MITRA GIG FINDER 💼
+                MITRA GIG FINDER 
               </h3>
               <p className="text-[10px] font-bold text-zinc-300 mt-0.5 leading-tight">
                 Zero investment genuine online part-time earning opportunities!
@@ -17918,7 +17937,7 @@ const HomeScreen = ({
         <div className="grid grid-cols-1 gap-4">
           <div
             onClick={onShowFormAudit}
-            className="p-6 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[2.5rem] shadow-xl shadow-indigo-100 flex flex-col gap-6 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
+            className="p-6 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl shadow-xl shadow-indigo-100 flex flex-col gap-6 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
             <div className="flex justify-between items-start relative z-10">
@@ -18038,7 +18057,7 @@ const HomeScreen = ({
                   }
                   onNavigate("guide");
                 }}
-                className="p-4 bg-white rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all hover:border-[#008069]/30"
+                className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all hover:border-[#008069]/30"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-[#008069]/5 flex items-center justify-center text-[#008069]">
@@ -18046,12 +18065,12 @@ const HomeScreen = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-sm text-gray-900 line-clamp-1">
+                      <h4 className="font-bold text-sm text-gray-900">
                         {draft.formDefinition?.hindiName || "Untitled Form"}
                       </h4>
                       {draft.isOfflineDraft && (
                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${isOnline ? "bg-amber-100 text-amber-800 animate-pulse" : "bg-orange-100 text-orange-850"}`}>
-                          {isOnline ? "Unsynced 📡" : "Offline 📡"}
+                          {isOnline ? "Unsynced " : "Offline "}
                         </span>
                       )}
                     </div>
@@ -18104,7 +18123,7 @@ const HomeScreen = ({
               <div
                 key={scheme.id}
                 onClick={() => onNavigateToScheme(scheme.id)}
-                className="w-48 shrink-0 bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-[#008069]/30 transition-all active:scale-95 group"
+                className="w-48 shrink-0 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3 cursor-pointer hover:border-[#008069]/30 transition-all active:scale-95 group"
               >
                 <div className="w-full h-24 rounded-2xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 relative">
                   <img
@@ -18146,7 +18165,7 @@ const HomeScreen = ({
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-gray-900 line-clamp-1">
+                  <h4 className="font-bold text-xs text-gray-900">
                     {scheme.hindiName || scheme.name}
                   </h4>
                   <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter mt-1">
@@ -18193,7 +18212,7 @@ const HomeScreen = ({
           <button
             key={idx}
             onClick={() => onNavigate(item.target)}
-            className="flex flex-col gap-3 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm text-left hover:border-[#008069]/30 transition-all hover:-translate-y-1"
+            className="flex flex-col gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-left hover:border-[#008069]/30 transition-all hover:-translate-y-1"
           >
             <div
               className={cn(
@@ -18226,7 +18245,7 @@ const HomeScreen = ({
       {!userProfile.isPremium && (
         <button
           onClick={() => onNavigate("premium")}
-          className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-xl flex items-center justify-between group overflow-hidden relative mt-4"
+          className="bg-[#008069] text-white p-6 rounded-2xl shadow-xl flex items-center justify-between group overflow-hidden relative mt-4"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 blur-3xl rounded-full -mr-16 -mt-16" />
           <div className="flex flex-col gap-1 text-left relative z-10">
@@ -18237,7 +18256,7 @@ const HomeScreen = ({
               Get Unlimited AI Screen Share
             </p>
           </div>
-          <div className="bg-white/10 p-4 rounded-3xl relative z-10 group-hover:bg-white/20 transition-all">
+          <div className="bg-white/10 p-4 rounded-2xl relative z-10 group-hover:bg-white/20 transition-all">
             <Zap className="w-6 h-6 text-yellow-400 fill-current" />
           </div>
         </button>
@@ -18284,7 +18303,7 @@ const PremiumScreen = ({
           animate={{ scale: 1, opacity: 1 }}
           className="flex flex-col items-center gap-6 text-center"
         >
-          <div className="w-24 h-24 bg-green-500 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl shadow-green-100">
+          <div className="w-24 h-24 bg-green-500 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-green-100">
             <CheckCircle className="w-12 h-12" />
           </div>
           <div className="space-y-2">
@@ -18297,7 +18316,7 @@ const PremiumScreen = ({
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="w-full bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-widest text-sm shadow-xl"
+            className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl"
           >
             Mitra AI Dashboard
           </button>
@@ -18343,7 +18362,7 @@ const PremiumScreen = ({
             ].map((f, i) => (
               <div
                 key={i}
-                className="flex items-start gap-4 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm"
+                className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
               >
                 <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-[#008069] shrink-0">
                   <f.icon className="w-5 h-5" />
@@ -18380,7 +18399,7 @@ const PremiumScreen = ({
             <button
               onClick={handlePay}
               disabled={status === "paying"}
-              className="w-full bg-[#008069] text-white py-5 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-green-900 relative z-10 active:scale-95 transition-all overflow-hidden"
+              className="w-full bg-[#008069] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-green-900 relative z-10 active:scale-95 transition-all overflow-hidden"
             >
               {status === "paying" ? (
                 <div className="flex items-center justify-center gap-3">
@@ -18862,7 +18881,7 @@ const PlayButton = ({ text }: { text: string }) => {
             "px-2.5 py-1 rounded-xl font-sans text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer border shadow-neutral-100/30",
             isLoading
               ? "bg-slate-200 text-slate-400 border-transparent cursor-not-allowed"
-              : "bg-white text-slate-700 hover:bg-slate-50 border-slate-250/60 hover:border-slate-350"
+              : "bg-transparent text-[#008069] hover:bg-[#008069]/5 border-[#008069]/60 hover:border-[#008069]"
           )}
           title="Listen/Speak in Hindi/Hinglish"
         >
@@ -18956,7 +18975,7 @@ const SUGGESTION_POOLS = {
   ],
 };
 
-const getProfileBasedSuggestions = (profile: UserProfile): string[] => {
+const getProfileBasedSuggestions = (profile: UserProfile, lastMsg?: string): string[] => {
   const normState = (profile.state || "").toLowerCase();
   const normComm = (profile.community || "Normal").toLowerCase();
   const normOcc = (profile.occupation || "").toLowerCase();
@@ -19041,13 +19060,29 @@ const ChatScreen = ({
       id: "welcome",
       role: "assistant",
       content:
-        "Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*",
+        `Namaste ${userProfile.name ? userProfile.name.split(' ')[0] + ' ' : ''}bhai! 👋 Aaj kaise help karu?\n\nMain aapki sarkari schemes, career aur forms bharne mein 100% help karunga.\n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*`,
       timestamp: Date.now(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [animatedMessageIds, setAnimatedMessageIds] = useState<Record<string, boolean>>({});
+  const [showWelcomeAnim, setShowWelcomeAnim] = useState(true);
+  const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
+  let pressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowWelcomeAnim(false), 2000);
+    return () => clearTimeout(t);
+  }, []);
+  
+  const handlePressStart = (id: string) => {
+    pressTimer.current = setTimeout(() => setActiveReactionId(id), 500);
+  };
+  
+  const handlePressEnd = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  };
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -19066,11 +19101,13 @@ const ChatScreen = ({
   const [activeSuggestions, setActiveSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    setActiveSuggestions(getProfileBasedSuggestions(userProfile));
-  }, [userProfile, activeConversationId]);
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    setActiveSuggestions(getProfileBasedSuggestions(userProfile, lastUserMsg?.content));
+  }, [userProfile, activeConversationId, messages]);
 
   const handleShuffleSuggestions = () => {
-    setActiveSuggestions(getProfileBasedSuggestions(userProfile));
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    setActiveSuggestions(getProfileBasedSuggestions(userProfile, lastUserMsg?.content));
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19223,7 +19260,7 @@ const ChatScreen = ({
         doc(db, `users/${auth.currentUser.uid}/conversations`, convId),
         {
           lastMessage: image
-            ? "📸 Photo analysis request"
+            ? " Photo analysis request"
             : content.substring(0, 50) + (content.length > 50 ? "..." : ""),
           updatedAt: Date.now(),
         },
@@ -19294,7 +19331,7 @@ const ChatScreen = ({
       console.error(error);
       if (!isGeneratingRef.current) return;
       showToast(
-        "Server mein kuch dikkat hai. Kripya thodi der baad try karein.",
+        "Bhai, server thoda busy lag raha, thodi der mein try karo.",
         "error",
       );
     }
@@ -19370,12 +19407,14 @@ const ChatScreen = ({
       console.error(error);
       if (!isGeneratingRef.current) return;
       showToast(
-        "Server mein kuch dikkat hai. Kripya thodi der baad try karein.",
+        "Bhai, server thoda busy lag raha, thodi der mein try karo.",
         "error",
       );
     }
   };
 
+  const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const startVoiceInput = () => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -19385,12 +19424,39 @@ const ChatScreen = ({
     }
     const recognition = new SpeechRecognition();
     recognition.lang = "hi-IN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
+    
+    recognition.onend = () => {
+      setIsListening(false);
     };
+    
+    recognition.onresult = (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+      
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      const currentText = finalTranscript || interimTranscript;
+      if (currentText) {
+        setInput(currentText);
+        
+        if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = setTimeout(() => {
+          recognition.stop();
+          handleSend(currentText);
+        }, 2000);
+      }
+    };
+    
     recognition.start();
   };
 
@@ -19449,6 +19515,20 @@ const ChatScreen = ({
 
   return (
     <div className="flex flex-col flex-1 h-full bg-[#E5DDD5] chat-pattern relative overflow-hidden">
+      <AnimatePresence>
+      {showWelcomeAnim && (
+        <motion.div exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.5 }} className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
+            <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center shadow-xl mb-4">
+              <Sparkles className="w-12 h-12 text-white" />
+            </div>
+          </motion.div>
+          <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-2xl font-black text-gray-900">
+            Namaste! 🙏
+          </motion.h2>
+        </motion.div>
+      )}
+      </AnimatePresence>
       {/* History Sidebar/Drawer */}
       <AnimatePresence>
         {showHistory && (
@@ -19525,14 +19605,14 @@ const ChatScreen = ({
                         )}
                       >
                         <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-bold text-sm text-gray-900 line-clamp-1">
+                          <h4 className="font-bold text-sm text-gray-900">
                             {conv.title}
                           </h4>
                           <span className="text-[8px] text-gray-400 font-black uppercase whitespace-nowrap">
                             {new Date(conv.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-[10px] text-gray-500 line-clamp-1 font-medium">
+                        <p className="text-[10px] text-gray-500 font-medium">
                           {conv.lastMessage}
                         </p>
                       </button>
@@ -19590,17 +19670,56 @@ const ChatScreen = ({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
-        {messages.map((m) => (
+        {messages.map((m) => {
+          const isErrorMsg = m.isError || m.content.includes("server thoda busy lag raha") || m.content.includes("Server mein kuch dikkat hai") || (m.thought && m.thought.startsWith("Error:"));
+          
+          return (
           <div
             key={m.id}
+            onMouseDown={() => handlePressStart(m.id)}
+            onMouseUp={handlePressEnd}
+            onMouseLeave={handlePressEnd}
+            onTouchStart={() => handlePressStart(m.id)}
+            onTouchEnd={handlePressEnd}
             className={cn(
               "flex flex-col max-w-[85%] rounded-2xl p-3 shadow-sm relative",
               m.role === "user"
                 ? "ml-auto bg-[#DCF8C6] text-gray-800 rounded-tr-none border border-[#C7E9B0]"
-                : "mr-auto bg-white text-gray-900 border border-gray-100 rounded-tl-none",
+                : isErrorMsg
+                  ? "mr-auto bg-red-50 text-red-900 border border-red-200 rounded-tl-none"
+                  : "mr-auto bg-white text-gray-900 border border-gray-100 rounded-tl-none",
             )}
           >
-            {m.role === "assistant" && m.thought && (
+
+            {activeReactionId === m.id && (
+              <div className="absolute -top-10 left-0 bg-white rounded-full shadow-lg border border-gray-200 flex items-center gap-2 p-1.5 z-50 animate-fade-in">
+                {['👍', '❤️', '😮', '🙏'].map(emoji => (
+                  <button 
+                    key={emoji}
+                    onClick={() => {
+                      setMessages(prev => prev.map(msg => msg.id === m.id ? { ...msg, userReaction: emoji } : msg));
+                      setActiveReactionId(null);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+                <button onClick={() => setActiveReactionId(null)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full"><X className="w-4 h-4"/></button>
+              </div>
+            )}
+            {(m as any).userReaction && (
+              <div className="absolute -bottom-3 right-2 bg-white border border-gray-200 text-xs px-1.5 py-0.5 rounded-full shadow-sm z-10 text-black">
+                {(m as any).userReaction}
+              </div>
+            )}
+            {isErrorMsg && (
+              <div className="flex items-center gap-1.5 mb-2 text-red-600">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Connection Issue</span>
+              </div>
+            )}
+            {m.role === "assistant" && m.thought && !isErrorMsg && (
               <details className="mb-2 text-[10px] text-gray-400 bg-gray-50 p-2 rounded-xl border border-gray-100 group">
                 <summary className="cursor-pointer font-bold uppercase tracking-widest list-none flex items-center gap-1 group-open:mb-2">
                   <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-pulse" />
@@ -19622,6 +19741,21 @@ const ChatScreen = ({
               </div>
             )}
 
+            {m.role === "user" && (
+              <div className="flex justify-end mt-1">
+                <span className="text-[10px] text-gray-500 flex items-center gap-0.5 font-bold">
+                  {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {messages.findIndex(msg => msg.id === m.id) < messages.length - 1 ? (
+                    <span className="text-blue-500">✓✓</span>
+                  ) : isTyping ? (
+                    <span>✓✓</span>
+                  ) : (
+                    <span>✓</span>
+                  )}
+                </span>
+              </div>
+            )}
+            
             <div className="prose prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0 mt-0.5 text-inherit">
               {(() => {
                 const processed = (() => {
@@ -19669,8 +19803,45 @@ const ChatScreen = ({
               })()}
             </div>
 
-            {m.role === "assistant" && m.id !== "welcome" && (
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50/50">
+            {isErrorMsg && m.id === messages[messages.length - 1]?.id && (
+              <button
+                onClick={() => {
+                  const lastUserMsg = [...messages].reverse().find(msg => msg.role === 'user');
+                  if (lastUserMsg) {
+                    handleSend(lastUserMsg.content);
+                  }
+                }}
+                className="mt-3 bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 hover:bg-red-200 transition-colors self-start border border-red-200"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Retry
+              </button>
+            )}
+            {m.role === "assistant" && m.id !== "welcome" && !isErrorMsg && (
+              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100 flex-wrap">
+                <button
+                  onClick={() => navigator.clipboard.writeText(m.content)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 text-gray-600 text-[10px] font-bold hover:bg-gray-100 transition-colors border border-gray-200"
+                >
+                  <Copy className="w-3 h-3" /> Copy
+                </button>
+                <button
+                  onClick={() => handleSend("Iske baare mein thoda aur detail me batao")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold hover:bg-emerald-500/20 transition-colors border border-emerald-500/20"
+                >
+                  <RefreshCw className="w-3 h-3" /> Aur Batao
+                </button>
+                <button
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: 'Form Mitra', text: m.content });
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 text-gray-600 text-[10px] font-bold hover:bg-gray-100 transition-colors border border-gray-200"
+                >
+                  <Share2 className="w-3 h-3" /> Share
+                </button>
+                <div className="flex-1"></div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleMessageRating(m.id, "up")}
@@ -19735,7 +19906,7 @@ const ChatScreen = ({
                         onSetTargetSchemeId(mentionedScheme.id);
                         onNavigate("schemes");
                       }}
-                      className="mt-3 self-start flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md group"
+                      className="mt-3 self-start flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#008069] text-white text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md group"
                     >
                       <LayoutGrid className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
                       View {mentionedScheme.hindiName || mentionedScheme.name}{" "}
@@ -19772,9 +19943,9 @@ const ChatScreen = ({
                 </button>
               )}
           </div>
-        ))}
+        ); })}
         {isTyping && (
-          <div className="mr-auto bg-white p-5 rounded-[2.5rem] rounded-tl-none border border-gray-100 shadow-xl flex flex-col gap-3 max-w-[85%]">
+          <div className="mr-auto bg-white p-5 rounded-2xl rounded-tl-none border border-gray-100 shadow-xl flex flex-col gap-3 max-w-[85%] animate-fade-in">
             <AILoader message="Mitra is thinking & browsing..." />
             <ThinkingStepsRenderer />
           </div>
@@ -19786,7 +19957,7 @@ const ChatScreen = ({
           <div className="flex flex-col gap-1.5 mb-1">
             <div className="flex justify-between items-center px-1">
               <p className="text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                💡 AI Suggestions for {userProfile.state || "India"} sathi (
+                AI Suggestions for {userProfile.state || "India"} sathi (
                 {userProfile.community || "Normal"})
               </p>
               <button
@@ -19911,11 +20082,18 @@ const ChatScreen = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !isTyping && handleSend()}
               placeholder={
-                isListening ? "Listening..." : "Hinglish mein puhein..."
+                isListening ? "Bol raha hoon..." : "Hinglish mein puhein..."
               }
               className="flex-1 text-xs sm:text-sm outline-none bg-transparent min-w-0 font-medium text-gray-800 placeholder-gray-400"
               disabled={isTyping}
             />
+            {isListening && (
+              <div className="flex items-center gap-0.5 ml-2">
+                <motion.div animate={{ height: [4, 12, 4] }} transition={{ duration: 0.5, repeat: Infinity }} className="w-1 bg-red-500 rounded-full" />
+                <motion.div animate={{ height: [4, 16, 4] }} transition={{ duration: 0.6, repeat: Infinity }} className="w-1 bg-red-500 rounded-full" />
+                <motion.div animate={{ height: [4, 8, 4] }} transition={{ duration: 0.4, repeat: Infinity }} className="w-1 bg-red-500 rounded-full" />
+              </div>
+            )}
           </div>
 
           {/* Premium action handler: Send or Stop/Hold */}
@@ -20004,7 +20182,7 @@ const FormAudit = ({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm gap-4">
+      <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-gray-100 shadow-sm gap-4">
         <div className="w-12 h-12 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin" />
         <div className="text-center">
           <p className="text-sm font-black text-gray-900 uppercase tracking-widest leading-tight">
@@ -20021,9 +20199,9 @@ const FormAudit = ({
   if (!audit) return null;
 
   // Compute robust layout and data mappings
-  const safetyScoreStr = audit.formSafetyScoreText || `🛡️ Form Safety Score: ${100 - (audit.riskScore ?? 45)}% - ${(audit.riskScore ?? 45) > 50 ? "High Risk of Rejection" : "Safe to Submit"}`;
+  const safetyScoreStr = audit.formSafetyScoreText || ` Form Safety Score: ${100 - (audit.riskScore ?? 45)}% - ${(audit.riskScore ?? 45) > 50 ? "High Risk of Rejection" : "Safe to Submit"}`;
   
-  const rawRedFlags = audit.criticalRedFlags || (audit.majorIssues || []).map((issue: any) => `🚩 ${issue.issue}`);
+  const rawRedFlags = audit.criticalRedFlags || (audit.majorIssues || []).map((issue: any) => ` ${issue.issue}`);
   const redFlags = rawRedFlags.length > 0 ? rawRedFlags : [];
 
   const looksGoodList = audit.looksGood && audit.looksGood.length > 0 
@@ -20041,14 +20219,14 @@ const FormAudit = ({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="bg-white p-6 rounded-[2.5rem] border border-gray-150 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-150 shadow-sm flex flex-col gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#008069]/5 rounded-full blur-3xl pointer-events-none" />
         
         {/* Auditor Brand Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-2.5">
             <span className="w-9 h-9 rounded-2xl bg-[#008069]/10 text-[#008069] flex items-center justify-center font-black text-lg">
-              🛡️
+              
             </span>
             <div>
               <h3 className="font-extrabold text-sm uppercase tracking-widest text-[#005c4b]">
@@ -20065,9 +20243,9 @@ const FormAudit = ({
         </div>
 
         {/* 1. Form Safety Score Headline */}
-        <div className="bg-[#005c4b]/5 border-2 border-[#005c4b]/15 p-5 rounded-3xl flex items-center gap-4">
+        <div className="bg-[#005c4b]/5 border-2 border-[#005c4b]/15 p-5 rounded-2xl flex items-center gap-4">
           <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-xl shadow-xs shrink-0 select-none">
-            🛡️
+            
           </div>
           <div>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
@@ -20092,17 +20270,17 @@ const FormAudit = ({
         {/* 2. Critical Red Flags (Must Fix) */}
         <div className="flex flex-col gap-3">
           <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-            🚨 Critical Red Flags (Must Fix)
+             Critical Red Flags (Must Fix)
           </h4>
           {redFlags.length > 0 ? (
             <div className="flex flex-col gap-2">
               {redFlags.map((flag: string, idx: number) => {
-                const cleanFlag = flag.startsWith("🚩") ? flag : `🚩 ${flag}`;
+                const cleanFlag = flag.startsWith("") ? flag : ` ${flag}`;
                 return (
                   <div key={idx} className="p-4 bg-rose-50/40 rounded-2xl border border-rose-100 flex items-start gap-3">
-                    <span className="text-sm select-none shrink-0 mt-0.5">🚩</span>
+                    <span className="text-sm select-none shrink-0 mt-0.5"></span>
                     <p className="text-[11px] font-semibold text-slate-800 leading-tight">
-                      {cleanFlag.replace(/^🚩\s*/, "")}
+                      {cleanFlag.replace(/^\s*/, "")}
                     </p>
                   </div>
                 );
@@ -20110,7 +20288,7 @@ const FormAudit = ({
             </div>
           ) : (
             <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-100 flex items-start gap-3">
-              <span className="text-sm select-none shrink-0 mt-0.5">🟢</span>
+              <span className="text-sm select-none shrink-0 mt-0.5"></span>
               <p className="text-[11px] font-bold text-emerald-800 leading-tight">
                 Zabardast! Koi critical red flags nahi mile. Aapka form rejection risk se bilkul safe lag raha hai.
               </p>
@@ -20138,9 +20316,9 @@ const FormAudit = ({
         {/* 4. Quick Fix Action Plan */}
         <div className="flex flex-col gap-3">
           <h4 className="text-[10px] font-black text-[#005c4b] uppercase tracking-widest ml-1 flex items-center gap-2">
-            🛠️ Quick Fix Action Plan
+             Quick Fix Action Plan
           </h4>
-          <div className="p-5 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-150 rounded-3xl flex flex-col gap-3">
+          <div className="p-5 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-150 rounded-2xl flex flex-col gap-3">
             {quickActionPlan.map((step: string, idx: number) => {
               const cleanStep = step.replace(/^\d+[\.\s\-]+/, "");
               return (
@@ -20784,7 +20962,7 @@ const GuideScreen = ({
             title="Naya Document Upload Karein / Reset"
           >
             <RefreshCw className="w-4 h-4" />
-            <span>Reset 🔄</span>
+            <span>Reset </span>
           </button>
         )}
       </header>
@@ -20792,7 +20970,7 @@ const GuideScreen = ({
       {!image ? (
         <div className="flex flex-col gap-4">
           {useInAppCamera ? (
-            <div className="bg-slate-900 rounded-[2.5rem] overflow-hidden relative shadow-xl border border-slate-800 flex flex-col items-center justify-center p-6 min-h-[300px]">
+            <div className="bg-slate-900 rounded-2xl overflow-hidden relative shadow-xl border border-slate-800 flex flex-col items-center justify-center p-6 min-h-[300px]">
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
                 <span className="px-3 py-1 bg-[#008069] text-white text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping" />
@@ -20822,7 +21000,7 @@ const GuideScreen = ({
                       onClick={startGuideCamera}
                       className="px-4 py-2 bg-white/10 rounded-xl text-[10px] font-black uppercase text-white hover:bg-white/20"
                     >
-                      Try Again 🔄
+                      Try Again 
                     </button>
                   </div>
                 )}
@@ -20872,7 +21050,7 @@ const GuideScreen = ({
               )}
             </div>
           ) : (
-            <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-6 shadow-xs flex flex-col gap-4">
+            <div className="bg-white border-2 border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col gap-4">
               <div className="flex flex-col items-center justify-center text-center p-2 mb-2">
                 <div className="w-12 h-12 rounded-full bg-emerald-50 text-[#008069] flex items-center justify-center mb-2">
                   <Sparkles className="w-6 h-6 animate-pulse" />
@@ -20888,7 +21066,7 @@ const GuideScreen = ({
                 <button
                   type="button"
                   onClick={startGuideCamera}
-                  className="flex flex-col items-center justify-center p-6 bg-[#008069]/[0.02] border-2 border-dashed border-[#008069]/30 hover:bg-[#008069]/5 rounded-3xl transition-all cursor-pointer group active:scale-[0.98] outline-none"
+                  className="flex flex-col items-center justify-center p-6 bg-[#008069]/[0.02] border-2 border-dashed border-[#008069]/30 hover:bg-[#008069]/5 rounded-2xl transition-all cursor-pointer group active:scale-[0.98] outline-none"
                 >
                   <div className="w-12 h-12 rounded-2xl bg-[#008069] flex items-center justify-center text-white mb-3 shadow-lg shadow-green-200 group-hover:scale-105 transition-transform">
                     <Camera className="w-6 h-6" />
@@ -20897,7 +21075,7 @@ const GuideScreen = ({
                     Abhi Photo Kheenchein
                   </span>
                   <span className="text-[8px] text-[#008069] font-black uppercase tracking-widest mt-1">
-                    📸 In-App Live Camera
+                     In-App Live Camera
                   </span>
                   <span className="text-[7px] text-gray-400 font-extrabold tracking-normal uppercase mt-1">
                     Bina browser reload liye fast scan
@@ -20905,7 +21083,7 @@ const GuideScreen = ({
                 </button>
 
                 {/* Option 2: Gallery / PDF Upload input */}
-                <label className="flex flex-col items-center justify-center p-6 bg-slate-50 border-2 border-dashed border-slate-200 hover:bg-slate-100/80 rounded-3xl transition-all cursor-pointer group active:scale-[0.98]">
+                <label className="flex flex-col items-center justify-center p-6 bg-slate-50 border-2 border-dashed border-slate-200 hover:bg-slate-100/80 rounded-2xl transition-all cursor-pointer group active:scale-[0.98]">
                   <input
                     type="file"
                     onChange={handleFileUpload}
@@ -20919,7 +21097,7 @@ const GuideScreen = ({
                     Gallery / Files Se Chunein
                   </span>
                   <span className="text-[8px] text-zinc-600 font-black uppercase tracking-widest mt-1">
-                    📂 Upload Picture/PDF
+                     Upload Picture/PDF
                   </span>
                   <span className="text-[7px] text-gray-400 font-extrabold tracking-normal uppercase mt-1">
                     Chose previously saved file
@@ -20928,7 +21106,7 @@ const GuideScreen = ({
               </div>
 
               <div className="p-3 bg-amber-500/[0.04] border border-amber-500/10 rounded-2xl flex gap-2.5 items-start mt-2">
-                <span className="text-sm">⚠️</span>
+                <span className="text-sm">⚠</span>
                 <p className="text-[8px] text-amber-700 font-extrabold uppercase tracking-tight leading-normal">
                   Chunki camera photo kheenchte hi mobile browser reload hone ka darr hota hai, isliye upar diya gaya "Abhi Photo Kheenchein" (In-App Live Camera) option hi use karein bhai!
                 </p>
@@ -20936,7 +21114,7 @@ const GuideScreen = ({
             </div>
           )}
 
-          <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4">
             <h3 className="font-black text-xs uppercase tracking-widest text-[#008069] flex items-center gap-2">
               <Globe className="w-4 h-4" />
               Website Analyzer
@@ -20997,7 +21175,7 @@ const GuideScreen = ({
                   </div>
                   <PlayButton text={websiteResult.summary} />
                 </div>
-                <p className="text-[10px] text-gray-600 font-medium leading-relaxed font-italic line-clamp-2">
+                <p className="text-[10px] text-gray-600 font-medium leading-relaxed font-italic">
                   "{websiteResult.summary}"
                 </p>
 
@@ -21072,7 +21250,7 @@ const GuideScreen = ({
                 {drafts.map((draft) => (
                   <div
                     key={draft.id}
-                    className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm flex items-center justify-between group hover:border-[#008069]/30 transition-all"
+                    className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group hover:border-[#008069]/30 transition-all"
                   >
                     <button
                       onClick={() => resumeDraft(draft)}
@@ -21083,12 +21261,12 @@ const GuideScreen = ({
                       </div>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-black text-[13px] text-gray-900 line-clamp-1">
+                          <h4 className="font-black text-[13px] text-gray-900">
                             {draft.formName || draft.formDefinition?.hindiName || "Untitled Form"}
                           </h4>
                           {draft.isOfflineDraft && (
                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${isOnline ? "bg-amber-100 text-amber-800 animate-pulse" : "bg-orange-100 text-orange-850"}`}>
-                              {isOnline ? "Unsynced 📡" : "Offline 📡"}
+                              {isOnline ? "Unsynced " : "Offline "}
                             </span>
                           )}
                         </div>
@@ -21126,7 +21304,7 @@ const GuideScreen = ({
           {!isGuruActive && (
             <button
               onClick={() => onActivateGuru(true)}
-              className="w-full bg-[#008069] text-white p-6 rounded-[2.5rem] flex items-center justify-between group active:scale-95 transition-all shadow-xl shadow-green-100/50 hover:bg-[#006b58]"
+              className="w-full bg-[#008069] text-white p-6 rounded-2xl flex items-center justify-between group active:scale-95 transition-all shadow-xl shadow-green-100/50 hover:bg-[#006b58]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white ring-4 ring-white/10">
@@ -21149,7 +21327,7 @@ const GuideScreen = ({
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          <div className="relative rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-xl max-h-48 bg-black group">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-xl max-h-48 bg-black group">
             <img
               src={image}
               alt="Form"
@@ -21186,7 +21364,7 @@ const GuideScreen = ({
           {!isGuruActive && (
             <button
               onClick={() => onActivateGuru(true)}
-              className="w-full bg-[#008069] text-white p-6 rounded-[2.5rem] flex items-center justify-between group active:scale-95 transition-all shadow-xl shadow-green-100/50 hover:bg-[#006b58]"
+              className="w-full bg-[#008069] text-white p-6 rounded-2xl flex items-center justify-between group active:scale-95 transition-all shadow-xl shadow-green-100/50 hover:bg-[#006b58]"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white ring-4 ring-white/10">
@@ -21230,7 +21408,7 @@ const GuideScreen = ({
 
           {activeView === "analysis" && result && (
             <div className="flex flex-col gap-6">
-              <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <input
@@ -21280,7 +21458,7 @@ const GuideScreen = ({
                   {result.pitfalls.map((p: any, i: number) => (
                     <div
                       key={i}
-                      className="bg-orange-50/30 border border-orange-100 p-5 rounded-3xl flex flex-col gap-3"
+                      className="bg-orange-50/30 border border-orange-100 p-5 rounded-2xl flex flex-col gap-3"
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
@@ -21335,7 +21513,7 @@ const GuideScreen = ({
                 {result.fields.map((f: any, i: number) => (
                   <div
                     key={i}
-                    className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3"
+                    className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-3"
                   >
                     <div className="flex justify-between items-start">
                       <h4 className="font-bold text-gray-900 text-sm">
@@ -21393,7 +21571,7 @@ const GuideScreen = ({
           )}
 
           {activeView === "ocr" && result && (
-            <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4">
               <div className="flex justify-between items-center pb-2 border-b border-gray-100">
                 <div>
                   <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -21408,7 +21586,7 @@ const GuideScreen = ({
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(result.extractedOcrText);
-                      showToast("OCR text copied to clipboard! 📋", "info");
+                      showToast("OCR text copied to clipboard! ", "info");
                     }}
                     className="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all border border-gray-100 text-[10px] font-black uppercase text-[#008069] flex items-center gap-1 cursor-pointer active:scale-95"
                   >
@@ -21420,7 +21598,7 @@ const GuideScreen = ({
 
               {result.extractedOcrText ? (
                 <div className="flex flex-col gap-4">
-                  <div className="bg-slate-50 p-5 rounded-3xl border border-gray-100/85">
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-gray-100/85">
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                       <Cpu className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
                       <span>Mitra AI OCR Extraction:</span>
@@ -21430,7 +21608,7 @@ const GuideScreen = ({
                     </pre>
                   </div>
 
-                  <div className="bg-green-50/50 p-4 rounded-3xl border border-green-100/50 flex items-start gap-3">
+                  <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100/50 flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-green-100 text-[#008069] flex items-center justify-center shrink-0">
                       <Sparkles className="w-4 h-4" />
                     </div>
@@ -21468,9 +21646,9 @@ const GuideScreen = ({
           )}
           {activeView === "guidance" && (
             <div className="flex flex-col gap-4">
-              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col items-center text-center gap-6 shadow-2xl relative overflow-hidden border border-white/10">
+              <div className="bg-slate-900 p-8 rounded-2xl text-white flex flex-col items-center text-center gap-6 shadow-2xl relative overflow-hidden border border-white/10">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#008069]/20 to-transparent pointer-events-none" />
-                <div className="w-16 h-16 rounded-[2rem] bg-[#008069] flex items-center justify-center shadow-lg shadow-[#008069]/40 z-10">
+                <div className="w-16 h-16 rounded-2xl bg-[#008069] flex items-center justify-center shadow-lg shadow-[#008069]/40 z-10">
                   <Cpu className="w-8 h-8 text-white" />
                 </div>
                 <div className="z-10">
@@ -21484,7 +21662,7 @@ const GuideScreen = ({
                 </div>
                 <button
                   onClick={() => onActivateGuru(true)}
-                  className="w-full bg-[#008069] text-white py-4 rounded-3xl font-black uppercase tracking-widest text-xs z-10 active:scale-95 transition-all shadow-xl"
+                  className="w-full bg-[#008069] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs z-10 active:scale-95 transition-all shadow-xl"
                 >
                   Start Live Session
                 </button>
@@ -21545,7 +21723,7 @@ const SchemeFollowUp = ({
           AI Powered
         </span>
       </div>
-      <div className="flex gap-2 relative z-10 text-nowrap">
+      <div className="flex flex-col sm:flex-row gap-2 relative z-10">
         <input
           type="text"
           value={query}
@@ -21564,7 +21742,7 @@ const SchemeFollowUp = ({
             e.stopPropagation();
             handleAsk();
           }}
-          className="bg-[#008069] text-white px-5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-[#005c4b] disabled:opacity-50 disabled:grayscale min-w-[120px]"
+          className="bg-[#008069] text-white px-5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/20 active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-[#005c4b] disabled:opacity-50 disabled:grayscale min-w-[120px] py-3"
         >
           {isThinking ? (
             <>
@@ -21628,7 +21806,7 @@ const PersonalizedRecommendations = ({
 
   return (
     <div className="mt-8 mb-4">
-      <div className="bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] border border-orange-100 p-8 shadow-xl shadow-orange-900/5 relative overflow-hidden group">
+      <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-100 p-8 shadow-xl shadow-orange-900/5 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100/50 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-orange-100 transition-all duration-700" />
 
         <div className="relative z-10">
@@ -21742,7 +21920,7 @@ const SchemeSmartTip = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="p-5 bg-orange-50 rounded-3xl border border-orange-100 relative overflow-hidden"
+      className="p-5 bg-orange-50 rounded-2xl border border-orange-100 relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 -mr-12 -mt-12 rounded-full blur-2xl" />
       <div className="flex items-start gap-3 relative z-10">
@@ -21918,34 +22096,34 @@ const SchemesScreen = ({
     if (s.state) {
       if (userProfile.state && s.state.toLowerCase() === userProfile.state.toLowerCase()) {
         score += 30;
-        reasons.push(`📍 State Match: Special scheme for ${userProfile.state} residents.`);
+        reasons.push(` State Match: Special scheme for ${userProfile.state} residents.`);
       } else if (userProfile.state) {
         // Different state, reduce significantly
         score -= 40;
-        reasons.push(`⚠️ Residency: This scheme is for ${s.state} only, you specified ${userProfile.state}.`);
+        reasons.push(`⚠ Residency: This scheme is for ${s.state} only, you specified ${userProfile.state}.`);
       } else {
         score -= 10;
-        reasons.push(`ℹ️ State-specific: For residents of ${s.state}.`);
+        reasons.push(`ℹ State-specific: For residents of ${s.state}.`);
       }
     } else {
       score += 15;
-      reasons.push("🌐 Central Scheme: Applicable for residents of all states including yours!");
+      reasons.push(" Central Scheme: Applicable for residents of all states including yours!");
     }
 
     // Community / Occupation Match
     if (s.community) {
       if (userProfile.community && s.community === userProfile.community) {
         score += 25;
-        reasons.push(`👥 Group Match: Tailored exactly for ${userProfile.community}s.`);
+        reasons.push(` Group Match: Tailored exactly for ${userProfile.community}s.`);
       } else if (userProfile.occupation && s.community === "Student" && userProfile.occupation === "Student") {
         score += 20;
-        reasons.push("📚 Student Match: Perfect for students.");
+        reasons.push(" Student Match: Perfect for students.");
       } else if (userProfile.occupation && s.community === "Jobs" && ["Naukri", "Worker", "Unemployed"].includes(userProfile.occupation)) {
         score += 20;
-        reasons.push("💼 Employment Match: Tailored for career/employment needs.");
+        reasons.push(" Employment Match: Tailored for career/employment needs.");
       } else if (userProfile.community) {
         score -= 20;
-        reasons.push(`👥 Non-Target Group: Designed for ${s.community}s.`);
+        reasons.push(` Non-Target Group: Designed for ${s.community}s.`);
       }
     }
 
@@ -21973,7 +22151,7 @@ const SchemesScreen = ({
       }
 
       if (keywordMatched) {
-        reasons.push(`🎯 Caste/Category Fit: Specialized reservation benefits detected for ${userProfile.category}.`);
+        reasons.push(` Caste/Category Fit: Specialized reservation benefits detected for ${userProfile.category}.`);
       } else if (!isGeneral) {
         reasons.push(`✅ Standard Eligibility: Open for general and reserve categories like ${userProfile.category}.`);
       } else {
@@ -21995,12 +22173,12 @@ const SchemesScreen = ({
     if (isFemaleScheme) {
       if (userProfile.gender === 'Female') {
         score += 20;
-        reasons.push("👩 Gender Benefit: Exclusive scheme designed to support women & girl child.");
+        reasons.push(" Gender Benefit: Exclusive scheme designed to support women & girl child.");
       } else if (userProfile.gender === 'Male') {
         score -= 30;
-        reasons.push("⚠️ Target Gender: Primarily focused on female beneficiaries.");
+        reasons.push("⚠ Target Gender: Primarily focused on female beneficiaries.");
       } else {
-        reasons.push("ℹ️ Gender Focus: Promotes women empowerment.");
+        reasons.push("ℹ Gender Focus: Promotes women empowerment.");
       }
     }
 
@@ -22009,7 +22187,7 @@ const SchemesScreen = ({
       const textToSearch = (s.description + " " + s.hindiDescription + " " + (s.eligibility?.join(" ") || "")).toLowerCase();
       if (textToSearch.includes("low-income") || textToSearch.includes("bpl") || textToSearch.includes("poverty") || textToSearch.includes("kam aay")) {
         score += 10;
-        reasons.push("💰 Income Criteria: Designed to uplift lower-income households.");
+        reasons.push(" Income Criteria: Designed to uplift lower-income households.");
       }
     }
 
@@ -22512,7 +22690,7 @@ const SchemesScreen = ({
 
         <div className="flex-1 overflow-auto p-4 md:p-8">
           {isAnalyzing && (
-            <div className="max-w-[1000px] mx-auto mb-8 bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm flex flex-col gap-6">
+            <div className="max-w-[1000px] mx-auto mb-8 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <Skeleton className="w-10 h-10 rounded-2xl" />
                 <div className="space-y-1">
@@ -22531,7 +22709,7 @@ const SchemesScreen = ({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="max-w-[1000px] mx-auto mb-8 bg-orange-50 rounded-[2.5rem] border border-orange-100 p-8 shadow-xl shadow-orange-900/5"
+              className="max-w-[1000px] mx-auto mb-8 bg-orange-50 rounded-2xl border border-orange-100 p-8 shadow-xl shadow-orange-900/5"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600">
@@ -22571,7 +22749,7 @@ const SchemesScreen = ({
             </motion.div>
           )}
 
-          <div className="min-w-[800px] flex flex-col gap-px bg-gray-100 rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-2xl bg-white mb-20 px-0">
+          <div className="min-w-[800px] flex flex-col gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100 shadow-2xl bg-white mb-20 px-0">
             {/* Headers Row */}
             <div className="flex bg-[#f8fafc]">
               <div className="w-48 shrink-0 p-8 flex items-end">
@@ -22602,7 +22780,7 @@ const SchemesScreen = ({
                     <h3 className="font-bold text-base text-gray-900 leading-tight mb-1">
                       {s.hindiName}
                     </h3>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter opacity-60 line-clamp-1">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter opacity-60">
                       {s.name}
                     </p>
                   </div>
@@ -22730,7 +22908,7 @@ const SchemesScreen = ({
           <button
             disabled={isAnalyzing}
             onClick={() => handleAIAnalysis(selectedSchemes)}
-            className="w-full max-w-md py-5 bg-[#008069] text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex flex-col items-center justify-center gap-4 disabled:opacity-50"
+            className="w-full max-w-md py-5 bg-[#008069] text-white rounded-2xl text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-green-900/20 active:scale-95 transition-all flex flex-col items-center justify-center gap-4 disabled:opacity-50"
           >
             {isAnalyzing ? (
               <div className="flex flex-col items-center gap-2">
@@ -22840,7 +23018,7 @@ const SchemesScreen = ({
               }}
               className="text-[9px] font-black text-red-500 hover:text-red-650 tracking-widest uppercase hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
-              <span>Clear History 🗑️</span>
+              <span>Clear History </span>
             </button>
           </div>
         )}
@@ -22919,7 +23097,7 @@ const SchemesScreen = ({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-[2.5rem] border border-emerald-100 p-8 flex flex-col items-center shadow-lg shadow-emerald-900/5 mb-4"
+            className="bg-white rounded-2xl border border-emerald-100 p-8 flex flex-col items-center shadow-lg shadow-emerald-900/5 mb-4"
           >
             <AILoader message="Mitra AI is analyzing your intent and deep searching government portals..." />
           </motion.div>
@@ -22938,7 +23116,7 @@ const SchemesScreen = ({
                 onClick={clearRecentActivity}
                 className="text-[9px] font-black uppercase text-red-500 tracking-widest hover:bg-red-50 px-3 py-1 rounded-lg transition-colors cursor-pointer"
               >
-                Clear History 🗑️
+                Clear History 
               </button>
             </div>
 
@@ -23028,7 +23206,7 @@ const SchemesScreen = ({
         <div className="flex items-center gap-1.5 px-1 -mb-1">
           <span className="w-1.5 h-1.5 rounded-full bg-[#008069] animate-pulse"></span>
           <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">
-            Topic Categories (Yojna Prakar) 📁
+            Topic Categories (Yojna Prakar) 
           </span>
         </div>
 
@@ -23052,7 +23230,7 @@ const SchemesScreen = ({
             className={cn(
               "whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5",
               showSavedOnly
-                ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+                ? "bg-[#008069] text-white border-slate-900 shadow-lg"
                 : "bg-white text-gray-400 border-gray-100 hover:border-gray-200",
             )}
           >
@@ -23086,20 +23264,20 @@ const SchemesScreen = ({
               Yojanayein (Filter & Sort)
             </span>
             <span className="text-[8px] text-gray-400 font-extrabold uppercase tracking-tight">
-              Auto-Rotate in {minutesUntilRefresh}m 🕒
+              Auto-Rotate in {minutesUntilRefresh}m 
             </span>
           </div>
           <div className="flex gap-1.5 w-full sm:w-auto">
             <button
               onClick={() => {
                 setManualOffset((prev) => prev + 1);
-                showToast("Nayi schemes upar aa gayi hain! 🌀📡", "info");
+                showToast("Nayi schemes upar aa gayi hain! ", "info");
               }}
               className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-[#008069] border border-gray-100 hover:border-[#008069]/30 transition-all cursor-pointer shadow-3xs"
               title="Yojanayein ghumayein aur badlein"
             >
               <RefreshCw className="w-3.5 h-3.5 animate-pulse" />
-              <span>Ghumayein (Rotate) 🌀</span>
+              <span>Ghumayein (Rotate) </span>
             </button>
             <button
               onClick={() => setSortByDeadline(!sortByDeadline)}
@@ -23128,7 +23306,7 @@ const SchemesScreen = ({
           {[1, 2].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col"
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col"
             >
               <Skeleton className="h-44 w-full" />
               <div className="p-6 space-y-4">
@@ -23210,7 +23388,7 @@ const SchemesScreen = ({
                 }
               }}
               className={cn(
-                "bg-white rounded-[2rem] border transition-all overflow-hidden flex flex-col relative cursor-pointer",
+                "bg-white rounded-2xl border transition-all overflow-hidden flex flex-col relative cursor-pointer",
                 isExpanded
                   ? "premium-glowing-border shadow-xl scale-[1.01]"
                   : matchRes.score >= 85
@@ -23234,6 +23412,27 @@ const SchemesScreen = ({
                       <Calendar className="w-3 h-3 shrink-0" />
                       <span className="text-[8px] uppercase tracking-tighter">
                         {daysLeft > 0 ? `${daysLeft} Days Left ⏰` : "Ending Today"}
+                      </span>
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const trackingApp = applications.find(
+                    (a) => a.schemeName === scheme.hindiName || a.schemeName === scheme.name
+                  );
+                  if (!trackingApp || !trackingApp.status) return null;
+                  
+                  let bg = "bg-gray-100 text-gray-700 border-gray-200";
+                  if (trackingApp.status === "Approved") bg = "bg-green-500 text-white border-green-600";
+                  else if (trackingApp.status === "Rejected") bg = "bg-red-500 text-white border-red-600";
+                  else if (trackingApp.status === "Submitted") bg = "bg-blue-500 text-white border-blue-600";
+                  else bg = "bg-orange-500 text-white border-orange-600";
+                  
+                  return (
+                    <div className={cn("px-2.5 py-1 rounded-lg flex items-center gap-1.5 border shadow-sm shrink-0", bg)}>
+                      <LayoutDashboard className="w-3 h-3 shrink-0" />
+                      <span className="text-[8px] uppercase tracking-tighter font-black">
+                        {trackingApp.status}
                       </span>
                     </div>
                   );
@@ -23414,11 +23613,11 @@ const SchemesScreen = ({
                               : "bg-red-50 text-red-700 border-red-200/80"
                         )}>
                           <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse shrink-0"></span>
-                          <span>🎯 {matchRes.score}% Match</span>
+                          <span> {matchRes.score}% Match</span>
                         </div>
                         {matchRes.isHighlyRecommended && (
                           <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider animate-pulse shadow-sm shrink-0">
-                            🌟 Recommended for You
+                             Recommended for You
                           </span>
                         )}
                         {scheme.deadline && (() => {
@@ -23498,7 +23697,7 @@ const SchemesScreen = ({
                   let barColor = "bg-rose-500";
                   
                   if (progressPct === 100) {
-                    statusLabel = "Aapke saare documents ready hain! 🎉";
+                    statusLabel = "Aapke saare documents ready hain! ";
                     statusBg = "bg-emerald-50 border-emerald-100 text-emerald-700";
                     barColor = "bg-emerald-500";
                   } else if (progressPct >= 50) {
@@ -23511,6 +23710,15 @@ const SchemesScreen = ({
                     barColor = "bg-amber-400";
                   } else {
                     statusLabel = `Documents upload baaki hain (0/${totalCount})`;
+                    
+                    const daysLeft = scheme.deadline ? Math.ceil((scheme.deadline - Date.now()) / (24 * 60 * 60 * 1000)) : 999;
+                    if (daysLeft <= 3 && daysLeft > 0) {
+                      statusBg = "bg-rose-50 border-rose-100/60 text-rose-600";
+                      barColor = "bg-rose-500";
+                    } else {
+                      statusBg = "bg-slate-50 border-slate-200 text-slate-500";
+                      barColor = "bg-slate-300";
+                    }
                   }
                   
                   return (
@@ -23552,7 +23760,7 @@ const SchemesScreen = ({
                                   : "bg-gray-100/70 border-gray-200 text-gray-400"
                               )}
                             >
-                              {met ? "✔️" : "✕"} {doc}
+                              {met ? "✔" : "✕"} {doc}
                             </span>
                           );
                         })}
@@ -23561,7 +23769,45 @@ const SchemesScreen = ({
                   );
                 })()}
 
-                {/* Application Tracking */}
+                
+
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex flex-col justify-center">
+                    <p className="text-[8px] uppercase font-black text-orange-600 mb-0.5 tracking-tighter">
+                      Eligibility
+                    </p>
+                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+                      {scheme.eligibility?.[0] || "Check now"}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
+                    <p className="text-[8px] uppercase font-black text-green-600 mb-0.5 tracking-tighter">
+                      Benefit
+                    </p>
+                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+                      {scheme.benefits?.[0] || "AI can tell details"}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-blue-50 rounded-xl border border-blue-100 flex flex-col justify-center">
+                    <p className="text-[8px] uppercase font-black text-blue-600 mb-0.5 tracking-tighter">
+                      Documents
+                    </p>
+                    <p className="text-[10px] text-gray-800 font-bold leading-tight">
+                      {scheme.documents?.[0] || "Aadhar/PAN"}
+                    </p>
+                  </div>
+                </div>
+
+                
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden flex flex-col gap-6 pt-4 border-t border-gray-50">
+                      {/* Application Tracking */}
                 <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
                   <div className="flex justify-between items-center">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -23604,7 +23850,7 @@ const SchemesScreen = ({
                     className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-[#008069]/10 cursor-pointer"
                   >
                     <option value="" disabled>
-                      Status set karein...
+                      Application Status: Not Started
                     </option>
                     <option value="Submitted">Applied (Aavedan Kiya)</option>
                     <option value="Under Review">Under Review (Jaanch)</option>
@@ -23612,90 +23858,12 @@ const SchemesScreen = ({
                     <option value="Rejected">Rejected (Radd)</option>
                   </select>
                 </div>
+                      
 
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex flex-col justify-center">
-                    <p className="text-[8px] uppercase font-black text-orange-600 mb-0.5 tracking-tighter">
-                      Eligibility
-                    </p>
-                    <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
-                      {scheme.eligibility?.[0] || "Check now"}
-                    </p>
-                  </div>
-                  <div className="p-2 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
-                    <p className="text-[8px] uppercase font-black text-green-600 mb-0.5 tracking-tighter">
-                      Benefit
-                    </p>
-                    <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
-                      {scheme.benefits?.[0] || "AI can tell details"}
-                    </p>
-                  </div>
-                  <div className="p-2 bg-blue-50 rounded-xl border border-blue-100 flex flex-col justify-center">
-                    <p className="text-[8px] uppercase font-black text-blue-600 mb-0.5 tracking-tighter">
-                      Documents
-                    </p>
-                    <p className="text-[10px] text-gray-800 font-bold leading-tight line-clamp-1">
-                      {scheme.documents?.[0] || "Aadhar/PAN"}
-                    </p>
-                  </div>
-                </div>
-
-                {scheme.officialUrl && (
-                  <a
-                    href={scheme.officialUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full py-4 bg-[#008069] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-green-100 active:scale-[0.98] transition-all hover:bg-[#00a687] flex items-center justify-center gap-2 border border-[#008069]"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Apply Now (Sarkari Link)
-                  </a>
-                )}
-
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden flex flex-col gap-6 pt-4 border-t border-gray-50"
-                    >
-                      {/* 🎯 Profile Eligibility matching report */}
-                      <div className="bg-emerald-500/[0.04] p-5 rounded-[2rem] border border-emerald-500/10 flex flex-col gap-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-500/10 pb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">🎯</span>
-                            <div>
-                              <h4 className="text-xs font-black text-emerald-900 uppercase tracking-widest leading-none">
-                                Your Eligibility Report (पात्रता रिपोर्ट)
-                              </h4>
-                              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight mt-1">
-                                Personalized evaluation based on your profile
-                              </p>
-                            </div>
-                          </div>
-                          <span className="bg-[#008069] text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm">
-                            {matchRes.score}% Eligibility Rate
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {matchRes.reasons.map((r, i) => (
-                            <div key={i} className="bg-white p-3.5 rounded-2xl border border-emerald-500/5 shadow-3xs flex items-start gap-2.5">
-                              <span className="text-base text-emerald-500 shrink-0">✅</span>
-                              <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
-                                {r}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 📋 Yojana Bulletin Summary Points */}
-                      <div className="bg-amber-500/[0.03] p-5 rounded-[2rem] border border-amber-500/10 flex flex-col gap-3">
+                      {/*  Yojana Bulletin Summary Points */}
+                      <div className="bg-amber-500/[0.03] p-5 rounded-2xl border border-amber-500/10 flex flex-col gap-3">
                         <div className="flex items-center gap-2 border-b border-amber-500/10 pb-3">
-                          <span className="text-lg">📋</span>
+                          <FileText className="w-5 h-5 text-amber-500" />
                           <div>
                             <h4 className="text-xs font-black text-amber-900 uppercase tracking-widest leading-none">
                               Yojana Bulletin (योजना विशेष फटाफट जानकारी)
@@ -23709,7 +23877,7 @@ const SchemesScreen = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-1">
                           <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
                             <span className="text-[10px] font-black text-[#008069] uppercase tracking-wider flex items-center gap-1.5">
-                              📌 योजना का उद्देश्य / Purpose
+                              योजना का उद्देश्य / Purpose
                             </span>
                             <p className="text-[11px] font-bold text-slate-700 leading-relaxed">
                               {scheme.hindiName} ka uddeshya {scheme.category === "Agriculture" ? "kisano ko aarthika roop se majboot aur unhe samriddha banana hai." : scheme.category === "Education" ? "chatron ki higher education ko bina kisi rukaawat ke aasan banana hai." : scheme.category === "Finance" ? "aam logo ko vyapaar ya aarthik chhoot ke madhyam se subsidised loan ya subsidy pradan karna hai." : "parivaron ko saste anaaj, swasthya suvidha ya buniyaadi sahayata dena hai."}
@@ -23718,7 +23886,7 @@ const SchemesScreen = ({
 
                           <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
                             <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
-                              💸 मुख्य फायदे / Benefits
+                              मुख्य फायदे / Benefits
                             </span>
                             <div className="flex flex-col gap-1">
                               {scheme.benefits && scheme.benefits.length > 0 ? (
@@ -23735,7 +23903,7 @@ const SchemesScreen = ({
 
                           <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
                             <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
-                              👤 पात्रता नियम / Eligibility
+                              पात्रता नियम / Eligibility
                             </span>
                             <div className="flex flex-col gap-1">
                               {scheme.eligibility && scheme.eligibility.length > 0 ? (
@@ -23752,17 +23920,17 @@ const SchemesScreen = ({
 
                           <div className="bg-white p-4.5 rounded-2xl border border-amber-500/5 shadow-3xs flex flex-col gap-1.5">
                             <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider flex items-center gap-1.5">
-                              📝 ज़रुरी कागजात / Documents
+                              ज़रुरी कागजात / Documents
                             </span>
                             <div className="flex flex-wrap gap-1.5 mt-0.5">
                               {scheme.documents && scheme.documents.length > 0 ? (
                                 scheme.documents.map((d, i) => (
                                   <span key={i} className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-[10px] font-bold">
-                                    📄 {d}
+                                     {d}
                                   </span>
                                 ))
                               ) : (
-                                <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-[10px] font-bold">📄 Aadhar Card / Bank Detail</span>
+                                <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-[10px] font-bold"> Aadhar Card / Bank Detail</span>
                               )}
                             </div>
                           </div>
@@ -23794,7 +23962,7 @@ const SchemesScreen = ({
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {scheme.eligibility &&
                           scheme.eligibility.length > 0 && (
-                            <div className="p-5 bg-orange-50/50 rounded-3xl border border-orange-100/40 relative overflow-hidden">
+                            <div className="p-5 bg-orange-50/50 rounded-2xl border border-orange-100/40 relative overflow-hidden">
                               <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
                               <div className="flex items-center gap-3 mb-4">
                                 <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm">
@@ -23821,7 +23989,7 @@ const SchemesScreen = ({
                           )}
 
                         {scheme.benefits && scheme.benefits.length > 0 && (
-                          <div className="p-5 bg-green-50/50 rounded-3xl border border-green-100/40 relative overflow-hidden">
+                          <div className="p-5 bg-green-50/50 rounded-2xl border border-green-100/40 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center text-green-600 shadow-sm">
@@ -23846,7 +24014,7 @@ const SchemesScreen = ({
                         )}
 
                         {scheme.documents && scheme.documents.length > 0 && (
-                          <div className="p-5 bg-blue-50/50 rounded-3xl border border-blue-100/40 relative overflow-hidden">
+                          <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/40 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 -mr-10 -mt-10 rounded-full blur-xl" />
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
@@ -23882,7 +24050,7 @@ const SchemesScreen = ({
                         )}
                       </div>
 
-                      <div className="bg-gradient-to-br from-gray-900 to-slate-800 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                      <div className="bg-gradient-to-br from-gray-900 to-slate-800 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/10 transition-all duration-700" />
                         <div className="relative z-10">
                           <header className="mb-4">
@@ -24008,7 +24176,7 @@ const SchemesScreen = ({
                       </div>
 
                       <div className="pt-4 border-t border-gray-50 flex flex-col gap-3">
-                        <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
+                        <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
                           <div className="flex-1 mr-4">
                             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                               Application Draft Mitra
@@ -24105,13 +24273,11 @@ const SchemesScreen = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onAskMitra(scheme.name);
+                    setExpandedId(isExpanded ? null : scheme.id);
                   }}
                   className={cn(
                     "flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2",
-                    scheme.officialUrl
-                      ? "bg-white text-[#008069] hover:bg-green-50"
-                      : "bg-[#008069] text-white hover:bg-[#005c4b]",
+                    "bg-white text-gray-700 hover:bg-gray-50 border-r border-gray-100"
                   )}
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
@@ -24193,7 +24359,7 @@ const SchemesScreen = ({
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white w-full max-w-xs rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100"
+              className="bg-white w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
             >
               <div className="p-8 flex flex-col gap-6">
                 <div className="flex items-center gap-4">
@@ -24279,7 +24445,7 @@ const SchemesScreen = ({
           >
             <div
               className={cn(
-                "p-4 rounded-[2.5rem] shadow-2xl border transition-all duration-500 overflow-hidden",
+                "p-4 rounded-2xl shadow-2xl border transition-all duration-500 overflow-hidden",
                 selectedIds.length >= 2
                   ? "bg-[#008069] border-[#005c4b] text-white"
                   : "bg-white border-gray-100 text-gray-900",
@@ -24348,7 +24514,7 @@ const SchemesScreen = ({
                           : "bg-gray-50 border-gray-100 text-gray-500",
                       )}
                     >
-                      <span className="text-[10px] font-bold line-clamp-1 max-w-[100px]">
+                      <span className="text-[10px] font-bold max-w-[100px]">
                         {s.hindiName}
                       </span>
                       <button
@@ -24465,7 +24631,7 @@ const LetterScreen = ({ userProfile }: { userProfile: UserProfile }) => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col gap-4">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
               Subject / Topic
@@ -24493,7 +24659,7 @@ const LetterScreen = ({ userProfile }: { userProfile: UserProfile }) => {
           <button
             onClick={handleGenerate}
             disabled={loading || !topic}
-            className="w-full bg-[#008069] text-white py-4 rounded-3xl font-black uppercase tracking-widest text-sm shadow-xl shadow-green-100 disabled:opacity-50 active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-[#008069] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-green-100 disabled:opacity-50 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -24519,11 +24685,11 @@ const LetterScreen = ({ userProfile }: { userProfile: UserProfile }) => {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-6"
           >
-            <div className="bg-white p-8 rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5">
+            <div className="bg-white p-8 rounded-2xl border border-emerald-100 shadow-xl shadow-emerald-900/5">
               <AILoader message="Mitra AI is drafting a professional letter based on your details..." />
             </div>
 
-            <div className="bg-white p-7 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6 opacity-40 grayscale">
+            <div className="bg-white p-7 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6 opacity-40 grayscale">
               <div className="flex justify-between items-center">
                 <Skeleton className="h-4 w-24 rounded-md" />
                 <Skeleton className="h-8 w-20 rounded-xl" />
@@ -24545,7 +24711,7 @@ const LetterScreen = ({ userProfile }: { userProfile: UserProfile }) => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-7 rounded-[2.5rem] border border-gray-100 shadow-2xl relative overflow-hidden"
+            className="bg-white p-7 rounded-2xl border border-gray-100 shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-[#008069]/10" />
             <div className="flex justify-between items-center mb-6">
@@ -24851,7 +25017,7 @@ const TrackerScreen = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast(`Tracked applications list "${filename}" download ho gaya hai! 📥📊`, "info");
+    showToast(`Tracked applications list "${filename}" download ho gaya hai! `, "info");
   };
 
   const handleExportPDF = () => {
@@ -25214,7 +25380,7 @@ const TrackerScreen = ({
 
       const filename = `Form_Mitra_Monthly_Progress_${new Date().toISOString().split("T")[0]}.pdf`;
       doc.save(filename);
-      showToast(`Monthly progress PDF report "${filename}" download ho gaya hai! 📥📊`, "info");
+      showToast(`Monthly progress PDF report "${filename}" download ho gaya hai! `, "info");
     } catch (e) {
       console.error("PDF generation error: ", e);
     }
@@ -25347,7 +25513,7 @@ const TrackerScreen = ({
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-3xl shadow-xl p-2 z-[120] flex flex-col gap-1"
+                      className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-2 z-[120] flex flex-col gap-1"
                     >
                       <button
                         onClick={() => {
@@ -25413,7 +25579,7 @@ const TrackerScreen = ({
       </header>
 
       {/* Daily Task Reminder Checklist */}
-      <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-600/[0.02] to-transparent p-6 rounded-[2.5rem] border border-emerald-500/10 flex flex-col gap-5 relative overflow-hidden shadow-sm">
+      <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-600/[0.02] to-transparent p-6 rounded-2xl border border-emerald-500/10 flex flex-col gap-5 relative overflow-hidden shadow-sm">
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
 
         <div className="flex justify-between items-center">
@@ -25561,7 +25727,7 @@ const TrackerScreen = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-emerald-600 text-white p-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-emerald-600/10"
+            className="bg-[#008069] text-white p-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-emerald-600/10"
           >
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0">
               <Award className="w-5 h-5" />
@@ -25586,7 +25752,7 @@ const TrackerScreen = ({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xl flex flex-col gap-4 mb-4">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xl flex flex-col gap-4 mb-4">
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-black uppercase tracking-widest text-[#008069] ml-1">
                   Scheme Name
@@ -25650,7 +25816,7 @@ const TrackerScreen = ({
 
       {/* 30-Day Application Progress Line Chart */}
       <div
-        className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4"
+        className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4"
         id="tracker-progress-chart-card"
       >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -25728,7 +25894,7 @@ const TrackerScreen = ({
 
           return (
             <div
-              className="grid grid-cols-3 gap-2.5 p-3 bg-gradient-to-br from-indigo-50/30 to-slate-50/50 border border-slate-100/70 rounded-3xl"
+              className="grid grid-cols-3 gap-2.5 p-3 bg-gradient-to-br from-indigo-50/30 to-slate-50/50 border border-slate-100/70 rounded-2xl"
               id="tracker-summary-snapshot"
             >
               {/* Stat Card 1: Total Applications */}
@@ -25923,7 +26089,7 @@ const TrackerScreen = ({
           </div>
 
           {/* Breakdown Pie Chart next to it */}
-          <div className="w-full lg:w-80 h-56 flex flex-col justify-center bg-slate-50 border border-slate-100 rounded-[2rem] p-4 relative shrink-0">
+          <div className="w-full lg:w-80 h-56 flex flex-col justify-center bg-slate-50 border border-slate-100 rounded-2xl p-4 relative shrink-0">
             <h4 className="absolute top-3.5 left-4 text-[9px] font-black uppercase tracking-widest text-slate-400">
               Distribution ({timeframe}d)
             </h4>
@@ -25989,7 +26155,7 @@ const TrackerScreen = ({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center p-4 h-full">
-                <span className="text-2xl mb-1 filter grayscale/50 opacity-80">📊</span>
+                <span className="text-2xl mb-1 filter grayscale/50 opacity-80"></span>
                 <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">No Activity</p>
                 <p className="text-[8px] text-slate-400 uppercase mt-0.5 font-bold">In selected timeframe ({timeframe}d)</p>
               </div>
@@ -26000,7 +26166,7 @@ const TrackerScreen = ({
 
       {/* Consolidated Report Download Banner */}
       {!loading && applications.length > 0 && (
-        <div className="bg-gradient-to-br from-indigo-50/60 to-slate-50 border border-slate-100 p-6 rounded-[2.5rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+        <div className="bg-gradient-to-br from-indigo-50/60 to-slate-50 border border-slate-100 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100/50 flex items-center justify-center font-bold shrink-0">
               <FileCheck className="w-5 h-5 animate-pulse" />
@@ -26039,7 +26205,7 @@ const TrackerScreen = ({
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4"
+                className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4"
               >
                 <div className="flex items-start gap-4">
                   <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
@@ -26065,7 +26231,7 @@ const TrackerScreen = ({
           </div>
         ) : applications.length === 0 ? (
           <div className="py-20 text-center bg-gray-50 rounded-[3rem] border border-dashed border-gray-200 flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-gray-200 shadow-sm border border-gray-100">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-gray-200 shadow-sm border border-gray-100">
               <LayoutDashboard className="w-8 h-8" />
             </div>
             <div className="px-10">
@@ -26081,7 +26247,7 @@ const TrackerScreen = ({
             <motion.div
               layout
               key={app.id}
-              className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-4 group relative"
+              className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4 group relative"
             >
               <button
                 onClick={() => handleDelete(app.id)}
@@ -26351,7 +26517,7 @@ const ProfileScreen = ({
               className={cn(
                 "px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all",
                 editingProfile[field as keyof UserProfile] === opt
-                  ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+                  ? "bg-[#008069] text-white border-slate-900 shadow-lg"
                   : "bg-white text-gray-500 border-gray-100 hover:border-gray-200",
               )}
             >
@@ -26403,7 +26569,7 @@ const ProfileScreen = ({
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-emerald-600 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 flex items-center gap-2 active:scale-95"
+              className="bg-[#008069] text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 flex items-center gap-2 active:scale-95"
             >
               {isSaving ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -26423,7 +26589,7 @@ const ProfileScreen = ({
         </div>
         <div className="flex flex-col gap-6 relative z-10">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-[2rem] bg-indigo-500 flex items-center justify-center text-white border-4 border-white/10 shadow-xl overflow-hidden">
+            <div className="w-20 h-20 rounded-2xl bg-indigo-500 flex items-center justify-center text-white border-4 border-white/10 shadow-xl overflow-hidden">
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
@@ -26445,7 +26611,7 @@ const ProfileScreen = ({
           </div>
           <div className="flex gap-2">
             <div className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <ShieldCheck className="w-3 h-3 text-emerald-600" />
               <span className="text-[9px] font-black text-white uppercase tracking-wider">
                 Level {Math.floor(editingProfile.streak / 10) + 1} Verified
               </span>
@@ -26522,7 +26688,7 @@ const ProfileScreen = ({
                 </span>
                 <span className="font-extrabold text-amber-300">
                   {currentStreak >= 100
-                    ? "All Badges Unlocked! 🎉"
+                    ? "All Badges Unlocked! "
                     : `${currentStreak} / ${nextMilestone} Days`}
                 </span>
               </div>
@@ -26552,7 +26718,7 @@ const ProfileScreen = ({
                 key={badge.id}
                 onClick={() => setSelectedBadge(badge)}
                 className={cn(
-                  "p-4 rounded-3xl border text-center transition-all flex flex-col items-center justify-between gap-3 relative cursor-pointer select-none group min-h-[140px]",
+                  "p-4 rounded-2xl border text-center transition-all flex flex-col items-center justify-between gap-3 relative cursor-pointer select-none group min-h-[140px]",
                   isUnlocked
                     ? "bg-white/10 hover:bg-white/15 border-indigo-500/20 shadow-lg hover:scale-[1.03]"
                     : "bg-black/20 border-white/5 opacity-50 hover:opacity-75",
@@ -26589,12 +26755,12 @@ const ProfileScreen = ({
                 {/* Unlock status or progress */}
                 <div className="w-full">
                   {isUnlocked ? (
-                    <span className="text-[8px] bg-emerald-500/20 text-emerald-400 font-extrabold px-3 py-1 rounded-full uppercase border border-emerald-500/20 block tracking-wider animate-pulse">
-                      Unlocked 🎉
+                    <span className="text-[8px] bg-emerald-500/20 text-emerald-600 font-extrabold px-3 py-1 rounded-full uppercase border border-emerald-500/20 block tracking-wider animate-pulse">
+                      Unlocked 
                     </span>
                   ) : (
                     <span className="text-[8px] bg-slate-800 text-slate-400 font-extrabold px-2.5 py-1 rounded-full uppercase border border-white/5 block tracking-widest">
-                      Locked 🔒
+                      Locked 
                     </span>
                   )}
                 </div>
@@ -26651,7 +26817,7 @@ const ProfileScreen = ({
             </h3>
           </div>
 
-          <div className="bg-blue-50 p-6 rounded-[2.5rem] border border-blue-100 flex flex-col gap-6">
+          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">
                 Select Your Community
@@ -26758,7 +26924,7 @@ const ProfileScreen = ({
             </h3>
           </div>
 
-          <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-6">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-6">
             {/* 1. Dark Mode Theme Toggle */}
             <div className="flex items-center justify-between p-3 hover:bg-slate-50/55 rounded-2xl transition-all">
               <div className="flex items-center gap-3">
@@ -26768,7 +26934,7 @@ const ProfileScreen = ({
                 <div>
                   <p className="text-xs font-bold text-gray-900">Dark Mode (Black Screen)</p>
                   <p className="text-[9px] text-gray-400 font-bold uppercase">
-                    Ankhon ki thakan aur battery saving ke liye 🌙
+                    Ankhon ki thakan aur battery saving ke liye 
                   </p>
                 </div>
               </div>
@@ -26798,7 +26964,7 @@ const ProfileScreen = ({
                 <div>
                   <p className="text-xs font-bold text-gray-900">Push Notifications</p>
                   <p className="text-[9px] text-gray-400 font-bold uppercase">
-                    Alerts, news aur status updates turant milein 🔔
+                    Alerts, news aur status updates turant milein 
                   </p>
                 </div>
               </div>
@@ -26829,7 +26995,7 @@ const ProfileScreen = ({
                   <div>
                     <p className="text-xs font-bold text-gray-900">Vault Security PIN</p>
                     <p className="text-[9px] text-gray-400 font-bold uppercase">
-                      Sensitive Certificates and documents lock security 🔒
+                      Sensitive Certificates and documents lock security 
                     </p>
                   </div>
                 </div>
@@ -26900,7 +27066,7 @@ const ProfileScreen = ({
                 <div>
                   <p className="text-xs font-bold text-gray-900">Aapka Rajya (State)</p>
                   <p className="text-[9px] text-gray-400 font-bold uppercase">
-                    Select state specific scheme adaptation 🏛️
+                    Select state specific scheme adaptation 
                   </p>
                 </div>
               </div>
@@ -26919,7 +27085,7 @@ const ProfileScreen = ({
           </div>
         </div>
 
-        <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 text-center flex flex-col gap-4">
+        <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100 text-center flex flex-col gap-4">
           <Cpu className="w-8 h-8 text-gray-300 mx-auto" />
           <div>
             <p className="text-xs font-bold text-gray-900">
@@ -26936,7 +27102,7 @@ const ProfileScreen = ({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
+            className="w-full bg-[#008069] text-white py-6 rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
           >
             {isSaving ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -27036,12 +27202,12 @@ const ProfileScreen = ({
                     type="button"
                     onClick={() => {
                       showToast(
-                        `Award Card text copy kiya gaya hai! 🎉`,
+                        `Award Card text copy kiya gaya hai! `,
                         "info",
                       );
                       if (navigator.clipboard) {
                         navigator.clipboard.writeText(
-                          `Namaste doston! Maine Mitra App par continuous ${editingProfile.streak} Days logins poora karke "${selectedBadge.name}" consistency badge hasil liya hai! 🎖️🚀 Join Mitra App and win rewards today.`,
+                          `Namaste doston! Maine Mitra App par continuous ${editingProfile.streak} Days logins poora karke "${selectedBadge.name}" consistency badge hasil liya hai!  Join Mitra App and win rewards today.`,
                         );
                       }
                     }}
@@ -27061,14 +27227,14 @@ const ProfileScreen = ({
               ) : (
                 <>
                   <div className="text-center font-bold text-slate-500 text-[10px] mb-1 bg-amber-50 rounded-xl py-2 px-4 border border-amber-100 text-amber-800 uppercase tracking-wide">
-                    ⚠️ Lock status: Aapko{" "}
+                    ⚠ Lock status: Aapko{" "}
                     {selectedBadge.milestone - (editingProfile.streak || 0)} din
                     aur check-in karna padega.
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedBadge(null)}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
+                    className="w-full bg-slate-900 hover:bg-[#008069] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     Aage badhte rahenge!
                   </button>
@@ -27155,7 +27321,7 @@ const SettingsScreen = ({
     setHasChanges(false);
     try {
       await onUpdateProfile(updated);
-      showToast("Aapka Document Vault PIN successfully reset ho gaya hai! 🔓✨", "info");
+      showToast("Aapka Document Vault PIN successfully reset ho gaya hai! ", "info");
       setShowForgotFlow(false);
       setEmailSentSuccess(false);
     } catch (e) {
@@ -27173,10 +27339,10 @@ const SettingsScreen = ({
     try {
       await sendEmailVerification(auth.currentUser);
       setEmailSentSuccess(true);
-      showToast("Humne aapke email par verification link bhej diya hai! 📨", "info");
+      showToast("Humne aapke email par verification link bhej diya hai! ", "info");
     } catch (err: any) {
       console.error(err);
-      showToast("Email send karne me samasya aayi. Fir se koshish karein. ⚠️", "error");
+      showToast("Email send karne me samasya aayi. Fir se koshish karein. ⚠", "error");
     } finally {
       setIsSendingEmail(false);
     }
@@ -27190,11 +27356,11 @@ const SettingsScreen = ({
       if (auth.currentUser.emailVerified) {
         await performDirectPinReset();
       } else {
-        showToast("Dost, email abhi tak verify nahi hua hai. Inbox me check karke link click/refresh karein! ⏱️", "warning");
+        showToast("Dost, email abhi tak verify nahi hua hai. Inbox me check karke link click/refresh karein! ⏱", "warning");
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Verification status check karne me dikkat aayi. 📡", "error");
+      showToast("Verification status check karne me dikkat aayi. ", "error");
     } finally {
       setIsCheckingStatus(false);
     }
@@ -27275,7 +27441,7 @@ const SettingsScreen = ({
         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">
           Personal Details
         </h3>
-        <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-6 flex flex-col gap-5">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-6 flex flex-col gap-5">
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">
               Full Name
@@ -27441,7 +27607,7 @@ const SettingsScreen = ({
                       className={cn(
                         "px-4 py-2 text-[9px] font-black uppercase tracking-wider rounded-xl border transition-all",
                         localProfile.stream === s
-                          ? "bg-slate-900 text-white border-slate-900"
+                          ? "bg-[#008069] text-white border-slate-900"
                           : "bg-white text-gray-500 border-gray-150 hover:bg-gray-50"
                       )}
                     >
@@ -27754,7 +27920,7 @@ const SettingsScreen = ({
         )}
       </section>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 font-bold border-2 border-white shadow-sm overflow-hidden text-lg uppercase">
@@ -27794,7 +27960,7 @@ const SettingsScreen = ({
       </div>
 
       <div className="space-y-3">
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-[#008069]">
               <Languages className="w-5 h-5" />
@@ -27814,7 +27980,7 @@ const SettingsScreen = ({
           </select>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
               <BellRing className="w-5 h-5" />
@@ -27844,7 +28010,7 @@ const SettingsScreen = ({
         </div>
 
         {/* Global Dark Mode (Black Screen) Preference Section */}
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
               <Moon className="w-5 h-5 animate-pulse" style={{ animationDuration: "5s" }} />
@@ -27852,7 +28018,7 @@ const SettingsScreen = ({
             <div>
               <p className="text-sm font-bold text-gray-900">Dark Mode (Black Screen)</p>
               <p className="text-[10px] text-gray-400 font-bold uppercase pb-0.5">
-                Ankhon ki thakan aur stress kam karein 🌙
+                Ankhon ki thakan aur stress kam karein 
               </p>
             </div>
           </div>
@@ -27880,7 +28046,7 @@ const SettingsScreen = ({
         </div>
 
         {/* Document Vault Security PIN Option */}
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 font-bold border border-teal-100">
@@ -27964,7 +28130,7 @@ const SettingsScreen = ({
             {showForgotFlow && (
               <div className="bg-slate-50/85 p-4 rounded-2xl border border-dashed border-gray-200 space-y-3 animate-fade-in mt-2 text-left">
                 <p className="text-[10px] font-black text-slate-700 leading-relaxed uppercase flex items-center gap-1">
-                  🔒 Firebase Secure Reset Flow
+                   Firebase Secure Reset Flow
                 </p>
                 <div className="text-[10px] font-medium text-slate-500 leading-relaxed">
                   Bhai, agar aap PIN bhool gaye hain, toh hum Firebase Auth email verification se aapki identity re-verify karenge aur PIN ko turant reset kar denge.
@@ -28003,7 +28169,7 @@ const SettingsScreen = ({
                 ) : (
                   <div className="space-y-3">
                     <p className="text-[10px] font-bold text-amber-600 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100/50 leading-relaxed">
-                      ⚠️ Email verify karna baaki hai. Niche click karke secure link bhejein aur re-verify status check karein.
+                      ⚠ Email verify karna baaki hai. Niche click karke secure link bhejein aur re-verify status check karein.
                     </p>
                     <div className="flex flex-col gap-2">
                       <button
@@ -28013,7 +28179,7 @@ const SettingsScreen = ({
                         className="w-full bg-[#008069] text-white rounded-xl py-2.5 px-3 text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer border-0"
                       >
                         {isSendingEmail && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                        {emailSentSuccess ? "Resend Verification Link 📨" : "Send Verification Email Link 📨"}
+                        {emailSentSuccess ? "Resend Verification Link " : "Send Verification Email Link "}
                       </button>
                       
                       {emailSentSuccess && (
@@ -28028,7 +28194,7 @@ const SettingsScreen = ({
                             className="bg-indigo-600 hover:bg-indigo-750 text-white text-[9px] font-black uppercase tracking-widest rounded-xl py-2.5 px-4 shadow-sm w-full flex items-center justify-center gap-1.5 cursor-pointer border-0"
                           >
                             {isCheckingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3 h-3 text-white" />}
-                            Verify & Reset PIN 🔑
+                            Verify & Reset PIN 
                           </button>
                         </div>
                       )}
@@ -28073,7 +28239,7 @@ const SettingsScreen = ({
                           {idx + 1}
                         </div>
                         <span className="text-[10px] font-medium text-slate-700">
-                          Unlocked Successfully 🔓
+                          Unlocked Successfully 
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-[9px] font-semibold text-slate-500 font-mono">
@@ -28094,7 +28260,7 @@ const SettingsScreen = ({
               onRestartTour();
               onNavigate("dashboard");
             }}
-            className="w-full bg-indigo-50 p-5 rounded-3xl border border-indigo-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98] mb-3"
+            className="w-full bg-indigo-50 p-5 rounded-2xl border border-indigo-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98] mb-3"
           >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600">
@@ -28111,7 +28277,7 @@ const SettingsScreen = ({
 
         <button
           onClick={onShowFeedback}
-          className="w-full bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]"
+          className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]"
         >
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
@@ -28122,7 +28288,7 @@ const SettingsScreen = ({
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
               <LayoutDashboard className="w-5 h-5" />
@@ -28148,7 +28314,7 @@ const SettingsScreen = ({
           onClick={() =>
             onUpdateProfile({ ...profile, hasCompletedTutorial: false })
           }
-          className="w-full bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]"
+          className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]"
         >
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -28161,7 +28327,7 @@ const SettingsScreen = ({
           <ChevronRight className="w-4 h-4 text-gray-300" />
         </button>
 
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between transition-transform active:scale-[0.98]">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center text-red-500">
               <Bell className="w-5 h-5" />
@@ -28322,7 +28488,7 @@ const ProfileSetupScreen = ({
                   key={l.id}
                   onClick={() => setSelectedLang(l.id as any)}
                   className={cn(
-                    "p-6 rounded-3xl border text-left transition-all flex flex-col gap-1",
+                    "p-6 rounded-2xl border text-left transition-all flex flex-col gap-1",
                     selectedLang === l.id
                       ? "border-[#008069] bg-green-50/50"
                       : "border-gray-100 bg-white hover:border-[#008069]/30",
@@ -28557,7 +28723,7 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
       <div className="flex-1 relative bg-gray-200 min-h-[300px] lg:min-h-screen">
         {mapError === "ApiNotActivatedMapError" && (
           <div className="absolute inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 backdrop-blur-xs overflow-y-auto">
-            <div className="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-rose-100 flex flex-col gap-5 my-auto">
+            <div className="bg-white rounded-2xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-rose-100 flex flex-col gap-5 my-auto">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
                   <FileWarning className="w-6 h-6 animate-pulse" />
@@ -28574,7 +28740,7 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
 
               <div className="text-xs text-slate-600 space-y-3 leading-relaxed">
                 <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-2xl text-[11px] text-rose-800 font-semibold space-y-1">
-                  <p><strong>🚨 Error:</strong> ApiNotActivatedMapError</p>
+                  <p><strong> Error:</strong> ApiNotActivatedMapError</p>
                   <p className="text-[10px] opacity-90">Aapka API Key toh sahi hai, par Google Cloud Console mein <strong>Maps JavaScript API</strong> enable nahi hai.</p>
                 </div>
 
@@ -28623,7 +28789,7 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
                 </div>
 
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 p-3 rounded-2xl text-amber-800 text-[10px] font-semibold leading-normal">
-                  <span className="text-sm">💡</span>
+                  <span className="text-sm"></span>
                   <span><strong>Tip:</strong> Sunder search card side mein open rhega. Jab aap dynamic locator enable kr lete hain tab page reload karne ki jarurat nahi hai!</span>
                 </div>
               </div>
@@ -28634,7 +28800,7 @@ const CSCHubContent = ({ onClose }: { onClose: () => void }) => {
                     setMapError(null);
                     showToast("Checking API activation state again...", "info");
                   }}
-                  className="flex-1 bg-gray-900 hover:bg-slate-800 text-white py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-wider active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 bg-gray-900 hover:bg-[#008069] text-white py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-wider active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Re-check / Reset Error
                 </button>
@@ -28718,7 +28884,7 @@ const CSCHub = ({ onClose }: { onClose: () => void }) => {
           <div className="w-10" />
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
-          <div className="w-20 h-20 rounded-[2rem] bg-orange-50 flex items-center justify-center text-orange-500">
+          <div className="w-20 h-20 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500">
             <MapPin className="w-10 h-10" />
           </div>
           <div>
@@ -28730,13 +28896,13 @@ const CSCHub = ({ onClose }: { onClose: () => void }) => {
               secret add karein.
             </p>
           </div>
-          <div className="bg-gray-50 p-6 rounded-3xl text-left w-full max-w-sm">
+          <div className="bg-gray-50 p-6 rounded-2xl text-left w-full max-w-sm">
             <p className="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest">
               Setup Steps
             </p>
             <ol className="text-xs text-gray-600 space-y-4 list-decimal pl-4 font-medium">
               <li>
-                Open <b>Settings</b> (⚙️ gear icon) &gt; <b>Secrets</b>
+                Open <b>Settings</b> (⚙ gear icon) &gt; <b>Secrets</b>
               </li>
               <li>
                 Add <code>GOOGLE_MAPS_PLATFORM_KEY</code>
@@ -29079,7 +29245,7 @@ export default function App() {
         }
 
         localStorage.setItem("mitra_last_6h_refresh", String(now));
-        showToast("Naye schemes aur scholarships automatic update ho chuke hain! 📡✨", "info");
+        showToast("Naye schemes aur scholarships automatic update ho chuke hain! ", "info");
       } catch (err) {
         console.warn("[AutoRefresh] Failed background automatic update run:", err);
       } finally {
@@ -29320,7 +29486,7 @@ export default function App() {
         if (!prev.some((n) => n.id === launchId)) {
           newGenerated.push({
             id: launchId,
-            title: `🆕 New Scheme: ${scheme.hindiName || scheme.name} Portal Active`,
+            title: ` New Scheme: ${scheme.hindiName || scheme.name} Portal Active`,
             body: `Bhaiya! Aapki preferences ke anusar ${userState} me "${scheme.name}" ke online registrations start ho chuke hain. Patrata (eligibility) check karein.`,
             type: "news",
             timestamp: now - (i * 3 * 3600000 + 1 * 3600000),
@@ -29351,7 +29517,7 @@ export default function App() {
             const docReq = scheme.documents[0];
             newGenerated.push({
               id: docId,
-              title: `📄 Verification Required: ${scheme.name}`,
+              title: ` Verification Required: ${scheme.name}`,
               body: `Dost, ${scheme.name} me aavedan ke liye aapke pass "${docReq}" ready hona chahiye! Ise dynamic Vault me abhi upload karein.`,
               type: "status",
               timestamp: now - (i * 6 * 3600000 + 4 * 3600000),
@@ -29382,7 +29548,7 @@ export default function App() {
     if (profile.lastLogin) {
       const timeDiff = now - profile.lastLogin;
       if (timeDiff >= twentyFourHours) {
-        const title = `Streak Danger! 🔥⚠️`;
+        const title = `Streak Danger! ⚠`;
         const body = `Dost, aapne pichle 24 hours se log in nahi kiya hai! Continuous daily streak reset hone se bachane ke liye jaldi check-in karein!`;
 
         const newNotif: AppNotification = {
@@ -29668,7 +29834,7 @@ export default function App() {
         id: "home",
         title: "Home Section (मुख्य स्क्रीन)",
         hindiTitle: "होम डैशबोर्ड",
-        description: "Yahan aapko Mitra App ke sabhi sabse powerful features milenge, jaise: \n\n• ✨ Instant AI Eligibility Checker (पात्रता जांचकर्ता)\n• 📋 Digital Document Quality Audit (दस्तावेज़ ऑडिट)\n• 🚀 Daily Study Streaks & Leaderboard Ranks\n• 📰 Live Board & Smart State News Alerts\n• 🔒 Safe & Secure Documents Vault!\n\nYahan aapki detailed profile aur specialized Pro-Tips bhi milti hain.",
+        description: "Yahan aapko Mitra App ke sabhi sabse powerful features milenge, jaise: \n\n• Instant AI Eligibility Checker (पात्रता जांचकर्ता)\n•  Digital Document Quality Audit (दस्तावेज़ ऑडिट)\n• Daily Study Streaks & Leaderboard Ranks\n•  Live Board & Smart State News Alerts\n•  Safe & Secure Documents Vault!\n\nYahan aapki detailed profile aur specialized Pro-Tips bhi milti hain.",
         icon: HomeIcon,
       },
       {
@@ -29716,14 +29882,14 @@ export default function App() {
             {arrowCoords.placement === "bottom" ? (
               <div className="flex flex-col items-center animate-bounce">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-lg border-2 border-white">
-                  👇
+                  
                 </div>
                 <div className="w-3 h-3 bg-amber-500 rotate-45 mt-[-6px] shadow-sm border-r-2 border-b-2 border-white" />
               </div>
             ) : (
               <div className="flex items-center animate-bounce">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-lg mr-1 border-2 border-white">
-                  👉
+                  
                 </div>
                 <div className="w-3 h-3 bg-amber-500 rotate-45 ml-[-6px] shadow-sm border-l-2 border-b-2 border-white" />
               </div>
@@ -29733,7 +29899,7 @@ export default function App() {
 
         {/* Walkthrough Tooltip Dialog Box */}
         <div
-          className="absolute z-[210] pointer-events-auto w-[90%] max-w-sm p-5 rounded-[2.5rem] bg-white border-4 border-slate-900 shadow-2xl transition-all duration-500 animate-fade-in"
+          className="absolute z-[210] pointer-events-auto w-[90%] max-w-sm p-5 rounded-2xl bg-white border-4 border-slate-900 shadow-2xl transition-all duration-500 animate-fade-in"
           style={{
             left: window.innerWidth < 768 ? "50%" : `${arrowCoords.x + (arrowCoords.placement === "left" ? 40 : -420)}px`,
             top: window.innerWidth < 768 ? "35%" : `${Math.max(100, arrowCoords.y - 120)}px`,
@@ -29766,7 +29932,7 @@ export default function App() {
               onClick={() => {
                 localStorage.setItem("form_mitra_dashboard_tour_v1", "true");
                 setDashboardTourStep(null);
-                showToast("Aapne app guide skip kiya! Kabhi bhi Safar Guide button se start kar sakte hain. 👍", "info");
+                showToast("Aapne app guide skip kiya! Kabhi bhi Safar Guide button se start kar sakte hain. ", "info");
               }}
               className="px-4 py-2 text-gray-400 hover:text-gray-600 font-extrabold text-[10px] uppercase tracking-wider bg-transparent border-0 cursor-pointer active:scale-95"
             >
@@ -29782,12 +29948,12 @@ export default function App() {
                 } else {
                   localStorage.setItem("form_mitra_dashboard_tour_v1", "true");
                   setDashboardTourStep(null);
-                  showToast("Badhai ho! 🥳 Aapne Mitra Tour successfully poora kar liya hai!", "info");
+                  showToast("Badhai ho!  Aapne Mitra Tour successfully poora kar liya hai!", "info");
                 }
               }}
               className="px-5 py-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer active:scale-95 border-0 shadow-md shadow-amber-200"
             >
-              <span>{dashboardTourStep < 4 ? "Aage Chalo ➡️" : "Shuru Karein! 🎉"}</span>
+              <span>{dashboardTourStep < 4 ? "Aage Chalo " : "Shuru Karein! "}</span>
             </button>
           </div>
         </div>
@@ -29844,7 +30010,7 @@ export default function App() {
             </div>
 
             {/* Quick Stats Panel (Streak, Active Scheme count, and Notifications Indicator) */}
-            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 border border-slate-100 shadow-sm flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Flame className="w-4 h-4 text-orange-500 fill-current animate-pulse" />
@@ -30547,11 +30713,11 @@ export default function App() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[2.5rem] p-8 overflow-hidden relative shadow-2xl flex flex-col gap-5 max-h-[85vh] overflow-y-auto"
+              className="bg-white w-full max-w-md rounded-2xl p-8 overflow-hidden relative shadow-2xl flex flex-col gap-5 max-h-[85vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header Image */}
-              <div className="w-full h-44 rounded-3xl overflow-hidden border border-gray-100 relative shadow-inner">
+              <div className="w-full h-44 rounded-2xl overflow-hidden border border-gray-100 relative shadow-inner">
                 <img
                   src={getProxiedImageUrl(
                     selectedSliderNews.image ||
@@ -30712,7 +30878,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100] flex items-center justify-center"
           >
-            <div className="bg-white p-6 rounded-[2rem] shadow-2xl flex items-center gap-4 border border-gray-100">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl flex items-center gap-4 border border-gray-100">
               <div className="w-8 h-8 border-4 border-gray-100 border-t-[#008069] rounded-full animate-spin" />
               <p className="text-sm font-black text-gray-900 uppercase tracking-widest">
                 Saving Profile...

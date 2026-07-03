@@ -14,6 +14,8 @@ export type Message = {
   image?: string;
   thought?: string | null;
   rating?: 'up' | 'down';
+  isError?: boolean;
+  userReaction?: string;
 };
 
 export type Scheme = {
