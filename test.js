@@ -1,0 +1,9 @@
+const normQuery = "latest scholarships of buddy4study";
+const isKorea = normQuery.includes("korea") || normQuery.includes("gks") || normQuery.includes("kaist") || normQuery.includes("postech") || normQuery.includes("seoul") || normQuery.includes("yonsei") || normQuery.includes("bk21") || normQuery.includes("kgsp");
+const isGermany = normQuery.includes("germany") || normQuery.includes("german") || normQuery.includes("daad") || normQuery.includes("boell") || normQuery.includes("böll") || normQuery.includes("adenauer") || normQuery.includes("ebert") || normQuery.includes("deutschland");
+const isJapan = normQuery.includes("japan") || normQuery.includes("japanese") || normQuery.includes("mext") || normQuery.includes("jasso") || normQuery.includes("rotary") || normQuery.includes("yoneyama") || normQuery.includes("tokyo");
+const isUK = normQuery.includes("uk") || normQuery.includes("united kingdom") || normQuery.includes("british") || normQuery.includes("chevening") || normQuery.includes("commonwealth") || normQuery.includes("rhodes") || normQuery.includes("gates") || normQuery.includes("cambridge") || normQuery.includes("oxford");
+const isIndia = normQuery.includes("india") || normQuery.includes("indian") || normQuery.includes("national") || normQuery.includes("nsp") || normQuery.includes("yashasvi") || normQuery.includes("inspire") || normQuery.includes("central sector") || normQuery.includes("pragati") || normQuery.includes("kvpy");
+const isGirls = normQuery.includes("girl") || normQuery.includes("girls") || normQuery.includes("female") || normQuery.includes("women") || normQuery.includes("women in stem") || normQuery.includes("pragati") || normQuery.includes("swanath") || normQuery.includes("indira") || normQuery.includes("begum") || normQuery.includes("hazrat") || normQuery.includes("ishan");
+
+console.log({isKorea, isGermany, isJapan, isUK, isIndia, isGirls});

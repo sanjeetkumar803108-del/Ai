@@ -1,7 +1,7 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { UserProfile } from "../types";
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : "";
 
 export type GeminiErrorType = 'QUOTA' | 'NETWORK' | 'INVALID_KEY' | 'UNKNOWN';
 
@@ -22,11 +22,16 @@ const handleGeminiError = (error: any): GeminiError => {
     errorStr.includes('429') || 
     errorStr.includes('resource_exhausted') || 
     errorStr.includes('rate limit') ||
-    errorStr.includes('limit exceeded')
+    errorStr.includes('limit exceeded') ||
+    errorStr.includes('503') ||
+    errorStr.includes('unavailable') ||
+    errorStr.includes('high demand') ||
+    errorStr.includes('overloaded') ||
+    errorStr.includes('busy')
   ) {
     return {
       type: 'QUOTA',
-      message: 'Sanjeet bhai, lagta hai free tier ki API daily limits abhi exceed ho gayi hain! ⏳ Bhai, kripya thoda wait karke try karein (Aap 1-2 minutes baad ya phir kal try kar sakte hain). Tab tak aap baaki local tools jaise "Verified Smart QR" ya data vaults bina kisi dikkat ke bilkul free use kar sakte hain! Aapko bilkul tension lene ki zarurat nahi hai, main aapke saath hoon!'
+      message: 'Sanjeet bhai, lagta hai free tier ki API daily limits abhi exceed ho gayi hain ya server thoda vyast (busy) hai! ⏳ Bhai, kripya ek-do minute baad dobara try karein. Tab tak aap baaki local tools jaise "Verified Smart QR" ya data vaults bina kisi dikkat ke bilkul free use kar sakte hain! Aapko bilkul tension lene ki zarurat nahi hai, main aapke saath hoon!'
     };
   }
   
@@ -609,7 +614,7 @@ export const analyzeFilledForm = async (imageFile: File, scheme?: any): Promise<
   });
 
   const prompt = `
-    Role: You are "Form Mitra AI", an expert audit officer for Indian government and official forms.
+    Role: You are "Future Mitra", an expert audit officer for Indian student applications and forms.
     
     Task: Audit the provided image of a filled application form ${scheme ? 'for the scheme: ' + scheme.name : '(generic audit)'}.
     
@@ -681,6 +686,17 @@ export const searchSchemes = async (query: string, userProfile?: any) => {
   if (!ai) throw new Error("AI not initialized.");
 
   const prompt = `
+
+Search the internet for latest
+2026 scholarship information.
+Use Google Search to find 
+real current data from:
+- buddy4study.com
+- scholarships.gov.in
+- official scholarship websites
+
+Today's date: 5 July 2026
+
     PERFORM A DEEP SEARCH and INTENT ANALYSIS for the Indian Government Scheme query: "${query}".
     
     The user is from ${userProfile?.state || 'India'}.
@@ -779,7 +795,7 @@ export const getDailyNews = async (userProfile: any) => {
           "analysis": "Bhai, agar aap higher studies ke liye paise arrange karne me pareshan ho rahe hain, toh is yojana se bina kisi collateral security ke saste dar par loan mil jayega.",
           "impact": "Aap DRCC office ke chakkar kaatne ke bajae ab direct online MNSSBY portal se apply kar sakte hain.",
           "date": "30 June 2026",
-          "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop",
+          "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop",
           "officialLink": "https://www.7nishchay-yuvaupaj.bihar.gov.in/"
         },
         {
@@ -987,7 +1003,7 @@ export const getDailyNews = async (userProfile: any) => {
     - analysis: Detailed explanation of why it matters to the user
     - impact: Practical local impact (e.g. "Apply at your local Block Office or CSC")
     - date: Key deadline or event date
-    - image: A relevant high-quality Unsplash image URL matching the topic (e.g. use https://images.unsplash.com/photo-... with keywords like study, books, job, agriculture, solar, healthcare etc.)
+    - image: A relevant image URL matching the topic (e.g. use https://placehold.co/800x600/008069/ffffff?text=Study+Books, replacing text with category/topic keywords)
     - officialLink: Mock or real URL for verification
     
     Output Format (JSON Array of 5-6 items):
@@ -1094,7 +1110,7 @@ export const predictFormRejection = async (imageBase64: string, mimeType: string
   if (!ai) throw new Error("AI not initialized.");
 
   const prompt = `
-    You are "Mitra Form Auditor", an elite document and application scanner inside the 'Form Mitra AI' app. Your exclusive job is to review the user's application details, screenshots, or documents, and find critical mistakes that could lead to form rejection. Use a professional, strict yet helpful tone.
+    You are "Future Mitra Form Auditor", an elite document and application scanner inside the 'Future Mitra' app. Your exclusive job is to review the user's application details, screenshots, or documents, and find critical mistakes that could lead to form rejection. Use a professional, strict yet helpful tone.
 
     User Profile Data for cross-reference:
     - Full Name: ${userProfile.name || 'Not provided'}
@@ -1364,8 +1380,193 @@ export const matchEligibility = async (userProfile: any) => {
   }
 };
 
+export const getOfflineCounselingRoadmap = (examName: string, rank: string, userProfile: any) => {
+  const stateName = userProfile?.state || "Bihar";
+  const normalizedExam = (examName || "NEET").toUpperCase();
+
+  if (normalizedExam.includes("NEET")) {
+    return {
+      steps: [
+        {
+          step: "NEET UG Result & Rank Declaration",
+          isOffline: false,
+          date: "Already Declared / June-July",
+          action: "Official NTA website se apna Scorecard aur All India Rank (AIR) download karein. Iska printout safe rakhein."
+        },
+        {
+          step: "MCC Online Registration (15% AIQ)",
+          isOffline: false,
+          date: "Expected July-August",
+          action: "mcc.nic.in par jaakar register karein, counseling fee pay karein, aur choices lock karein (AIIMS, JIPMER, State Govt Colleges)."
+        },
+        {
+          step: "State Quota Counseling Registration (85% State Seats)",
+          isOffline: false,
+          date: "Expected August-September",
+          action: `${stateName} ke State Counseling Portal par register karein. Domicile aur State category benefits claim karne ke liye ye process mandatory hai.`
+        },
+        {
+          step: "Choice Filling and Locking (Round 1 & 2)",
+          isOffline: false,
+          date: "Ongoing during Counseling Rounds",
+          action: "Apne rank ke anusar medical colleges ki priority list select karein. Dhyan rahe, college lock karna mat bhoolna!"
+        },
+        {
+          step: "Seat Allotment & Document Verification",
+          isOffline: true,
+          date: "Post Choice Locking",
+          action: "Agar seat allot hoti hai, toh specified Nodal Center ya allocated Medical College par jakar physically documents verify karwayein."
+        },
+        {
+          step: "Final Admission & College Reporting",
+          isOffline: true,
+          date: "Post Seat Allotment",
+          action: "Allotted college mein balance fee pay karein, original certificates submit karein aur hostel allot karwayein."
+        }
+      ],
+      requiredDocuments: [
+        { doc: "NEET UG Admit Card", original: true, photocopyCount: 3, why: "Verification at Reporting Center" },
+        { doc: "NEET UG Scorecard / Rank Letter", original: true, photocopyCount: 3, why: "Mandatory rank verification proof" },
+        { doc: "Class 10 & 12 Marksheet & Passing Certificate", original: true, photocopyCount: 3, why: "Eligibility criteria check" },
+        { doc: "Category Certificate (OBC/SC/ST/EWS/PwD)", original: true, photocopyCount: 3, why: "For reservation claim validation" },
+        { doc: "Domicile/Residential Certificate", original: true, photocopyCount: 3, why: "Required for 85% State Quota seats in " + stateName },
+        { doc: "Identity Proof (Aadhaar Card / Passport)", original: true, photocopyCount: 2, why: "Government identity verification" }
+      ],
+      precautions: [
+        "Counseling portal ki choice filling hamesha high-rank government colleges se shuru karein (AIIMS -> State Top Colleges).",
+        "Document verification ke liye nodal center par subah 10 baje se pehle zaroor pahunch jayein.",
+        "Saare original documents ko ek waterproof folder me arrange karke rakhein."
+      ],
+      counselingStrategy: `Aapki rank ${rank} ke hisaab se, first round mein top state colleges aur top AIIMS (agar eligibility hai) prioritize karein. State quota counseling ke Round 2 aur Mop-up round mein lower-cutoff government colleges milne ke achhe chances hote hain. Choice-locking sheet carefully bharein!`,
+      roadmapSummary: `Sanjeet bhai, NEET counseling ko lekar bilkul mat ghabrana. Rank ${rank} ke sath hum best possible options nikalenge. Aapko bilkul tension lene ki zaroorat nahi hai. Is poore process mein main aur meri poori team hamesha aapke sath hain!`
+    };
+  } else if (normalizedExam.includes("JEE MAIN") || normalizedExam.includes("JOSAA") || normalizedExam.includes("JEE MAIN (JOSAA)")) {
+    return {
+      steps: [
+        {
+          step: "JEE Main Result & JoSAA Portal Registration",
+          isOffline: false,
+          date: "Expected June-July",
+          action: "josaa.nic.in par register karein. JEE Main Roll Number aur password se login karke details verify karein."
+        },
+        {
+          step: "Online Choice Filling (NITs, IIITs, GFTIs)",
+          isOffline: false,
+          date: "Expected July",
+          action: "Colleges aur branches ki choice select karein. JoSAA online mock seat allotment bhi dikhata hai jisse choices rearrange kar sakte hain."
+        },
+        {
+          step: "Seat Allotment Rounds (Rounds 1 to 6)",
+          isOffline: false,
+          date: "July-August",
+          action: "Har round ke baad seat lock options select karein: Freeze (accept), Slide (same college other branch), or Float (better college in next round)."
+        },
+        {
+          step: "Online Reporting & Fee Payment",
+          isOffline: false,
+          date: "Immediate after allotment",
+          action: "Seat Acceptance Fee pay karein aur JoSAA portal par documents scan karke upload karein."
+        },
+        {
+          step: "Physical Reporting to Nodal/Allotted Center",
+          isOffline: true,
+          date: "Final round reporting",
+          action: "Nodal reporting center ya final allotted NIT/IIIT par physically jakar academic documents aur physical medical certificate verify karwayein."
+        }
+      ],
+      requiredDocuments: [
+        { doc: "JEE Main Scorecard & Admit Card", original: true, photocopyCount: 3, why: "Basic exam rank verification" },
+        { doc: "Class 10 & 12 Passing Certificate & Marksheets", original: true, photocopyCount: 3, why: "Date of birth and 75% marks criteria proof" },
+        { doc: "Medical Certificate (JoSAA format)", original: true, photocopyCount: 1, why: "Physical fitness verification by registered doctor" },
+        { doc: "Category Certificate (OBC-NCL/SC/ST/EWS)", original: true, photocopyCount: 3, why: "Must be issued after April 1st of counseling year" },
+        { doc: "State Domicile Certificate", original: true, photocopyCount: 2, why: "For Home State quota seats in NITs" }
+      ],
+      precautions: [
+        "Choices fill karte samay interest ki branch ko priority dein, college tag ke chakkar mein boring branch na lein.",
+        "Freeze, Slide aur Float options ko dhyan se select karein. Ek galti se poori seat cancel ho sakti hai.",
+        "Medical Certificate JoSAA ke exact format mein hi banwayein."
+      ],
+      counselingStrategy: `Rank ${rank} par JoSAA ke alawa CSAB (Special Round) counseling bhi zaroor try karna. CSAB mein kaafi seats vacant bach jati hain aur badhi rank par bhi achhi NITs/IIITs milne ke bohot acche chances hote hain.`,
+      roadmapSummary: `Mere bhai, NIT aur IIIT ke is safar me tension bilkul mat lena. Rank ${rank} ke hisab se ham log best branch select karenge. Aapko bilkul tension lene ki zaroorat nahi hai. Is poore process mein main aur meri poori team hamesha aapke sath hain!`
+    };
+  } else if (normalizedExam.includes("ADVANCED") || normalizedExam.includes("IIT")) {
+    return {
+      steps: [
+        {
+          step: "JEE Advanced Result & JoSAA IIT Choice Filling",
+          isOffline: false,
+          date: "Expected June-July",
+          action: "JEE Advanced crack karne ke baad JoSAA portal par purely IIT colleges ki list prioritize karein. IIT choices standard NIT choices ke sath mix ki ja sakti hain."
+        },
+        {
+          step: "IIT Seat Allotment (Freeze/Float)",
+          isOffline: false,
+          date: "July",
+          action: "IIT Seat allot hone par online report karein, seat acceptance fee pay karein aur document verification slide complete karein."
+        },
+        {
+          step: "Physical reporting at designated IIT Nodal Center",
+          isOffline: true,
+          date: "Post Round 6",
+          action: "Specified IIT campus par reporting center me jakar live physical document verification, biometric audit aur medical verification complete karein."
+        }
+      ],
+      requiredDocuments: [
+        { doc: "JEE Advanced Admit Card & Result", original: true, photocopyCount: 3, why: "Required for IIT verification" },
+        { doc: "Class 12 Marks Sheet (75% aggregate or top 20 percentile)", original: true, photocopyCount: 3, why: "IIT eligibility check" },
+        { doc: "Official JoSAA Medical Certificate", original: true, photocopyCount: 1, why: "Mandatory standard health certificate" },
+        { doc: "Caste/Category Proof Certificate", original: true, photocopyCount: 3, why: "For reservation claim" }
+      ],
+      precautions: [
+        "IIT choice filling me zero-error margin rakhein. Purane IITs ki core branches aur New IITs ki CSE branch me carefully choose karein.",
+        "Saare original documents central guidelines ke anusar correct format me hone chahiye."
+      ],
+      counselingStrategy: `Rank ${rank} par top-tier old IITs ki Core branches (Mechanical/Chemical/Electrical) ya second-gen IITs (Hyderabad, Gandhinagar, Ropar) me Computer Science & AI branch high consideration me rakhein.`,
+      roadmapSummary: `Dost, IIT crack karna apne aap me ek mahagatha hai. Rank ${rank} ke sath aap aage badhein, engineering me dhamaal machana hai. Aapko bilkul tension lene ki zaroorat nahi hai. Is poore process mein main aur meri poori team hamesha aapke sath hain!`
+    };
+  } else {
+    // General / CUET / CLAT Fallback
+    return {
+      steps: [
+        {
+          step: `${examName} Result and Scorecard Download`,
+          isOffline: false,
+          date: "Post-Exam Week",
+          action: "Official portal se apna overall score aur percentile card download karein."
+        },
+        {
+          step: "University Portal Registration",
+          isOffline: false,
+          date: "Ongoing after results",
+          action: "CUET/CLAT targeted universities ke individual portals (jaise DU CSAS, BHU, AMU ya specific NLU) par register karke profile fill karein."
+        },
+        {
+          step: "Choice Preferences and Seat Seat Allotment",
+          isOffline: false,
+          date: "Expected July-August",
+          action: "Course + College combinations ki preferential list submit karein aur allocated seats accept karein."
+        }
+      ],
+      requiredDocuments: [
+        { doc: `${examName} Scorecard / Merit List Card`, original: true, photocopyCount: 3, why: "Proof of eligibility and ranking" },
+        { doc: "Class 10 & 12 Marksheet & Transfer Certificate", original: true, photocopyCount: 3, why: "Academic qualification proof" },
+        { doc: "Category and Income Certificate (if claiming quota)", original: true, photocopyCount: 3, why: "Fee waiver or quota admission" }
+      ],
+      precautions: [
+        "Multiple universities ke individual admission forms miss mat karna, dhyan se dates track karein.",
+        "Registration ke waqt correct stream/subject map verify zaroor karein."
+      ],
+      counselingStrategy: `Rank ${rank} ke sath aap targeted top-ranking Central Universities ya NLUs ke primary regular rounds ke baad spot round and offline counseling seats zaroor check karein.`,
+      roadmapSummary: `Bhai, admission process me koi bhi dikkat ho toh Bada Bhai hamesha aapke sath hai. Rank ${rank} ke sath sahi college milna tay hai. Aapko bilkul tension lene ki zaroorat nahi hai. Is poore process mein main aur meri poori team hamesha aapke sath hain!`
+    };
+  }
+};
+
 export const getCounselingRoadmap = async (examName: string, rank: string, userProfile: any) => {
-  if (!ai) throw new Error("AI not initialized.");
+  if (!ai) {
+    console.warn("AI not initialized, returning rich offline content instead.");
+    return getOfflineCounselingRoadmap(examName, rank, userProfile);
+  }
 
   const prompt = `
     Role: Expert Student Counselor & Administrative Guide for Post-Exam Counseling in India.
@@ -1388,7 +1589,7 @@ export const getCounselingRoadmap = async (examName: string, rank: string, userP
         "Critical tip 2 (e.g., carry black pen)"
       ],
       "counselingStrategy": "Tips to get best seat based on rank in Hinglish",
-      "roadmapSummary": "Encouraging summary in Hinglish, acting like an older sibling. MANDATORY: Conclude with a variation of 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।'",
+      "roadmapSummary": "Encouraging summary in Hinglish, acting like an older sibling. MANDATORY: Conclude with a variation of 'आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी team हमेशा आपके साथ हैं।'",
     }
   `;
 
@@ -1398,10 +1599,16 @@ export const getCounselingRoadmap = async (examName: string, rank: string, userP
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { responseMimeType: "application/json" }
     });
-    return JSON.parse(response.text || "{}");
+    
+    const result = JSON.parse(response.text || "{}");
+    if (!result || !result.steps || !Array.isArray(result.steps) || result.steps.length === 0) {
+      console.warn("Incomplete or malformed response from Gemini, falling back to rich offline content");
+      return getOfflineCounselingRoadmap(examName, rank, userProfile);
+    }
+    return result;
   } catch (err) {
-    console.error("Counseling error:", err);
-    return null;
+    console.error("Counseling error, returning robust local fallback:", err);
+    return getOfflineCounselingRoadmap(examName, rank, userProfile);
   }
 };
 
@@ -1524,7 +1731,7 @@ export const getProfileRecommendations = async (userProfile: any) => {
 
   const prompt = `
     Role & Persona:
-    You are "Scheme Discovery Mitra", an advanced virtual recommendation module of Form Mitra AI. Your objective is to act as a highly intelligent, supportive older brother (Bade Bhai), guiding users through government schemes, scholarships, and forms.
+    You are "Scheme Discovery Mitra", an advanced virtual recommendation module of Future Mitra. Your objective is to act as a highly intelligent, supportive older brother (Bade Bhai), guiding users through student-centric schemes, scholarships, and forms.
 
     Your behavior MUST strictly adapt to the "Active User Profile" below.
 
@@ -1634,77 +1841,44 @@ export const getAIResponse = async (userMessage: string, chatHistory: any[] = []
     ? `The user's linked WhatsApp number is ${profile.whatsappNumber}. Use this to confirm reminder setups.`
     : `The user has NOT linked WhatsApp yet. If they ask for reminders or deadline alerts, you MUST reply: "Zaroor bhai! Kripya apna WhatsApp number de dijiye ya apni Profile mein ja kar 'Link WhatsApp' box mein number daal dijiye, main aapko last date se pehle message karke inform kar dunga."`;
 
+  const currentDateStr = new Date().toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
   const systemInstruction = `
-    [SYSTEM ROLE & PERSONA]
-    You are "Form Mitra", an advanced, highly intelligent virtual assistant inside the 'Form Mitra AI' super-app. Your core mission is to empower the Indian Youth and Citizens by guiding them through government schemes, scholarships, and forms.
-    You act as a supportive, knowledgeable older brother ("Bade Bhai").
+    [CRITICAL TEMPORAL CONTEXT: Today's current date is ${currentDateStr}. The current year is 2026. Do NOT refer to 2024 or 2025 as the current year under any circumstances. Keep all responses, searches, and advice fully updated and accurate for the year 2026.]
 
-    Your behavior MUST strictly adapt to the "Active User Profile" selected during login (provided in the context below).
+    Act exclusively as 'Mitra AI' (Future Mitra)—combining the empathy of a 'Bada Bhai' (Older Brother) and Career Strategist with the absolute precision of an Elite Indian Scholarship Search Engine, STRICTLY for the Indian Student Community (Class 9 to College level).
 
-    ### 🛡️ RULE 1: STRICT COMMUNITY ISOLATION & LOGIC
-    You will serve three distinct profiles. If the system passes "Others" or "Normal" as the profile, you MUST treat it exactly as the "Common Citizen / Others" profile. Do not mix data between profiles under any circumstances!
+    CRITICAL RULES (NON-NEGOTIABLE):
+    1. THE 'BADA BHAI' OPENING: Start with a warm, highly empathetic Hinglish greeting (e.g., "Arey tension kyu leta hai mere bhai, main hu na!", "Relax yaar, ek exam/scholarship life decide nahi karta"). Always use the user's name and details if provided in user profile context.
+    2. NO LAZY SEARCHING: If the user asks about scholarships, schemes, or latest career opportunities, you MUST use the Google Search tool to extract SPECIFIC, active 2026 scholarships. NEVER just give the homepage link of a portal (like Buddy4Study) and tell the user to search themselves. You must extract at least 2-3 specific active schemes from that portal.
+    3. STRICT FORMATTING: After the greeting, you MUST output the discovered scholarships/schemes in this EXACT bulleted structure. Do not skip any detail:
+       - 🎓 Scholarship Name: (Exact name from the live web)
+       - 🎯 Match Score: (e.g., 95% - calculate based on their profile vs eligibility)
+       - 💰 Benefit: (Exact reward amount)
+       - ⏳ Deadline: (Must be a live 2026 date)
+       - 🔗 Link: (Direct application URL, NOT the homepage)
+    4. FUTURE MITRA ACTION PLAN: End with a short, comforting micro-task or skill advice to reduce their stress.
+    5. STRICT GENDER FILTER: Always check the user's gender from the provided context. If Male: NEVER recommend female-only scholarships (e.g., 'Kanya', 'Women', 'Girls'). If Female: NEVER recommend male-only scholarships. If 'Others' or 'Not Specified': ONLY recommend 'Gender-Neutral' scholarships that are open to ALL students. Strictly block any gender-exclusive schemes.
 
-    1. STUDENT PROFILE (Active when community is "Student"): 
-       - WHAT TO SHOW: Indian Government Scholarships, Private Scholarships, and Abroad Full-Funded Scholarships (e.g., MEXT, GKS).
-       - ACTION: Always ask for their current class, academic stream, and future goals to tailor the recommendations.
-       - STRICT BAN: Never show general jobs or citizen schemes unless specifically asked.
+CRITICAL AUDIENCE RESTRICTION:
+You are programmed to ONLY help students. If a user asks for advice regarding corporate jobs, mid-life career changes, marriage, or anything outside a student's life, politely decline in Hindi by saying, "Bhai, main 'Future Mitra' hu, sirf students ke academic aur career tension door karne ke liye bana hu. Us baare mein main shayad sahi madad na kar pau!"
 
-    2. JOB FINDER PROFILE (Active when community is "Jobs"):
-       - WHAT TO SHOW: Active government exam notifications (SSC, UPSC, State Govt, Railway, Bank, Police, etc.), private sector jobs, recruitment drives, and employment exchange schemes.
-       - STRICT BAN: Never show school/college student scholarships. Do NOT offer student or academic scholarships.
-       - CRITICAL DIRECTION: You MUST treat this user 100% as an active Job Aspirant or Seeker. Absolutely NEVER address or treat them as a school/college student (do not refer to classes, streams, subjects, or school exams). If they have any student parameters in their profile, completely ignore them and speak to them as a professional job finder or job seeker. Focus on job listings, recruitment guidelines, exam syllabi, and skill programs.
+When a student expresses exam fear (NEET, JEE, Boards), anxiety, or asks about "Plan B", follow this exact framework in warm, natural Hindi/Hinglish:
+1. 🫂 The 'Main Hu Na' Comfort: Validate their stress immediately.
+2. 🧠 Mindset Shift: Explain that competitive exams are just one path. Today's world runs on skills, not just degrees.
+3. 🚀 The 'Plan B' Masterclass (Tailored to their stream):
+   - If PCB/Medical/NEET: Pitch high-respect alternatives with passion. Explain that with just passing marks, they can still be a Doctor (Veterinary), a top-tier Clinical Researcher, or enter Biotechnology and Pharmacy.
+   - If PCM/Engineering/JEE: Pitch tech-heavy, skill-based paths where college tags don't matter (e.g., AI integration, Full-Stack dev, UI/UX, starting a digital studio).
+   - If Commerce/Arts: Pitch high-paying modern careers (e.g., Digital Marketing, Content Strategy, Financial Modeling).
+4. 🔥 Actionable Advice: Give them a specific, stress-free micro-task to do today to build their skills, rather than overthinking the exam result.
 
-    3. COMMON CITIZEN / OTHERS PROFILE (Includes any "Others", "Normal" or blank profiles):
-       - WHAT TO SHOW: Essential documents (Aadhar, PAN, Passport, Voter ID updates), ration card schemes, Ayushman Bharat, and general welfare schemes.
-       - STRICT BAN: Never show student scholarships or specific competitive exam notifications.
-
-    ### 🌐 RULE 2: LIVE SEARCH & REAL-TIME ACCURACY
-    When a user asks for "Latest schemes" or "New scholarships" (or other latest updates):
-    - DO NOT rely solely on your static training data. 
-    - You MUST use your search/web-browsing capabilities (Google Search Tool) to fetch real-time, active schemes and currently open options from official government portals (.gov.in, .nic.in) or verified embassy/official websites.
-
-    ### 📅 RULE 3: ZERO HALLUCINATION ON DATES & DEADLINES
-    Trust is our most critical metric.
-    - EXACT DATES ONLY: For every scheme, subsidy, or opportunity, explicitly state the "Application Opening Date" and "Final Deadline".
-    - If the date is officially NOT announced yet, DO NOT guess or hallucinate. State clearly: "Officially Not Announced Yet (Expected in [Month, Year])".
-
-    ### 🎯 RULE 4: ZERO-CONFUSION FORMAT
-    For every scheme/scholarship/job you recommend or list, you MUST output this exact structure:
-    1. **Name of Scheme/Scholarship/Job**: Official name.
-    2. **Simple Eligibility**: Use 3-4 simple, bite-sized bullet points. No complex government jargon. A 10th grader must understand it instantly.
-    3. **Exact Financial Benefit / Salary / Reward**: Explicitly state the exact financial reward, benefit or salary (e.g., "₹12,000 per year" - be highly specific). Do not use vague terms.
-    4. **Official Apply Link / Portal Name**: Explicit apply link/portal name.
-    5. **Form Mitigation Tip**: One short, encouraging tip to avoid rejection or mistakes when filling the form.
-
-    ### 🗣️ RULE 5: TONE, LANGUAGE MIRRORING & EMOTIONAL INTELLIGENCE
-    - Act like a supportive, knowledgeable older brother (Bade Bhai). Speak in a warm, polite, and encouraging tone.
-    - LANGUAGE MIRRORING: Always detect the user's language style (e.g., casual Hinglish, formal English, pure Hindi) and mirror it perfectly to make them feel at home. Never let the user feel bored or disconnected.
-    - EMOTIONAL INTELLIGENCE: If a user expresses sadness, failure, anxiety, or exam/job stress, pause any formal or transactional tone. Act as a highly empathetic elder brother ("Bade Bhai"). Console them first with deep warmth, reassure them, and lift their spirits before offering any solutions.
-
-    ### 🚨 RULE 6: SCAM ALERT & FRAUD DETECTION
-    - If a user asks about a scheme, job opportunity, or procedure requiring upfront payment, processing fees, security deposits, or suspicious bank/personal details (like OTPs or card PINs), immediately issue a prominent, bold 🚨 FRAUD WARNING. Warn them clearly that legitimate government schemes and genuine job portals never demand upfront fees or secret financial details.
-
-    ### 🎁 RULE 7: GLOBAL TECH PROGRAMS & SWAG FINDER
-    You are fully equipped to find exclusive student programs, bootcamps, developer groups, and student/campus ambassador schemes from global tech giants (e.g., Google, Microsoft, NVIDIA, Amazon, Meta).
-    When a user asks/inquires about global programs, swags, coding events, hackathons, or tech opportunities, you MUST search online using your search tools to verify all info (ensuring zero hallucination) and output strictly in this format:
-    1. 🚀 Program Name & Company: [e.g., Google Cloud Ready Facilitator Program]
-    2. 🎁 The "Swag" & Rewards: [Explicitly list physical rewards like T-shirts, Water Bottles, Backpacks, or verified Certificates. Make it sound exciting!]
-    3. 📈 The Real Career Benefit: [Explain in exactly 2 lines how completing this boosts their resume or helps them land a high-paying job/abroad opportunity.]
-    4. 🎯 Eligibility: [Simple bullet points on who can apply.]
-    5. 🔗 Verified Official Link: [Insert the direct apply link.]
-
-    ### 🌟 RULE 8: COMMON SENSE GOVT SERVER ADVICE
-    - If any user asks for help filling out a form, applying for a scholarship, registering for a scheme/job, visiting official portals / websites, or mentions a website error/delay, you MUST actively give them this crucial common sense tips as an elder brother: "BHAI AAP RAAT KO FORM BHARIYEGA KYUNKI RAAT KO GOVERNMENT SITES KA SERVER ACCHA AUR WORKING HOTA HAI" (e.g. "Bhai ek solid bade bhai ki tip: Form bharna hai toh raat ko bhariyega kyunki raat ko government sites ka server bada mast aur smooth working hota hai!"). Include this exact tip clearly in Hinglish/Hindi!
-
-    [STRICT FORMATTING & CONCLUDING CONSTRAINTS]
-    Zero Hallucination: Do not invent phone numbers, physical addresses, or unannounced dates.
-    Formatting: Use clean, proper Markdown. No single-line tables.
-
-    MANDATORY Concluding Phrase: "आपको बिल्कुल टेंशन लेने की जरूरत नहीं है। इस पूरे प्रोसेस में मैं और मेरी पूरी टीम हमेशा आपके साथ हैं।"
-
+Tone: Energetic, uplifting, fact-driven, highly accurate, emotionally supportive, zero-pity, non-robotic. Sound like a successful mentor talking to his younger sibling over chai. DO NOT hallucinate dates or links.
+    
     USER PROFILE CONTEXT: ${JSON.stringify(profile || {})}
-    COMMUNITY (CURRENT ROLE): ${profile?.community || 'Common Citizen / Others'}
-    CURRENT DATE: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
     Language: ${langHint} (Natural Hinglish/Hindi/English).
   `;
 
@@ -1727,6 +1901,25 @@ export const getAIResponse = async (userMessage: string, chatHistory: any[] = []
     });
 
     const text = response.text || "";
+    const searchQueries = response.candidates?.[0]?.groundingMetadata?.webSearchQueries;
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    
+    let searchSources: any[] = [];
+    if (groundingChunks && Array.isArray(groundingChunks)) {
+      searchSources = groundingChunks
+        .map((chunk: any) => {
+          if (chunk.web) {
+            return {
+              title: chunk.web.title || chunk.web.uri || "",
+              uri: chunk.web.uri || ""
+            };
+          }
+          return null;
+        })
+        .filter((source: any) => source !== null);
+    }
+    const searchQuery = searchQueries && searchQueries.length > 0 ? searchQueries[0] : undefined;
+
     // In some SDK versions, the reasoning might be in a different part or field.
     // We'll return the text for now but ensure we handle potential empty cases.
     if (!text && response.candidates?.[0]?.content?.parts) {
@@ -1735,11 +1928,18 @@ export const getAIResponse = async (userMessage: string, chatHistory: any[] = []
        const textPart = parts.find((p: any) => !p.thought && p.text);
        return { 
          text: textPart?.text || text || "Maafi chahta hoon, response generate nahi ho paya.", 
-         thought: thoughtPart?.text || null 
+         thought: thoughtPart?.text || null,
+         searchSources: searchSources.length > 0 ? searchSources : undefined,
+         searchQuery
        };
     }
 
-    return { text, thought: null };
+    return { 
+      text, 
+      thought: null,
+      searchSources: searchSources.length > 0 ? searchSources : undefined,
+      searchQuery
+    };
   } catch (error: any) {
     const errorInfo = handleGeminiError(error);
     console.warn("Gemini Chat Error:", errorInfo);

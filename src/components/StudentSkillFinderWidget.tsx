@@ -241,8 +241,8 @@ export const StudentSkillFinderWidget = ({
 
   const getShareText = (skill: any) => {
     return isJobsMode 
-      ? `🔥 Hey, look at this high-paying job upgrade skill recommended by Mitra AI:\n\n💻 Skill: ${skill.name}\n💰 Salary Upgrade: ${skill.earnings}\n⚡ Placement: ${skill.futureWork?.[0] || ""}\n✏️ Portfolio Proof: ${skill.portfolioValue?.[0] || ""}\n\nGet hired faster & boost your salary on Form Mitra!`
-      : `🔥 Hey, look at this suitable student skill recommended by Mitra AI for ${stream} stream:\n\n💻 Skill: ${skill.name}\n💰 Monthly Income: ${skill.earnings}\n💡 Why good: ${skill.whyGood?.[0] || ""}\n\nDiscover suitable skills & schemes on Form Mitra!`;
+      ? `🔥 Hey, look at this high-paying job upgrade skill recommended by Mitra AI:\n\n💻 Skill: ${skill.name}\n💰 Salary Upgrade: ${skill.earnings}\n⚡ Placement: ${skill.futureWork?.[0] || ""}\n✏️ Portfolio Proof: ${skill.portfolioValue?.[0] || ""}\n\nGet hired faster & boost your salary on Future Mitra!`
+      : `🔥 Hey, look at this suitable student skill recommended by Mitra AI for ${stream} stream:\n\n💻 Skill: ${skill.name}\n💰 Monthly Income: ${skill.earnings}\n💡 Why good: ${skill.whyGood?.[0] || ""}\n\nDiscover suitable skills & schemes on Future Mitra!`;
   };
 
   const shareOnWhatsApp = (skill: any) => {

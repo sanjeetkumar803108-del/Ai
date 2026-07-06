@@ -1351,10 +1351,10 @@ export const StudentGigFinderWidget = ({
           <p className="text-[9px] font-semibold text-slate-500 italic">
             🚨 <strong>{lang === "hi" ? "सुरक्षा गारंटी" : "Safety Guarantee"}:</strong> {
               lang === "hi" 
-                ? '"फॉर्म मित्रा सत्यापित करता है कि यह प्लेटफॉर्म कोई पैसा नहीं मांगता है। नौकरी या सत्यापन जमा के लिए किसी को कभी भुगतान न करें।"'
+                ? '"फ्यूचर मित्रा सत्यापित करता है कि यह प्लेटफॉर्म कोई पैसा नहीं मांगता है। नौकरी या सत्यापन जमा के लिए किसी को कभी भुगतान न करें।"'
                 : lang === "en"
-                ? '"Form Mitra verifies that this platform does NOT ask for any money. Never pay anyone for a job or verification deposit."'
-                : '"Form Mitra verifies that this platform does NOT ask for any money. Never pay anyone for a job or verification deposit."'
+                ? '"Future Mitra verifies that this platform does NOT ask for any money. Never pay anyone for a job or verification deposit."'
+                : '"Future Mitra verifies that this platform does NOT ask for any money. Never pay anyone for a job or verification deposit."'
             }
           </p>
           <button

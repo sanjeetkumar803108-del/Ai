@@ -19,6 +19,14 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
+export interface ScholarshipDeadline {
+  status: 'OPEN' | 'CLOSED' | 'COMING_SOON';
+  lastDeadline: string;
+  nextCycleExpected: string;
+  daysRemaining: number | null;
+  urgencyLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
 export interface SchemeCardProps {
   // Core descriptive props (Hindi & English)
   schemeName: string;
@@ -47,6 +55,15 @@ export interface SchemeCardProps {
   isSaved?: boolean;
   isSelected?: boolean;
   userDocs?: string[] | { name: string }[] | { type: string }[]; // for computing Document Readiness
+
+  // Scholarship improvements fields
+  ageLimit?: string;
+  gpaRequirement?: string;
+  applicationMode?: 'Online' | 'Offline' | 'Hybrid';
+  monthlyAmount?: string;
+  nextCycleExpected?: string;
+  lastDeadline?: string;
+  opening?: string;
 
   // Action listeners
   onToggleSave?: (e: React.MouseEvent) => void;
@@ -79,6 +96,14 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({
   isSaved = false,
   isSelected = false,
   userDocs = [],
+  // Scholarship fields
+  ageLimit,
+  gpaRequirement,
+  applicationMode,
+  monthlyAmount,
+  nextCycleExpected,
+  lastDeadline,
+  opening,
   onToggleSave,
   onToggleSelect,
   onAskMitra,
@@ -135,11 +160,73 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({
   const daysLeftNum = typeof daysLeft === "number" ? daysLeft : null;
   const isUrgent = daysLeftNum !== null && daysLeftNum > 0 && daysLeftNum <= 5;
 
+  // Scholarship smart deadline calculations
+  const getScholarshipDeadlineInfo = (): ScholarshipDeadline => {
+    const now = Date.now();
+    let status: 'OPEN' | 'CLOSED' | 'COMING_SOON' = 'OPEN';
+    let daysRemaining: number | null = null;
+    let urgencyLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
+
+    let dlTime: number | null = null;
+    if (deadline) {
+      if (typeof deadline === "number") {
+        dlTime = deadline;
+      } else {
+        const parsed = Date.parse(deadline);
+        if (!isNaN(parsed)) dlTime = parsed;
+      }
+    }
+
+    let openTime: number | null = null;
+    if (opening) {
+      const parsed = Date.parse(opening);
+      if (!isNaN(parsed)) openTime = parsed;
+    }
+
+    if (dlTime !== null) {
+      daysRemaining = Math.ceil((dlTime - now) / (24 * 60 * 60 * 1000));
+      if (daysRemaining < 0) {
+        status = 'CLOSED';
+        daysRemaining = null;
+      } else if (openTime !== null && now < openTime) {
+        status = 'COMING_SOON';
+        daysRemaining = null;
+      } else {
+        status = 'OPEN';
+      }
+    } else {
+      status = 'OPEN';
+    }
+
+    if (status === 'OPEN' && daysRemaining !== null) {
+      if (daysRemaining <= 5) {
+        urgencyLevel = 'HIGH';
+      } else if (daysRemaining <= 15) {
+        urgencyLevel = 'MEDIUM';
+      } else {
+        urgencyLevel = 'LOW';
+      }
+    }
+
+    const lastDeadlineStr = lastDeadline || (dlTime ? new Date(dlTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not specified');
+    const nextCycleStr = nextCycleExpected || (dlTime ? `Expected ${new Date(dlTime + 365*24*60*60*1000).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}` : 'Expected Mid 2027');
+
+    return {
+      status,
+      lastDeadline: lastDeadlineStr,
+      nextCycleExpected: nextCycleStr,
+      daysRemaining,
+      urgencyLevel
+    };
+  };
+
+  const deadlineDetail = getScholarshipDeadlineInfo();
+
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const shareData = {
-      title: `Form Mitra: ${activeName}`,
-      text: `${activeName}\n\n${activeDescription}\n\nForm Mitra AI se update paayein!`,
+      title: `Future Mitra: ${activeName}`,
+      text: `${activeName}\n\n${activeDescription}\n\nFuture Mitra AI se update paayein!`,
       url: officialUrl || window.location.href,
     };
     try {
@@ -361,8 +448,141 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({
           {activeDescription}
         </p>
 
-        {/* Deadline Warnings if applicable */}
-        {daysLeft && (
+        {/* Smart Scholarship Information & Deadline System */}
+        {(category?.toLowerCase() === "education" || monthlyAmount || ageLimit || gpaRequirement) && (
+          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex flex-col gap-3 my-1">
+            {/* Header Status & Days Left Row */}
+            <div className="flex justify-between items-center pb-2.5 border-b border-slate-250/50">
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-[#008069]" />
+                {lang === "hi" ? "स्कॉलरशिप समय सीमा" : "Scholarship Timeline"}
+              </span>
+
+              {/* Status badge */}
+              {deadlineDetail.status === 'CLOSED' ? (
+                <span className="px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+                  <span>❌</span>
+                  {lang === "hi" ? "समय सीमा समाप्त" : "Deadline Passed"}
+                </span>
+              ) : deadlineDetail.status === 'COMING_SOON' ? (
+                <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                  <span>⏳</span>
+                  {lang === "hi" ? "जल्द आ रहा है" : "Coming Soon"}
+                </span>
+              ) : (
+                <span className={cn(
+                  "px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border flex items-center gap-1",
+                  deadlineDetail.urgencyLevel === 'HIGH'
+                    ? "bg-red-50 text-red-600 border-red-200 animate-pulse"
+                    : deadlineDetail.urgencyLevel === 'MEDIUM'
+                      ? "bg-amber-50 text-amber-600 border-amber-200"
+                      : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                )}>
+                  <span>🟢</span>
+                  {lang === "hi" ? "आवेदन चालू है" : "OPEN"}
+                </span>
+              )}
+            </div>
+
+            {/* Smart Details Grid */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              {/* Monthly Amount / Scholarship reward */}
+              <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  {lang === "hi" ? "निश्चित राशि (Monthly Grant)" : "Monthly Stipend"}
+                </span>
+                <span className="font-extrabold text-[#008069]">
+                  {monthlyAmount || (benefits[0] || "Fully Funded")}
+                </span>
+              </div>
+
+              {/* Application Mode */}
+              <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  {lang === "hi" ? "आवेदन का माध्यम" : "Application Mode"}
+                </span>
+                <span className="font-extrabold text-blue-600">
+                  {applicationMode || "Online"}
+                </span>
+              </div>
+
+              {/* Age limit */}
+              {ageLimit && (
+                <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                    {lang === "hi" ? "उम्र सीमा (Age Limit)" : "Age Eligibility"}
+                  </span>
+                  <span className="font-extrabold text-gray-700">
+                    {ageLimit}
+                  </span>
+                </div>
+              )}
+
+              {/* GPA requirement */}
+              {gpaRequirement && (
+                <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                    {lang === "hi" ? "मार्क्स / GPA आवश्यकता" : "GPA Requirement"}
+                  </span>
+                  <span className="font-extrabold text-gray-700">
+                    {gpaRequirement}
+                  </span>
+                </div>
+              )}
+
+              {/* Last deadline / Status info */}
+              <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  {lang === "hi" ? "अंतिम तिथि" : "Last Deadline"}
+                </span>
+                <span className={cn(
+                  "font-extrabold",
+                  deadlineDetail.status === 'CLOSED' ? "text-rose-600 line-through" : "text-gray-700"
+                )}>
+                  {deadlineDetail.lastDeadline}
+                </span>
+              </div>
+
+              {/* Next cycle expected */}
+              <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                  {lang === "hi" ? "अगले चक्र की जानकारी" : "Next Cycle Info"}
+                </span>
+                <span className="font-extrabold text-purple-600">
+                  {deadlineDetail.nextCycleExpected}
+                </span>
+              </div>
+            </div>
+
+            {/* Counter summary bar */}
+            {deadlineDetail.status === 'OPEN' && deadlineDetail.daysRemaining !== null && (
+              <div className={cn(
+                "px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-between border",
+                deadlineDetail.urgencyLevel === 'HIGH'
+                  ? "bg-red-50 border-red-200 text-red-600 animate-pulse"
+                  : "bg-amber-50 border-amber-200 text-amber-700"
+              )}>
+                <span>⏰ {lang === "hi" ? "केवल इतना समय शेष है:" : "Urgency Level:"} {deadlineDetail.urgencyLevel}</span>
+                <span>{deadlineDetail.daysRemaining} {lang === "hi" ? "दिन बचे हैं" : "Days Left"}</span>
+              </div>
+            )}
+
+            {deadlineDetail.status === 'CLOSED' && (
+              <div className="px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                <span>🛑</span>
+                <span>
+                  {lang === "hi" 
+                    ? `इस स्कॉलरशिप के आवेदन की तिथि समाप्त हो चुकी है। कृपया ${deadlineDetail.nextCycleExpected} में आवेदन करें।` 
+                    : `The application deadline has passed. Please prepare for the next cycle starting ${deadlineDetail.nextCycleExpected}.`
+                  }
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Standard Deadline Warnings if applicable (for non-scholarships with regular deadline property) */}
+        {!(category?.toLowerCase() === "education" || monthlyAmount || ageLimit || gpaRequirement) && daysLeft && (
           <div className={cn(
             "p-3 rounded-2xl flex items-center gap-2 border text-xs font-black uppercase tracking-wider",
             isUrgent
@@ -669,8 +889,8 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({
                 </p>
                 <p className="text-[11px] font-bold text-gray-500 leading-normal mt-1 max-w-[240px] mx-auto">
                   {lang === "hi"
-                    ? "Doston ke sath share karein aur dhyan rahe: Form Mitra completely secure aur safe hai! 🤝"
-                    : "Share with friends and remember: Form Mitra is completely safe and secure! 🤝"
+                    ? "Doston ke sath share karein aur dhyan rahe: Future Mitra completely secure aur safe hai! 🤝"
+                    : "Share with friends and remember: Future Mitra is completely safe and secure! 🤝"
                   }
                 </p>
               </div>

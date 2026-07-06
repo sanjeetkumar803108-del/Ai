@@ -16,6 +16,8 @@ export type Message = {
   rating?: 'up' | 'down';
   isError?: boolean;
   userReaction?: string;
+  searchSources?: Array<{ title: string; uri: string }>;
+  searchQuery?: string;
 };
 
 export type Scheme = {
@@ -38,6 +40,14 @@ export type Scheme = {
   aiVersion?: string;
   deadline?: number;
   lastUpdate?: number;
+  // Scholarship improvements fields
+  ageLimit?: string;
+  gpaRequirement?: string;
+  applicationMode?: 'Online' | 'Offline' | 'Hybrid';
+  monthlyAmount?: string;
+  nextCycleExpected?: string;
+  lastDeadline?: string;
+  opening?: string;
 };
 
 export type UserProfile = {

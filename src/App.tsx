@@ -146,6 +146,7 @@ import { FormCounselor } from "./components/FormCounselor";
 import { InterviewCoach } from "./components/InterviewCoach";
 import { SOPEngine } from "./components/SOPEngine";
 import { CSRScanner } from "./components/CSRScanner";
+import { ScholarshipFinder } from "./components/ScholarshipFinder";
 import { GlobalGuide } from "./components/GlobalGuide";
 import { JobGuide } from "./components/JobGuide";
 import { StudentSkillFinderWidget } from "./components/StudentSkillFinderWidget";
@@ -235,7 +236,7 @@ import { StreakLeaderboard } from "./components/StreakLeaderboard";
 
 // --- Constants & Config ---
 const MAPS_API_KEY =
-  process.env.GOOGLE_MAPS_PLATFORM_KEY ||
+  (typeof process !== "undefined" ? process.env?.GOOGLE_MAPS_PLATFORM_KEY : "") ||
   (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY ||
   "";
 
@@ -811,7 +812,7 @@ const NewsSlider = ({
                       }
                       const cat = (item.category || "").toLowerCase();
                       if (cat.includes("scholarship") || cat.includes("student")) {
-                        return "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop";
+                        return "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop";
                       }
                       if (cat.includes("education") || cat.includes("exam") || cat.includes("class")) {
                         return "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop";
@@ -12179,6 +12180,7 @@ const ToolsScreen = ({
   onShowInterviewCoach,
   onShowSopEngine,
   onShowCSRScanner,
+  onShowScholarshipFinder,
   onShowGlobalGuide,
   onShowJobGuide,
   onUpdateProfile,
@@ -12206,6 +12208,7 @@ const ToolsScreen = ({
   onShowInterviewCoach?: () => void;
   onShowSopEngine?: () => void;
   onShowCSRScanner?: () => void;
+  onShowScholarshipFinder?: () => void;
   onShowGlobalGuide?: () => void;
   onShowJobGuide?: () => void;
   onUpdateProfile?: (updates: Partial<UserProfile>) => Promise<void> | void;
@@ -12412,72 +12415,26 @@ const ToolsScreen = ({
                 </div>
 
                 <div
-                  onClick={onShowCSRScanner}
-                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-emerald-150 hover:shadow-md hover:shadow-emerald-50/50 transition-all active:scale-[0.98]"
+                  onClick={onShowScholarshipFinder}
+                  className="bg-gradient-to-r from-emerald-500/10 via-white to-emerald-500/5 p-6 rounded-2xl min-h-[48px] shadow-sm border border-emerald-200 flex items-center justify-between group cursor-pointer hover:border-emerald-500 hover:shadow-md hover:shadow-emerald-100 transition-all active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-xs">
-                      <GraduationCap className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs group-hover:bg-emerald-700 transition-all duration-300">
+                      <Award className="w-6 h-6" />
                     </div>
                     <div>
                       <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
-                        Mitra CSR Scanner
-                        <span className="text-[7.5px] font-black bg-[#008069] text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                          Premium
+                        Mitra AI Live Scholarship Finder
+                        <span className="text-[7.5px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse">
+                          Live Research
                         </span>
                       </h3>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        Private Corporate & Trust scholarships scanner matching your profile
+                      <p className="text-[10px] text-[#008069] font-black mt-0.5">
+                        Ask any query → Gemini dynamic web-search with Bada Bhai advice, documents & deadlines
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-500" />
-                </div>
-
-                <div
-                  onClick={onShowGlobalGuide}
-                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-150 hover:shadow-md hover:shadow-indigo-50/50 transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-xs">
-                      <Globe className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
-                        Mitra Global Guide
-                        <span className="text-[7.5px] font-black bg-indigo-600 text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-indigo-200">
-                          Global
-                        </span>
-                      </h3>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        International scholarships and global career mentor summaries
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-500" />
-                </div>
-
-                <div
-                  onClick={onShowJobGuide}
-                  className="bg-white p-6 rounded-2xl min-h-[48px] min-h-[48px] shadow-sm border border-gray-100 border border-gray-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-teal-150 hover:shadow-md hover:shadow-teal-50/50 transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 shadow-xs">
-                      <Briefcase className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-sm uppercase tracking-widest text-gray-900 leading-tight flex items-center gap-1.5">
-                        Mitra Job Guide
-                        <span className="text-[7.5px] font-black bg-[#008069] text-white px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-teal-200">
-                          Naukri
-                        </span>
-                      </h3>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        Sarkari and Private jobs & gigs simplified summaries
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-teal-500" />
+                  <ChevronRight className="w-5 h-5 text-emerald-600 group-hover:translate-x-1 transition-transform" />
                 </div>
               </>
             )}
@@ -12920,28 +12877,7 @@ const ToolsScreen = ({
             </div>
           </div>
 
-          <div
-            onClick={onShowSchemeDiscovery}
-            className="bg-[#008069] p-6 rounded-2xl min-h-[48px] shadow-xl flex flex-col gap-6 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all border-none relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 transition-transform duration-1000 group-hover:scale-150" />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
-                <Globe className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-black text-sm uppercase tracking-widest text-white leading-tight">
-                  Yojana Finder
-                </h3>
-                <p className="text-[10px] text-white/70 font-medium">
-                  Auto-match latest schemes
-                </p>
-              </div>
-              <div className="ml-auto">
-                <ChevronRight className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          </div>
+
         </div>
       )}
       {activeTool === "vault" && (
@@ -13795,7 +13731,7 @@ const Onboarding = ({
         <div className="flex justify-between items-center w-full">
           <span className="text-xs font-black text-[#008069] uppercase tracking-widest flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full border border-green-100/30">
             <span className="w-1.5 h-1.5 rounded-full bg-[#008069] animate-pulse"></span>
-            Form Mitra AI v2.0
+            Future Mitra v2.0
           </span>
           <button
             type="button"
@@ -13821,10 +13757,10 @@ const Onboarding = ({
           <div className="space-y-3">
             <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-tight">
               Swagat Hai! <br />
-              <span className="text-[#008069]">Form Mitra AI</span> me 
+              <span className="text-[#008069]">Future Mitra</span> me 
             </h1>
             <p className="text-gray-500 text-xs font-semibold max-w-xs mx-auto leading-relaxed">
-              Ab sarkari yojana ki details nikalna, eligibility check karna aur complex application forms ko bina kisi galti ke bharna hua bilkul safe aur asaan!
+              Class 9 se lekar College tak, boards, JEE/NEET, admissions aur student career ke safar mein aapka bada bhai hamesha aapke sath hai!
             </p>
           </div>
         </div>
@@ -13884,7 +13820,7 @@ const Onboarding = ({
               Hum Kya Karte Hain? 
             </h2>
             <p className="text-gray-500 text-xs font-semibold leading-relaxed">
-              Form Mitra AI aapka personal assistant hai jo in teen zaroori tariko se aapki help karta hai:
+              Future Mitra aapka personal career assistant hai jo in teen zaroori tariko se aapki help karta hai:
             </p>
           </div>
 
@@ -16109,6 +16045,8 @@ const LiveAiScreenGuru = ({
           },
           systemInstruction: `You are 'Mitra Screen Guru', a highly intelligent and empathetic Indian friend (Sathi). Speak in friendly Hinglish or Hindi like a helpful senior (Bade Bhai). 
           
+          [CRITICAL TEMPORAL CONTEXT: Today's year is 2026. Keep all answers and suggestions fully updated and accurate for the year 2026.]
+          
           CORE SKILLS:
           1. Form & Document Checker: Analyze the user's screen. Check for errors in NEET, JEE, CUET, or Government Schemes (PM-Kisan, Ladli Behna). Warn about wrong backgrounds, missing details, or blurriness.
              - PRO-TIP: Always advise them with this gold standard common sense: "BHAI AAP RAAT KO FORM BHARIYEGA KYUNKI RAAT KO GOVERNMENT SITES KA SERVER ACCHA AUR WORKING HOTA HAI" whenever they discuss filling online forms or visiting portals!
@@ -17529,6 +17467,128 @@ const HomeScreen = ({
 
     let mergedNews = [...schemeVirtualItems, ...filteredFetchedNews];
 
+    // High quality live news updates for students to ensure they always have a populated & fresh feed
+    const studentFallbacks = [
+      {
+        id: "fs-card-1",
+        title: "Bihar Student Credit Card New Portal Update 🚀",
+        summary: "Bihar sarkar ne Student Credit Card yojana ka portal naya kiya hai. Ab higher studies ke liye ₹4 lakh tak ka interest-free loan apply karna behad aasan aur fast ho gaya hai.",
+        category: "Scholarship",
+        analysis: "Bhai, agar aap higher studies ke liye paise arrange karne me pareshan ho rahe hain, toh is yojana se bina kisi collateral security ke saste dar par loan mil jayega.",
+        impact: "Aap DRCC office ke chakkar kaatne ke bajae ab direct online MNSSBY portal se apply kar sakte hain.",
+        date: "30 June 2026",
+        image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://www.7nishchay-yuvaupaj.bihar.gov.in/"
+      },
+      {
+        id: "fs-card-2",
+        title: "National Scholarship Portal (NSP) Online Registration Started",
+        summary: "NSP portal par Class 10th aur 12th passed aur college students ke liye pre-matric aur post-matric scholarship ka fresh registration khul chuka hai.",
+        category: "Scholarship",
+        analysis: "Aapko padhai me financial support dene ke liye sarkar varshik scholarship deti hai. Isme time par documents verify karwana sabse jaruri hai.",
+        impact: "Bhai, apne school ya college ke principal se consult karke pehle bonafide certificate banwayein aur fir NSP portal par apply karein.",
+        date: "15 July 2026",
+        image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://scholarships.gov.in/"
+      },
+      {
+        id: "fs-card-3",
+        title: "JEE / NEET Free Mock Tests & Career Guidance Portal Live",
+        summary: "Government ne National Test Abhyas app aur local center par free online mock tests organize karne ka elan kiya hai jahan coaching materials bhi free milenge.",
+        category: "Education",
+        analysis: "Yeh un sabhi students ke liye sunehra mauka hai jo mehengi test series kharid nahi sakte. Practice se aapka exam anxiety door hoga aur score behtar hoga.",
+        impact: "Directly play store se app download karein ya official ugc portal par free content verify karein.",
+        date: "Ongoing",
+        image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://www.nta.ac.in/Abhyas"
+      },
+      {
+        id: "fs-card-4",
+        title: "Free UPSC/BPSC Coaching Scheme for SC/ST and OBC Students",
+        summary: "Bihar state civil services incentive scheme ke tehat BPSC PT pass karne par ₹50,000 aur UPSC PT pass karne par ₹1,00,000 ki seedhi financial help di ja rahi hai.",
+        category: "Education",
+        analysis: "Bhai agar aapka koi dost ya aap prelims clear karte hain toh aage ki mains ki taiyari ke liye sarkari fund direct college bank account me aayega.",
+        impact: "Pass hone ke bad direct social welfare department ke online form portal par roll number upload karke claim karein.",
+        date: "31 August 2026",
+        image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://state.bihar.gov.in/prdbihar/"
+      },
+      {
+        id: "fs-card-5",
+        title: "PM Vidyalaxmi Education Loan Portal Update",
+        summary: "Sarkar ne top institutes me admission lene wale medhavi chatron ke liye PM Vidyalaxmi portal launch kiya hai, jisme zero-interest support par loan diya jayega.",
+        category: "Scholarship",
+        analysis: "Paisa ab aapki padhai ke aade nahi aayega! Is scheme me non-collateral loan dilaane ke liye direct banks ko instruction diya gaya hai.",
+        impact: "Apne selected college admission letter ke sath portal par single form bharein.",
+        date: "10 July 2026",
+        image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://www.vidyalakshmi.co.in/"
+      },
+      {
+        id: "fs-card-6",
+        title: "CBSE & State Board Exams 2026 Registrations Guidelines",
+        summary: "Aapke Bada Bhai ka advice hai: Boards registrations start ho gaye hain. Spells aur Aadhar match verify karlein taaki aage problem na ho.",
+        category: "Education",
+        analysis: "Minor mismatches can cause immense document verification hassle. Better check name spelling on Class 9/10 admission register now.",
+        impact: "Class teacher se contact karein aur apna base record verify karwayein.",
+        date: "30 September 2026",
+        image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://cbse.gov.in/"
+      }
+    ];
+
+    const jobsFallbacks = [
+      {
+        id: "fj-card-1",
+        title: "BPSC 70th Recruitment Scheme 💼",
+        summary: "BPSC ne civil services vacancies ke liye naya notification aur syllabus release kiya hai. Graduate pass hone par aap sarkaari adhikari ban sakte hain.",
+        category: "Jobs",
+        analysis: "Bhai, Bihar me sarkaari naukari ka sapna poora karne ka sabse behtar aur sammanit tarika hai yeh. Exam pattern thoda badla hai, isliye focus dhyan se karein.",
+        impact: "Direct bpsc.bih.nic.in par jaakar form fillup jarur karein. Government server raat ko fast chalta hai toh safe rahein.",
+        date: "20 June 2026",
+        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://bpsc.bih.nic.in/"
+      },
+      {
+        id: "fj-card-2",
+        title: "National Career Service (NCS) Mega Job Fairs Online",
+        summary: "Shram mantralaya ke NCS portal par multiple private aur semi-govt sector jobs ke liye online mega hiring fair start kiya gaya hai.",
+        category: "Jobs",
+        analysis: "BINA kisi application fee ke, direct verified companies yahan resume shortlist kar ke interview leti hain. Isse fake job calls aur scams se bachao hoga.",
+        impact: "NCS portal par apna e-Shram card ya free student candidate profile register kar ke part-time ya full-time fields choose karein.",
+        date: "15 June 2026",
+        image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://www.ncs.gov.in/"
+      },
+      {
+        id: "fj-card-3",
+        title: "Free Skill Development Training under PMKVY 4.0",
+        summary: "Pradhan Mantri Kaushal Vikas Yojana ke tehat IT, Accounts, Coding aur Digital Marketing ki free practical training aur certification di ja rahi hai.",
+        category: "Jobs",
+        analysis: "Keval degree se kaam nahi chalta bhai, aaj kal hands-on skills seekhna behad zaroori hai. Is training ke baad job placement help bhi sarkar hi karwayegi.",
+        impact: "Apne pass ke Skill Development Center (SDC) me jakar admission confirm karwayein.",
+        date: "30 June 2026",
+        image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop",
+        officialLink: "https://www.pmkvyofficial.org/"
+      }
+    ];
+
+    if (userComm === "Student") {
+      const existingIds = new Set(mergedNews.map(item => item.id));
+      studentFallbacks.forEach(item => {
+        if (!existingIds.has(item.id)) {
+          mergedNews.push(item);
+        }
+      });
+    } else if (userComm === "Jobs") {
+      const existingIds = new Set(mergedNews.map(item => item.id));
+      jobsFallbacks.forEach(item => {
+        if (!existingIds.has(item.id)) {
+          mergedNews.push(item);
+        }
+      });
+    }
+
     // If user specified desiredJob keywords, synthesize ultra-focused, matching Live Job Notification banners and place them at the absolute top!
     if (userComm === "Jobs" && jobQuery) {
       const keywords = jobQuery.split(/[\s,]+/).map(k => k.trim()).filter(k => k.length > 1);
@@ -17891,37 +17951,7 @@ const HomeScreen = ({
         </div>
       </div>
 
-      <section
-        className="p-7 bg-[#008069] rounded-[3rem] shadow-xl shadow-green-100 flex flex-col gap-6 relative overflow-hidden group active:scale-[0.98] transition-all cursor-pointer"
-        onClick={onShowSchemeDiscovery}
-      >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-1000" />
-        <div className="flex justify-between items-start relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
-              <SearchCheck className="w-5 h-5 translate-y-[1px]" />
-            </div>
-            <div className="flex flex-col">
-              <h3 className="text-white font-black text-sm uppercase tracking-widest">
-                {userProfile.community} Scheme Finder
-              </h3>
-              <p className="text-[10px] text-green-100 font-bold uppercase tracking-tight opacity-70">
-                Best for your profile
-              </p>
-            </div>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/20">
-            <Zap className="w-4 h-4 fill-current" />
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-2 relative z-10">
-          <p className="text-xl font-black text-white leading-tight italic">
-            "Dost, aapke {userProfile.community} profile ke hisaab se schemes
-            yahan hain!"
-          </p>
-        </div>
-      </section>
 
       {/* Quick Navigation Grid */}
       {/* Audit Widget */}
@@ -18328,7 +18358,7 @@ const PremiumScreen = ({
               LIMITED TIME OFFER
             </div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase">
-              Form Mitra
+              Future Mitra
               <br />
               Premium Pass
             </h2>
@@ -19189,7 +19219,7 @@ const ChatScreen = ({
             id: "welcome",
             role: "assistant",
             content:
-              "Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*",
+              "Namaste! Main aapka **Future Mitra** (aapka Bade Bhai aur Career Sathi) hoon. Main Class 9 se lekar College tak ke students ke exams (NEET, JEE, Boards), career, aur skill building mein 100% help karunga.\n\nAaj kis exam ya career tension ko door karein, mere bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*",
             timestamp: Date.now(),
           },
         ]);
@@ -19506,7 +19536,7 @@ const ChatScreen = ({
         id: "welcome",
         role: "assistant",
         content:
-          "Namaste! Main aapka **Form Mitra** (aapka Bade Bhai) hoon. Main aapki sarkari schemes, career aur forms bharne mein 100% help karunga. \n\nAaj kaise help karu bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*",
+          "Namaste! Main aapka **Future Mitra** (aapka Bade Bhai aur Career Sathi) hoon. Main Class 9 se lekar College tak ke students ke exams (NEET, JEE, Boards), career, aur skill building mein 100% help karunga.\n\nAaj kis exam ya career tension ko door karein, mere bhai? \n\n*Hinglish, Hindi ya English mein baat kar sakte hain.*",
         timestamp: Date.now(),
       },
     ]);
@@ -19640,11 +19670,11 @@ const ChatScreen = ({
             <History className="w-5 h-5" />
           </button>
           <div className="w-10 h-10 rounded-full bg-[#008069] flex items-center justify-center text-white font-bold text-xs uppercase shadow-inner">
-            FM
+            FT
           </div>
           <div>
             <h3 className="text-sm font-black text-gray-900 leading-tight">
-              Form Mitra AI
+              Future Mitra AI
             </h3>
             <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider">
               {activeConversationId ? "Active Session" : "New Chat"}
@@ -19729,6 +19759,45 @@ const ChatScreen = ({
                   {m.thought}
                 </div>
               </details>
+            )}
+
+            {m.role === "assistant" && m.searchQuery && (
+              <div className="mb-2.5 text-[11px] bg-slate-50 border border-slate-100 p-2.5 rounded-xl flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 text-gray-500 font-bold">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>Mitra Live Web Search:</span>
+                  <span className="italic text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-md font-mono select-all">
+                    "{m.searchQuery}"
+                  </span>
+                </div>
+                {m.searchSources && m.searchSources.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    <span className="text-gray-400 font-medium">Sources:</span>
+                    {m.searchSources.map((source: any, idx: number) => {
+                      let domain = "Website";
+                      try {
+                        if (source.uri) {
+                          domain = new URL(source.uri).hostname.replace('www.', '');
+                        }
+                      } catch (e) {}
+                      return (
+                        <a
+                          key={idx}
+                          href={source.uri}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-all font-semibold shadow-2xs hover:shadow-xs"
+                          title={source.title}
+                        >
+                          <span className="text-[10px] truncate max-w-[120px]">{source.title || domain}</span>
+                          <span className="text-[8px] opacity-50 bg-gray-100 px-1 rounded-sm shrink-0">{domain}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
 
             {m.image && (
@@ -20938,7 +21007,7 @@ const GuideScreen = ({
           </button>
           <div>
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-              Form Mitra Suite
+              Future Mitra Suite
             </h1>
             <p className="text-xs text-gray-500 font-medium">
               Capture form to unlock AI helper tools.
@@ -23338,6 +23407,67 @@ const SchemesScreen = ({
           const isAiResult = scheme.type === "ai";
           const matchRes = getSchemeMatchDetails(scheme);
 
+          const getScholarshipDeadlineDetail = () => {
+            const now = Date.now();
+            let status: 'OPEN' | 'CLOSED' | 'COMING_SOON' = 'OPEN';
+            let daysRemaining: number | null = null;
+            let urgencyLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
+
+            let dlTime: number | null = null;
+            if (scheme.deadline) {
+              if (typeof scheme.deadline === "number") {
+                dlTime = scheme.deadline;
+              } else {
+                const parsed = Date.parse(scheme.deadline as any);
+                if (!isNaN(parsed)) dlTime = parsed;
+              }
+            }
+
+            let openTime: number | null = null;
+            if (scheme.opening) {
+              const parsed = Date.parse(scheme.opening as any);
+              if (!isNaN(parsed)) openTime = parsed;
+            }
+
+            if (dlTime !== null) {
+              daysRemaining = Math.ceil((dlTime - now) / (24 * 60 * 60 * 1000));
+              if (daysRemaining < 0) {
+                status = 'CLOSED';
+                daysRemaining = null;
+              } else if (openTime !== null && now < openTime) {
+                status = 'COMING_SOON';
+                daysRemaining = null;
+              } else {
+                status = 'OPEN';
+              }
+            } else {
+              status = 'OPEN';
+            }
+
+            if (status === 'OPEN' && daysRemaining !== null) {
+              if (daysRemaining <= 5) {
+                urgencyLevel = 'HIGH';
+              } else if (daysRemaining <= 15) {
+                urgencyLevel = 'MEDIUM';
+              } else {
+                urgencyLevel = 'LOW';
+              }
+            }
+
+            const lastDeadlineStr = scheme.lastDeadline || (dlTime ? new Date(dlTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not specified');
+            const nextCycleStr = scheme.nextCycleExpected || (dlTime ? `Expected ${new Date(dlTime + 365*24*60*60*1000).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}` : 'Expected Mid 2027');
+
+            return {
+              status,
+              lastDeadline: lastDeadlineStr,
+              nextCycleExpected: nextCycleStr,
+              daysRemaining,
+              urgencyLevel
+            };
+          };
+
+          const deadlineDetail = getScholarshipDeadlineDetail();
+
           const handleShare = async (e: React.MouseEvent) => {
             e.stopPropagation();
             const description = scheme.hindiDescription || scheme.description;
@@ -23680,6 +23810,136 @@ const SchemesScreen = ({
                 <p className="text-sm text-gray-600 leading-relaxed font-medium line-clamp-2">
                   {scheme.hindiDescription || scheme.description}
                 </p>
+
+                {/* Smart Scholarship Information & Deadline System */}
+                {((scheme.category || "").toLowerCase().includes("edu") || scheme.monthlyAmount || scheme.ageLimit || scheme.gpaRequirement) && (
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex flex-col gap-3 my-1" onClick={(e) => e.stopPropagation()}>
+                    {/* Header Status & Days Left Row */}
+                    <div className="flex justify-between items-center pb-2.5 border-b border-slate-205/50">
+                      <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-[#008069]" />
+                        स्कॉलरशिप समय सीमा (Scholarship Timeline)
+                      </span>
+
+                      {/* Status badge */}
+                      {deadlineDetail.status === 'CLOSED' ? (
+                        <span className="px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+                          <span>❌</span>
+                          समय सीमा समाप्त (Deadline Passed)
+                        </span>
+                      ) : deadlineDetail.status === 'COMING_SOON' ? (
+                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <span>⏳</span>
+                          जल्द आ रहा है (Coming Soon)
+                        </span>
+                      ) : (
+                        <span className={cn(
+                          "px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border flex items-center gap-1",
+                          deadlineDetail.urgencyLevel === 'HIGH'
+                            ? "bg-red-50 text-red-600 border-red-200 animate-pulse"
+                            : deadlineDetail.urgencyLevel === 'MEDIUM'
+                              ? "bg-amber-50 text-amber-600 border-amber-200"
+                              : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                        )}>
+                          <span>🟢</span>
+                          आवेदन चालू है (OPEN)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Smart Details Grid */}
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {/* Monthly Amount / Scholarship reward */}
+                      <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                          निश्चित राशि (Monthly Grant)
+                        </span>
+                        <span className="font-extrabold text-[#008069]">
+                          {scheme.monthlyAmount || "Fully Funded"}
+                        </span>
+                      </div>
+
+                      {/* Application Mode */}
+                      <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                          आवेदन का माध्यम (Mode)
+                        </span>
+                        <span className="font-extrabold text-blue-600">
+                          {scheme.applicationMode || "Online"}
+                        </span>
+                      </div>
+
+                      {/* Age limit */}
+                      {scheme.ageLimit && (
+                        <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                            उम्र सीमा (Age Limit)
+                          </span>
+                          <span className="font-extrabold text-gray-700">
+                            {scheme.ageLimit}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* GPA requirement */}
+                      {scheme.gpaRequirement && (
+                        <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                            मार्क्स / GPA आवश्यकता
+                          </span>
+                          <span className="font-extrabold text-gray-700">
+                            {scheme.gpaRequirement}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Last deadline / Status info */}
+                      <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                          अंतिम तिथि (Last Deadline)
+                        </span>
+                        <span className={cn(
+                          "font-extrabold",
+                          deadlineDetail.status === 'CLOSED' ? "text-rose-600 line-through" : "text-gray-700"
+                        )}>
+                          {deadlineDetail.lastDeadline}
+                        </span>
+                      </div>
+
+                      {/* Next cycle expected */}
+                      <div className="flex flex-col gap-0.5 bg-white p-2.5 rounded-xl border border-slate-150">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                          अगला सत्र (Next Cycle expected)
+                        </span>
+                        <span className="font-extrabold text-purple-600">
+                          {scheme.nextCycleExpected}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Counter summary bar */}
+                    {deadlineDetail.status === 'OPEN' && deadlineDetail.daysRemaining !== null && (
+                      <div className={cn(
+                        "px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-between border",
+                        deadlineDetail.urgencyLevel === 'HIGH'
+                          ? "bg-red-50 border-red-200 text-red-600 animate-pulse"
+                          : "bg-amber-50 border-amber-200 text-amber-700"
+                      )}>
+                        <span>⏰ केवल इतना समय शेष है: {deadlineDetail.urgencyLevel}</span>
+                        <span>{deadlineDetail.daysRemaining} दिन बचे हैं (Days Left)</span>
+                      </div>
+                    )}
+
+                    {deadlineDetail.status === 'CLOSED' && (
+                      <div className="px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                        <span>🛑</span>
+                        <span>
+                          इस स्कॉलरशिप के आवेदन की तिथि समाप्त हो चुकी है। कृपया {deadlineDetail.nextCycleExpected} में आवेदन करें।
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Visual Document Readiness Progress Bar */}
                 {(() => {
@@ -28378,7 +28638,7 @@ const SettingsScreen = ({
 
       <div className="mt-8 text-center">
         <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
-          Version 1.0.0 • Form Mitra AI
+          Version 1.0.0 • Future Mitra AI
         </p>
       </div>
     </div>
@@ -29089,6 +29349,7 @@ export default function App() {
   const [showInterviewCoach, setShowInterviewCoach] = useState(false);
   const [showSopEngine, setShowSopEngine] = useState(false);
   const [showCSRScanner, setShowCSRScanner] = useState(false);
+  const [showScholarshipFinder, setShowScholarshipFinder] = useState(false);
   const [showGlobalGuide, setShowGlobalGuide] = useState(false);
   const [showJobGuide, setShowJobGuide] = useState(false);
   const [selectedSliderNews, setSelectedSliderNews] = useState<any | null>(
@@ -29594,7 +29855,7 @@ export default function App() {
         setNews(data);
         localStorage.setItem(
           "mitra_news_cache",
-          JSON.stringify({ data, timestamp: Date.now() }),
+          JSON.stringify({ data, timestamp: Date.now(), community: currentProfile.community }),
         );
       }
     } catch (err) {
@@ -29610,15 +29871,16 @@ export default function App() {
 
     if (cached) {
       try {
-        const { data, timestamp } = JSON.parse(cached);
+        const { data, timestamp, community: cachedComm } = JSON.parse(cached);
         if (Array.isArray(data)) {
           setNews(data);
           
           const age = Date.now() - (timestamp || 0);
           const hasMinimumNewsCount = data.length >= 5;
           const isFresh = age < 1 * 60 * 60 * 1000; // 1 hour
+          const isSameCommunity = cachedComm === profile.community;
 
-          if (hasMinimumNewsCount && isFresh) {
+          if (hasMinimumNewsCount && isFresh && isSameCommunity) {
             needsInitialFetch = false;
           }
         }
@@ -29631,7 +29893,7 @@ export default function App() {
       handleFetchNews();
     }
 
-    // Checking cache age every 60 seconds. Auto-refreshes if older than 1 hour or items count < 5
+    // Checking cache age every 60 seconds. Auto-refreshes if older than 1 hour or items count < 5 or community changed
     const ageCheckInterval = setInterval(() => {
       const rawCache = localStorage.getItem("mitra_news_cache");
       if (!rawCache) {
@@ -29639,11 +29901,12 @@ export default function App() {
         return;
       }
       try {
-        const { data, timestamp } = JSON.parse(rawCache);
+        const { data, timestamp, community: cachedComm } = JSON.parse(rawCache);
         const age = Date.now() - (timestamp || 0);
         const hasMinimumNewsCount = Array.isArray(data) && data.length >= 5;
-        if (age >= 1 * 60 * 60 * 1000 || !hasMinimumNewsCount) {
-          console.log("[NewsAutoRefresh] 1-hour elapsed or news list incomplete, auto-refreshing...");
+        const isSameCommunity = cachedComm === profile.community;
+        if (age >= 1 * 60 * 60 * 1000 || !hasMinimumNewsCount || !isSameCommunity) {
+          console.log("[NewsAutoRefresh] Auto-refreshing news due to expiry, count, or community change...");
           handleFetchNews();
         }
       } catch (e) {
@@ -29652,7 +29915,7 @@ export default function App() {
     }, 60000);
 
     return () => clearInterval(ageCheckInterval);
-  }, [handleFetchNews, profile.preferredLanguage]);
+  }, [handleFetchNews, profile.preferredLanguage, profile.community]);
 
   useEffect(() => {
     if (!user) return;
@@ -29995,7 +30258,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-lg font-black text-gray-800 tracking-tight leading-none uppercase">
-                  Form Mitra
+                  Future Mitra
                 </h1>
                 <p className="text-[10px] font-bold text-[#008069] uppercase tracking-widest mt-1 flex items-center gap-1.5">
                   <span>Aapka AI Sathi</span>
@@ -30351,6 +30614,7 @@ export default function App() {
                   onShowInterviewCoach={() => setShowInterviewCoach(true)}
                   onShowSopEngine={() => setShowSopEngine(true)}
                   onShowCSRScanner={() => setShowCSRScanner(true)}
+                  onShowScholarshipFinder={() => setShowScholarshipFinder(true)}
                   onShowGlobalGuide={() => setShowGlobalGuide(true)}
                   onShowJobGuide={() => setShowJobGuide(true)}
                   onUpdateProfile={handleUpdateProfile}
@@ -30591,6 +30855,15 @@ export default function App() {
           <CSRScanner
             userProfile={profile}
             onClose={() => setShowCSRScanner(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showScholarshipFinder && (
+          <ScholarshipFinder
+            userProfile={profile}
+            onClose={() => setShowScholarshipFinder(false)}
           />
         )}
       </AnimatePresence>

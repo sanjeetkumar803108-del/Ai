@@ -56,8 +56,8 @@ export const AuthScreen = () => {
           <div className="w-16 h-16 bg-[#008069] rounded-2xl flex items-center justify-center text-white shadow-lg overflow-hidden">
              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Mitra" alt="Logo" className="w-12 h-12" />
           </div>
-          <h1 className="text-2xl font-black text-[#008069] tracking-tight">Form Mitra AI</h1>
-          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest text-center">Aapka Digital Sarkari Sahayak</p>
+          <h1 className="text-2xl font-black text-[#008069] tracking-tight">Future Mitra</h1>
+          <p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest text-center">Aapka Bada Bhai & Career Strategist</p>
         </div>
 
         <form onSubmit={handleAuth} className="flex flex-col gap-4">

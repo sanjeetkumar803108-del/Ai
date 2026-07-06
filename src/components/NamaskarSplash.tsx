@@ -133,10 +133,10 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
           {/* Welcome subtitle */}
           <div className="space-y-1.5 px-2">
             <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#ff9933]">
-              Swagat Hai Aapka Form Mitra Mein
+              Swagat Hai Aapka Future Mitra Mein
             </p>
             <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-tight">
-              Aapka Bada Bhai, Form Mitra 🤝
+              Aapka Bada Bhai, Future Mitra 🤝
             </h2>
           </div>
 
@@ -149,11 +149,11 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
 
           {/* Empathetic Bade Bhai Description */}
           <p className="text-zinc-400 text-xs sm:text-sm font-medium px-4 leading-relaxed max-w-xs mx-auto">
-            Sarkari yojanaon aur scholarships ke safar mein koi bhi takleef ho, aapka chhota-bada bhai har mod par aapka sath dega!
+            Class 9 se lekar College tak, boards, JEE/NEET ya career ki koi bhi tension ho, aapka bada bhai hamesha aapke sath hai!
           </p>
 
           <p className="text-[10px] font-bold text-emerald-400 tracking-wide mt-2">
-            ✨ AI Form Assistant, Live Alerts & Smart Tools ✨
+            ✨ Empathetic 'Bada Bhai' & Student Career Strategist ✨
           </p>
         </motion.div>
 
@@ -173,7 +173,7 @@ export const NamaskarSplash: React.FC<NamaskarSplashProps> = ({ onComplete }) =>
           </button>
           
           <p className="text-[9px] font-black text-rose-500 bg-rose-500/10 rounded-full px-3 py-1 inline-block mt-3.5 uppercase tracking-widest border border-rose-500/10">
-            🔒 Fully Secure & Encrypted by Form Mitra
+            🔒 Fully Secure & Encrypted by Future Mitra
           </p>
         </motion.div>
       </div>

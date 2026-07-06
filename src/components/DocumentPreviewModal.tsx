@@ -303,7 +303,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               </button>
               
               <p className="text-[8.5px] font-black text-center text-slate-500 uppercase tracking-widest leading-normal">
-                🔒 Protected by Form Mitra Biometric Shield
+                🔒 Protected by Future Mitra Biometric Shield
               </p>
             </div>
 

@@ -320,7 +320,7 @@ export const LiveCall: React.FC<LiveCallProps> = ({ onClose }) => {
           </div>
         </div>
         <div className="text-center">
-          <h2 className="text-2xl font-black text-white tracking-tight">Form Mitra AI</h2>
+          <h2 className="text-2xl font-black text-white tracking-tight">Future Mitra</h2>
           <p className="text-white/50 font-medium mt-1">
             {isConnected ? "Listening..." : "Connecting..."}
           </p>

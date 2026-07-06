@@ -1,6 +1,6 @@
 {
-  "name": "Form Mitra AI",
-  "description": "AI-powered Scholarship & Government Scheme Expert with Smart Fill, AI-generated expert tips, handwritten audit, form simulator, and empathetic support.",
+  "name": "Future Mitra",
+  "description": "A highly empathetic 'Bada Bhai' and Career Strategist for the Indian Student Community (Class 9 to College), helping students conquer exam stress, boards, JEE/NEET, and build a skills-first Plan B.",
   "requestFramePermissions": ["camera", "microphone", "display-capture"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API", "AI Chat", "Form Analysis", "Voice Support"]
 }
