@@ -5,6 +5,8 @@ import { createServer as createViteServer } from "vite";
 import axios from "axios";
 import { GoogleGenAI, Type } from "@google/genai";
 import * as dotenv from "dotenv";
+// 👇 TERA NAYA KNOWLEDGE BASE YAHAN JUDEGA 👇
+import { masterScholarshipData } from "./scholarships.js"; // (Agar file ka naam scholarshipsData.js rakha hai, toh wahi likhna)
 
 dotenv.config();
 
