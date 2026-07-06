@@ -2509,421 +2509,104 @@ Format the response as a valid JSON array only. Return no markdown wrapping exce
         });
         return;
       }
+      // YAHAN SE NAYA MASTER DATA WALA PROMPT SHURU HAI
+      const prompt = `Act strictly as the 'Mitra Scholarship Finder Engine', a highly precise data-filtering backend. YOU ARE NOT A CHATBOT.
 
-      let prompt = "";
-      if (isPrivateOnly) {
-        prompt = `You are a private scholarship research expert for Indian students (acting as "Bada Bhai" or Career Strategist).
-Your job is to search the web using the Search tool to fetch authentic, accurate, and current information.
-
-HAMESHA Google Search use karo.
-Specifically search karo: buddy4study.com pe ${query || "scholarships"}
-Jo bhi results aayein unhe accurately represent karo.
-
-KABHI BHI:
-- Fake dates mat do
-- Fake amounts mat do
-- Hallucinate mat karo
-
-Agar exact info nahi mili: "Official site pe verify karo" likho bas.
-
-Search the internet for latest
-2026 scholarship information.
-Use Google Search to find 
-real current data from:
-- buddy4study.com
-- scholarships.gov.in
-- official scholarship websites
-
-Today's date: 5 July 2026
-
-
-
-Search the internet RIGHT NOW and find REAL, VERIFIED private and corporate scholarships for this student:
-
-Student Profile:
-- Class/Standard: ${userProfile.class || 'Not specified'}
+[USER PROFILE CONTEXT]
+- Class/Education: ${userProfile.class || 'Not specified'}
 - Stream: ${userProfile.stream || 'Not specified'}  
 - Family Income: ${userProfile.income || 'Not specified'}
 - Category: ${userProfile.caste || userProfile.category || 'Not specified'}
 - State: ${userProfile.state || 'Not specified'}
 - Gender: ${userProfile.gender || 'Not specified'}
 
-Today's Date: ${currentDate}
-CURRENT YEAR: ${currentYear}
+[MASTER SCHOLARSHIP DATA]
+${masterScholarshipData}
 
-⚠️ CRITICAL DATE & VERIFICATION PROTOCOL (STRICT COMPLIANCE MANDATORY):
-1. CURRENT DATE IS ${currentDate} (July 2026). All active deadlines and application dates MUST pertain to the 2026-2027 academic cycle.
-2. DETECT OLD SEARCH RESULTS: When using the Search tool, if you retrieve articles, posts, or official guidelines dated 2024, 2025, or earlier:
-   - Do NOT represent those old dates as active in 2026.
-   - If the 2026-2027 cycle dates are not yet officially announced or opened by the organizing body (e.g., Tata, HDFC, Reliance), set status to "COMING_SOON" or "CLOSED" (and daysRemaining to 0). Never make up a fake 2026 date.
-   - In the "badeBhaiAdvice" field, explicitly tell the user: "Bhai, is scholarship ka 2026-2027 application cycle abhi start nahi hua hai. Pichle saal ye [Expected Month/Date] ko open hua tha, isliye is saal bhi usi ke aaspaas portal open hoga. Tab tak papers ready rakho!"
-3. DEADLINE ENFORCEMENT: If a deadline has passed, status must be "CLOSED" and daysRemaining must be 0. If it is actively open right now in 2026, status must be "OPEN" and daysRemaining calculated accurately from ${currentDate}.
-4. STRICT URL INTEGRITY: Only return real official application portal links (e.g., hdfcbank.com/aboutus/social-initiative, tatatrusts.org, scholarships.gov.in, vidyasaarathi.co.in). Do NOT output dead, mock, or generic links.
-5. STRICT BENEFIT ACCURACY: Never return exaggerated mock amounts (e.g., ₹45,00,000 for Indian secondary school students). Look up the actual CSR guidelines and provide the exact benefits.
-
-Search these sources using Google Search:
-1. Corporate CSR scholarship portals (e.g. Tata Trusts, Reliance Foundation, HDFC Parivartan, Aditya Birla Scholars, Sitaram Jindal Foundation, Inlaks Foundation, Buddy4Study, Vidyasaarathi, etc.)
-2. Private trust websites
-3. NGO scholarship databases
-4. Buddy4Study.com
-5. Scholarships.gov.in
-6. Vidyasaarathi.co.in
-
-Find scholarships that:
-✅ Are currently OPEN or opening soon
-✅ Match student's profile exactly
-✅ Have verified official portals
-✅ Are from real organizations
-
-For each scholarship return:
-- Exact name (name)
-- Organizing body (organizer - e.g. Tata Trusts, Reliance Foundation, HDFC Parivartan, Sitaram Jindal Foundation, Inlaks Foundation, etc.)
-- Total amount (benefits.totalAmount - e.g. ₹50,000/year, ₹2,00,000 etc. Exact amounts only. NO fake/exaggerated amounts)
-- Opening status and closing deadline (deadline - status can be OPEN, CLOSED, or COMING_SOON. If closed/passed, set status to CLOSED, nextCycleExpected to the next expected month/year, and daysRemaining to 0. If open, set status to OPEN, daysRemaining, currentCycleDate)
-- Direct link to official application portal (applicationProcess.portal)
-- Eligibility match reason (matchReason)
-- Documents required (documents)
-- Step-by-step application process (applicationProcess.steps)
-- Realistic matching score based on user profile (matchScore out of 100. General category student with 2 Lakh income should match generic open scholarships, not caste-specific ones)
-- Source domain (source - e.g. "buddy4study.com", "tatatrusts.org", "reliancefoundation.org")
-- Verified badge (verified - boolean, set to true if from a verified trusted organization)
-
-⚠️ STRICT RULES:
-❌ No fake scholarships
-❌ No hallucinated data
-❌ No fake deadlines
-❌ No 100% match for everything
-✅ Only verified organizations
-✅ Real portal links only
-✅ Honest match scores
-✅ Current accurate deadlines\n
-CRITICAL RULES FOR "MATCH PERCENTAGE" CALCULATION:
-The Match Percentage MUST be a combination of TWO factors:
-1. Keyword Relevance (50% weight): Does the scholarship match the user's search query?
-2. Profile Eligibility (50% weight): Does the user's actual profile (Class, Stream, State, Income) match the official eligibility criteria of the scholarship?
-
-Scoring Examples:
-- If the user searches "Airtel" AND their profile matches the Airtel eligibility perfectly = 95% - 100% Match.
-- If the user searches "Airtel" BUT their profile DOES NOT match the eligibility (e.g., they are in Class 11 PCB, but the scheme is for Post-Graduates) = 40% - 50% Match.
-- If the scheme is totally unrelated to the query AND their profile = Below 20%.
-
-IMPORTANT: If the Match Percentage drops because of their profile (e.g., 50%), you MUST add a short warning note explaining WHY in the matchReason field. Example: "⚠️ Name matches, but you need to be an Engineering student to apply."
-
-
-Return minimum 6 real scholarships.
-Sort by: Open first, highest amount first.
-
-Please generate a structured JSON object so that the frontend can render it beautifully.
-Use easy, comforting Hinglish, as an encouraging "Bade Bhai" (elder brother).
-
-## OUTPUT FORMAT (JSON ONLY):
-Return a JSON object conforming exactly to this structure. Do not wrap in markdown or write conversational text outside the JSON.
+CRITICAL RULES (NON-NEGOTIABLE):
+1. ZERO HALLUCINATION: DO NOT search the web. You MUST ONLY use the [MASTER SCHOLARSHIP DATA] provided above to answer.
+2. STRICT ELIGIBILITY FILTER: Compare the User Profile with the Master Data. Only output scholarships where the user is 100% eligible. (e.g., Block female schemes for male users).
+3. MATCH SCORE: Calculate a realistic matchScore (0-100) based on how perfectly their profile aligns.
+4. JSON OUTPUT ONLY: You must return the filtered scholarships in the exact JSON schema provided below. Do not wrap in markdown backticks.
 
 {
   "scholarships": [
     {
       "id": "unique_alphanumeric_id",
-      "name": "Full name of the scholarship",
-      "hindiName": "Hindi/Hinglish name of the scholarship",
-      "organizer": "Organizing body",
-      "source": "e.g. buddy4study.com",
-      "verified": true,
+      "name": "Exact Name from Master Data",
+      "hindiName": "Hindi translated name",
+      "organizer": "Organizer from Master Data",
       "type": "PRIVATE",
-      "targetGroup": "Who is this scholarship targeted for",
+      "targetGroup": "Target audience",
       "deadline": {
-        "status": "OPEN | CLOSED | COMING_SOON | UNKNOWN",
-        "currentCycleDate": "DD Month YYYY or null",
-        "nextCycleExpected": "Expected Opens Month YYYY",
-        "daysRemaining": 25,
-        "urgencyMessage": "Empathetic warning in Hinglish regarding the timeline",
+        "status": "OPEN",
+        "currentCycleDate": "Last Date from Master Data",
+        "nextCycleExpected": "",
+        "daysRemaining": 30,
+        "urgencyMessage": "Bade bhai style urgency message in Hinglish",
         "applyNow": true
       },
       "benefits": {
-        "totalAmount": "Total financial benefit in ₹ (e.g. ₹50,000/year)",
-        "breakdown": {
-          "tuition": "Full tuition or specific ₹ amount",
-          "monthly": "₹ stipend per month if any",
-          "airfare": null,
-          "settlement": null,
-          "books": "Book allowance or null",
-          "hostel": "Hostel allowance or null",
-          "other": ["Other cash allowances"]
-        },
-        "duration": "Duration of support",
-        "additionalPerks": ["Mentorship", "Laptop support"]
+        "totalAmount": "Amount from Master Data",
+        "breakdown": { "tuition": "", "monthly": "", "other": [] },
+        "duration": "Course duration",
+        "additionalPerks": []
       },
       "eligibility": {
-        "age": {
-          "min": 0,
-          "max": 25,
-          "description": "Age eligibility detail in Hinglish"
-        },
-        "academics": {
-          "minMarks": "e.g. 75%",
-          "description": "Academic requirements detail in Hinglish"
-        },
-        "income": {
-          "maxAnnual": "e.g. ₹3,00,000",
-          "description": "Income restrictions detail in Hinglish"
-        },
+        "age": { "min": 0, "max": 25, "description": "From data" },
+        "academics": { "minMarks": "", "description": "From data" },
+        "income": { "maxAnnual": "", "description": "From data" },
         "category": ["GENERAL", "OBC", "SC", "ST", "EWS"],
-        "gender": "ALL | MALE | FEMALE",
+        "gender": "ALL",
         "stream": ["SCIENCE", "ARTS", "COMMERCE", "ANY"],
-        "state": "ALL or specific state name",
-        "other": ["Additional constraints"]
+        "state": "ALL"
       },
       "documents": [
         {
-          "name": "Document Name",
+          "name": "Doc name from Data",
           "isRequired": true,
-          "howToGet": "Where/how to procure this",
-          "timeRequired": "Estimated days to get",
-          "cost": "Cost (Free or ₹ amount)",
+          "howToGet": "Where to get",
+          "timeRequired": "1 Day",
+          "cost": "Free",
           "tip": "Bade bhai pro tip for this document"
         }
       ],
       "applicationProcess": {
-        "mode": "ONLINE | OFFLINE | BOTH",
-        "portal": "https://official-portal-url.com",
-        "portalName": "Name of the official application portal",
+        "mode": "ONLINE",
+        "portal": "Link from Master Data",
+        "portalName": "Official Portal",
         "tracks": [],
-        "steps": [
-          "Step 1 details in Hinglish",
-          "Step 2 details in Hinglish"
-        ],
-        "helpline": "Helpline number or 1800...",
-        "email": "official-support@email.com"
+        "steps": ["Step 1 from data", "Step 2"],
+        "helpline": "",
+        "email": ""
       },
-      "preparationTimeline": [
-        {
-          "timeframe": "Abhi se (Immediately)",
-          "tasks": ["Prepare XYZ document"]
-        }
-      ],
-      "successTips": [
-        "Pro tip 1 in Hinglish"
-      ],
-      "commonMistakes": [
-        "Mistake 1 in Hinglish to avoid"
-      ],
-      "matchScore": 85,
-      "matchReason": "Why this matches their profile",
-      "badeBhaiAdvice": "Empathetic, reassuring elder brother personal message",
+      "preparationTimeline": [],
+      "successTips": ["Tip 1"],
+      "commonMistakes": ["Mistake 1"],
+      "matchScore": 95,
+      "matchReason": "Explain in Hinglish why this matches their profile based on Master Data",
+      "badeBhaiAdvice": "Empathetic Bada Bhai message",
       "relatedScholarships": []
     }
   ],
   "summary": {
-    "totalFound": 6,
-    "bestMatch": "unique_alphanumeric_id",
-    "quickAdvice": "Overarching Hinglish guidance for the query",
-    "nextAction": "Immediate next step the student should take right now"
-  }
-}
-
-Return ONLY valid, parseable JSON conforming to this schema. Do not write markdown blocks or backticks around the JSON.`;
-
-;
-      } else {
-        prompt = `You are "Scholarship Mitra" (also known as "Bada Bhai" or Career Strategist), an expert on Indian and international scholarships for students.
-Your job is to search the web using the Search tool to fetch authentic, accurate, and current information.
-
-HAMESHA Google Search use karo.
-Specifically search karo: buddy4study.com pe ${query || "scholarships"}
-Jo bhi results aayein unhe accurately represent karo.
-
-KABHI BHI:
-- Fake dates mat do
-- Fake amounts mat do
-- Hallucinate mat karo
-
-Agar exact info nahi mili: "Official site pe verify karo" likho bas.
-
-
-TODAY'S DATE: ${currentDate}
-CURRENT YEAR: ${currentYear}
-
-USER QUERY: "${query}"
-
-USER PROFILE:
-- Class/Standard: ${userProfile.class || 'Not specified'}
-- Stream: ${userProfile.stream || 'Not specified'}  
-- Family Income: ${userProfile.income || 'Not specified'}
-- Category: ${userProfile.caste || userProfile.category || 'Not specified'}
-- State: ${userProfile.state || 'Not specified'}
-- Gender: ${userProfile.gender || 'Not specified'}
-
-## YOUR TASK:
-Search and provide COMPLETE, ACCURATE, UP-TO-DATE information about the scholarship(s) matching this query.
-If multiple scholarships match or if you find related opportunities, please return a list (up to 3 high-relevance scholarships).
-IMPORTANT: Focus entirely on the user's query ("${query}").
-
-## CRITICAL RULES:
-1. STRICT RELEVANCE: 
-   - You MUST ONLY return scholarships that match the user's query ("${query}").
-   - If the user searches for a specific corporate scholarship (like "Vivo", "HDFC", "Tata"), ONLY return results related to that corporate scholarship. Do NOT hallucinate unrelated scholarships.
-   - Use real actual amounts only. NEVER show exaggerated mock amounts like "₹45,00,000" type amounts.
-
-2. DEADLINE & CURRENT YEAR VERIFICATION (STRICT COMPLIANCE MANDATORY):
-   - CURRENT DATE IS ${currentDate} (July 2026). All active deadlines and application dates MUST pertain to the current 2026-2027 academic cycle.
-   - You MUST use the Google Search tool to search for the official exact dates, opening dates, and application portals for the query. DO NOT GUESS.
-   - Do NOT invent or guess deadlines (e.g. "30 November 2026"). If the scholarship is closed or hasn't opened yet, reflect that accurately by searching official sources.
-   - If the 2026-2027 cycle dates are not yet officially announced or opened by the organizing body, set status to "COMING_SOON" or "CLOSED" (and daysRemaining to 0). Never make up a fake 2026 date.
-   - In the "badeBhaiAdvice" field, explicitly tell the user: "Bhai, is scholarship ka 2026-2027 application cycle abhi start nahi hua hai. Pichle saal ye [Expected Month/Date] ko open hua tha, isliye is saal bhi usi ke aaspaas portal open hoga. Tab tak papers ready rakho!"
-   - If the deadline for 2026 has passed, set status to "CLOSED", nextCycleExpected to the next expected month/year, and daysRemaining to 0. NEVER show fake countdowns.
-   - Only set status to "OPEN" if you have verified that applications are actively being accepted on the official portal right now in 2026.
-
-3. AMOUNT ACCURACY:
-   - Use real actual amounts only. NEVER show exaggerated mock amounts like "₹45,00,000" type amounts. 
-
-4. ELIGIBILITY & MATCH SCORE ACCURACY:
-CRITICAL RULES FOR "MATCH PERCENTAGE" CALCULATION:
-The Match Percentage MUST be a combination of TWO factors:
-1. Keyword Relevance (50% weight): Does the scholarship match the user's search query?
-2. Profile Eligibility (50% weight): Does the user's actual profile (Class, Stream, State, Income) match the official eligibility criteria of the scholarship?
-
-Scoring Examples:
-- If the user searches "Airtel" AND their profile matches the Airtel eligibility perfectly = 95% - 100% Match.
-- If the user searches "Airtel" BUT their profile DOES NOT match the eligibility (e.g., they are in Class 11 PCB, but the scheme is for Post-Graduates) = 40% - 50% Match.
-- If the scheme is totally unrelated to the query AND their profile = Below 20%.
-
-IMPORTANT: If the Match Percentage drops because of their profile (e.g., 50%), you MUST add a short warning note explaining WHY in the matchReason field. Example: "⚠️ Name matches, but you need to be an Engineering student to apply."
-
-5. LANGUAGE & TONE:5. LANGUAGE & TONE:
-   - Mix of Hindi + English (Hinglish) that is easy, simple, and comforting.
-   - Speak as an empathetic, encouraging elder brother ("Bade Bhai"). Avoid robot-like vocabulary.
-
-## OUTPUT FORMAT (JSON ONLY):
-Return a JSON object conforming exactly to this structure. Do not wrap in markdown or write conversational text outside the JSON.
-
-{
-  "scholarships": [
-    {
-      "id": "unique_alphanumeric_id",
-      "name": "Full name of the scholarship",
-      "hindiName": "Hindi/Hinglish name of the scholarship",
-      "organizer": "Organizing body (Ministry, University, Trust, etc.)",
-      "type": "CENTRAL | STATE | INTERNATIONAL | PRIVATE | PROGRAM",
-      "targetGroup": "Who is this scholarship targeted for",
-      "deadline": {
-        "status": "OPEN | CLOSED | COMING_SOON | UNKNOWN",
-        "currentCycleDate": "DD Month YYYY or null",
-        "nextCycleExpected": "Expected Opens Month YYYY",
-        "daysRemaining": 25,
-        "urgencyMessage": "Empathetic warning in Hinglish regarding the timeline",
-        "applyNow": true
-      },
-      "benefits": {
-        "totalAmount": "Total financial benefit in ₹ or fully funded details",
-        "breakdown": {
-          "tuition": "Full tuition or specific ₹ amount",
-          "monthly": "₹ stipend per month if any",
-          "airfare": "Included flight details or null",
-          "settlement": "Settlement allowance in ₹ or null",
-          "books": "Book allowance or null",
-          "hostel": "Hostel allowance or null",
-          "other": ["Other cash allowances"]
-        },
-        "duration": "Duration of support (e.g. 3 Years)",
-        "additionalPerks": ["Mentorship", "Laptop support", "Alumni network"]
-      },
-      "eligibility": {
-        "age": {
-          "min": 0,
-          "max": 25,
-          "description": "Age eligibility detail in Hinglish"
-        },
-        "academics": {
-          "minMarks": "e.g. 75%",
-          "description": "Academic requirements detail in Hinglish"
-        },
-        "income": {
-          "maxAnnual": "e.g. ₹3,00,000",
-          "description": "Income restrictions detail in Hinglish"
-        },
-        "category": ["GENERAL", "OBC", "SC", "ST", "EWS"],
-        "gender": "ALL | MALE | FEMALE",
-        "stream": ["SCIENCE", "ARTS", "COMMERCE", "ANY"],
-        "state": "ALL or specific state name",
-        "other": ["Additional constraints"]
-      },
-      "documents": [
-        {
-          "name": "Document Name",
-          "isRequired": true,
-          "howToGet": "Where/how to procure this",
-          "timeRequired": "Estimated days to get",
-          "cost": "Cost (Free or ₹ amount)",
-          "tip": "Bade bhai pro tip for this document"
-        }
-      ],
-      "applicationProcess": {
-        "mode": "ONLINE | OFFLINE | BOTH",
-        "portal": "https://official-portal-url.gov.in",
-        "portalName": "Name of the official application portal",
-        "tracks": [
-          {
-            "name": "e.g. Embassy Track",
-            "description": "How this application route works",
-            "universities": "University selection limit or choices",
-            "address": "Postal address if offline submission needed"
-          }
-        ],
-        "steps": [
-          "Step 1 details in Hinglish",
-          "Step 2 details in Hinglish"
-        ],
-        "helpline": "Helpline number or 1800...",
-        "email": "official-support@email.com"
-      },
-      "preparationTimeline": [
-        {
-          "timeframe": "Abhi se (Immediately)",
-          "tasks": ["Prepare XYZ document", "Draft research essay"]
-        },
-        {
-          "timeframe": "1 Mahina Pehle (1 Month Before)",
-          "tasks": ["Task details"]
-        }
-      ],
-      "successTips": [
-        "Pro tip 1 in Hinglish",
-        "Pro tip 2 in Hinglish"
-      ],
-      "commonMistakes": [
-        "Mistake 1 in Hinglish to avoid",
-        "Mistake 2 in Hinglish"
-      ],
-      "matchScore": 95,
-      "matchReason": "Why this matches their profile perfectly",
-      "badeBhaiAdvice": "Empathetic, reassuring elder brother personal message",
-      "relatedScholarships": [
-        "Alternate scholarship name 1",
-        "Alternate scholarship name 2"
-      ]
-    }
-  ],
-  "summary": {
     "totalFound": 1,
-    "bestMatch": "unique_alphanumeric_id",
-    "quickAdvice": "Overarching Hinglish guidance for the query",
-    "nextAction": "Immediate next step the student should take right now"
+    "bestMatch": "unique_id",
+    "quickAdvice": "Overarching Hinglish guidance",
+    "nextAction": "Immediate next step"
   }
-}
+}`;
 
-Return ONLY valid, parseable JSON conforming to this schema. Do not write markdown blocks or backticks around the JSON.`;
-
-;
-      }
+      // NAYA PROMPT YAHAN KHATAM
 
       const response = await callGeminiWithRetry({
         model: "gemini-3.5-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
-          tools: [{ googleSearch: {} }],
-          temperature: 0.3,
+          temperature: 0.1,
         }
       });
-
+      
       let text = response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
       let cleaned = text.trim();
       if (cleaned.startsWith("```")) {
