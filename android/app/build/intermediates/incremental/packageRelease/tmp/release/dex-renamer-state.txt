@@ -1,0 +1,7 @@
+#Tue Jul 07 09:32:43 IST 2026
+base.1=C\:\\Users\\VICTUS\\Ai\\android\\app\\build\\intermediates\\global_synthetics_dex\\release\\mergeReleaseGlobalSynthetics\\classes.dex
+path.1=classes.dex
+base.0=C\:\\Users\\VICTUS\\Ai\\android\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
+renamed.1=classes2.dex
+renamed.0=classes.dex
+path.0=classes.dex

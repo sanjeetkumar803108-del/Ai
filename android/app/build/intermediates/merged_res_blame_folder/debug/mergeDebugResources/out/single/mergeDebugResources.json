@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.sanjeet.formmitra.app-debug-26:/drawable_splash.xml.flat",
+        "source": "com.sanjeet.formmitra.app-main-28:/drawable/splash.xml"
+    },
+    {
+        "merged": "com.sanjeet.formmitra.app-debug-26:/xml_config.xml.flat",
+        "source": "com.sanjeet.formmitra.app-main-28:/xml/config.xml"
+    },
+    {
+        "merged": "com.sanjeet.formmitra.app-debug-26:/xml_file_paths.xml.flat",
+        "source": "com.sanjeet.formmitra.app-main-28:/xml/file_paths.xml"
+    }
+]
